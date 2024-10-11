@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "blockingpy"
+version = "0.1.0"
+description = "Python port of R's blocking package  for blocking records for record linkage and data deduplication based on ANN algorithms."
+authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>"]
+readme = "README.md"
+packages = [{include = "blockingpy", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+numpy = "^1.21"
+pandas = "^2.2.3"
+annoy = "^1.17.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
