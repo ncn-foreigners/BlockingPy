@@ -24,7 +24,7 @@ class AnnoyBlocker(BlockingMethod):
         build_on_disk = controls.annoy.get('build_on_disk', False)
         k_search = controls.get('k_search', 10) 
 
-        self.check_distance(distance)    
+        self._check_distance(distance)    
 
         ncols = x.shape[1]
         metric = self.metric_map.get(distance)
@@ -76,7 +76,7 @@ class AnnoyBlocker(BlockingMethod):
 
         return result
 
-    def check_distance(self, distance):
+    def _check_distance(self, distance):
         if distance not in self.metric_map.keys():
             valid_metrics = ", ".join(self.metric_map.keys())
             raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.")
