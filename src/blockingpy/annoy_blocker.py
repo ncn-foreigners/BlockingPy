@@ -8,15 +8,16 @@ import logging
 
 
 class AnnoyBlocker(BlockingMethod):
+    METRIC_MAP: Dict[str, str] = {
+        "euclidean": "euclidean",
+        "manhattan": "manhattan",
+        "hamming": "hamming",
+        "angular": "angular"
+    }
+
     def __init__(self):
         self.index: Optional[AnnoyIndex] = None
         self.logger = logging.getLogger(__name__)
-        self.metric_map:Dict[str, str] = {
-            "euclidean": "euclidean",
-            "manhattan": "manhattan",
-            "hamming": "hamming",
-            "angular": "angular"
-        }
     
     def block(self, x: np.ndarray, y: np.ndarray, k: int, controls: Dict[str, Any]) -> pd.DataFrame:
         """
@@ -45,7 +46,7 @@ class AnnoyBlocker(BlockingMethod):
         self._check_distance(distance)    
 
         ncols = x.shape[1]
-        metric = self.metric_map.get(distance)
+        metric = self.METRIC_MAP[distance]
 
         self.index = AnnoyIndex(ncols, metric)
         if seed is not None:
@@ -102,10 +103,10 @@ class AnnoyBlocker(BlockingMethod):
             distance (str): The distance metric to validate.
 
         Raises:
-            ValueError: If the provided distance is not in the metric map.
+            ValueError: If the provided distance is not in the METRIC_MAP.
         """
-        if distance not in self.metric_map.keys():
-            valid_metrics = ", ".join(self.metric_map.keys())
+        if distance not in self.METRIC_MAP:
+            valid_metrics = ", ".join(self.METRIC_MAP.keys())
             raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.")
         
     def _save_index(self, path: str, x: np.ndarray, verbose: bool) -> None:
