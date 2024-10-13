@@ -10,6 +10,21 @@ from .base import BlockingMethod
 
 
 class AnnoyBlocker(BlockingMethod):
+    """
+    A class for performing blocking using the Annoy algorithm.
+    For details see: https://github.com/spotify/annoy
+
+    Attributes:
+        index (Optional[AnnoyIndex]): The Annoy index used for nearest neighbor search.
+        logger (logging.Logger): Logger for the class.
+
+    The main method of this class is `block()`, which performs the actual
+    blocking operation. Use the `controls` parameter in the `block()` method 
+    to fine-tune the algorithm's behavior.
+
+    This class inherits from the BlockingMethod abstract base class and
+    implements its `block()` method.
+    """
     METRIC_MAP: Dict[str, str] = {
         "euclidean": "euclidean",
         "manhattan": "manhattan",

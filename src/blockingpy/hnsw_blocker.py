@@ -8,6 +8,21 @@ import os
 from .base import BlockingMethod
 
 class HNSWBlocker(BlockingMethod):
+    """
+    A class for performing blocking using the Hierarchical Navigable Small World (HNSW) algorithm.
+    For details see: https://github.com/nmslib/hnswlib
+
+    Attributes:
+        index (Optional[hnswlib.Index]): The HNSW index used for nearest neighbor search.
+        logger (logging.Logger): Logger for the class.
+
+    The main method of this class is `block()`, which performs the actual
+    blocking operation. Use the `controls` parameter in the `block()` method 
+    to fine-tune the algorithm's behavior.
+
+    This class inherits from the BlockingMethod abstract base class and
+    implements its `block()` method.
+    """
     SPACE_MAP: Dict[str, str] = {
         "l2": "l2",
         "euclidean": "l2",
