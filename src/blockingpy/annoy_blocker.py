@@ -1,10 +1,12 @@
-from typing import Dict, Any, Optional
 import numpy as np
 import pandas as pd
 from annoy import AnnoyIndex
+from scipy.sparse import issparse, csr_matrix
 from tempfile import NamedTemporaryFile
-from .base import BlockingMethod
+from typing import Dict, Any, Union, Tuple, List, Optional
+import os
 import logging
+from .base import BlockingMethod
 
 
 class AnnoyBlocker(BlockingMethod):
@@ -19,13 +21,16 @@ class AnnoyBlocker(BlockingMethod):
         self.index: Optional[AnnoyIndex] = None
         self.logger = logging.getLogger(__name__)
     
-    def block(self, x: np.ndarray, y: np.ndarray, k: int, controls: Dict[str, Any]) -> pd.DataFrame:
+    def block(self, x: Union[np.ndarray, pd.DataFrame, csr_matrix], 
+              y: Union[np.ndarray, pd.DataFrame, csr_matrix], 
+              k: int, 
+              controls: Dict[str, Any]) -> pd.DataFrame:
         """
         Perform blocking using Annoy algorithm.
 
         Args:
-            x (np.ndarray): Reference data.
-            y (np.ndarray): Query data.
+            x (Union[np.ndarray, pd.DataFrame, csr_matrix]): Reference data.
+            y (Union[np.ndarray, pd.DataFrame, csr_matrix]): Query data.
             k (int): Number of nearest neighbors to find.
             controls (Dict[str, Any]): Control parameters for the algorithm.
 
@@ -35,13 +40,17 @@ class AnnoyBlocker(BlockingMethod):
         Raises:
             ValueError: If an invalid distance metric is provided.
         """
-        distance = controls.annoy.get('distance', None)
-        verbose = controls.annoy.get('verbose', False)
-        seed = controls.annoy.get('seed', None)
-        path = controls.annoy.get('path', None)
-        n_trees = controls.annoy.get('n_trees', 10)
-        build_on_disk = controls.annoy.get('build_on_disk', False)
-        k_search = controls.get('k_search', 10) 
+        x, x_columns = self._prepare_input(x)
+        y, _ = self._prepare_input(y)
+
+        distance = controls['annoy'].get('distance', None)
+        verbose = controls['annoy'].get('verbose', False)
+        seed = controls['annoy'].get('seed', None)
+        path = controls['annoy'].get('path', None)
+        n_trees = controls['annoy'].get('n_trees', 10)
+        build_on_disk = controls['annoy'].get('build_on_disk', False)
+        k_search = controls['annoy'].get('k_search', 10)
+
 
         self._check_distance(distance)    
 
@@ -74,13 +83,13 @@ class AnnoyBlocker(BlockingMethod):
         l_ind_dist = np.zeros(y.shape[0])
 
         k_search = min(k_search, x.shape[0])
-        for i  in range(y.shape[0]):
+        for i in range(y.shape[0]):
             annoy_res = self.index.get_nns_by_vector(y[i], k_search, include_distances=True)
             l_ind_nns[i] = annoy_res[0][k-1]
             l_ind_dist[i] = annoy_res[1][k-1]  
 
         if path:
-            self._save_index(path, x, verbose)
+            self._save_index(path, x_columns, verbose)
 
         result = {
             'y': np.arange(y.shape[0]),  
@@ -109,13 +118,32 @@ class AnnoyBlocker(BlockingMethod):
             valid_metrics = ", ".join(self.METRIC_MAP.keys())
             raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.")
         
-    def _save_index(self, path: str, x: np.ndarray, verbose: bool) -> None:
+    
+    def _prepare_input(self, data: Union[np.ndarray, pd.DataFrame, csr_matrix]) -> Tuple[np.ndarray, List[str]]:
+        """
+        Prepare input data for Annoy algorithm.
+
+        Args:
+            data Union[np.ndarray, pd.DataFrame, csr_matrix]: Input data in various formats.
+
+        Returns:
+            Tuple of numpy array and list of column names.
+        """
+        if isinstance(data, pd.DataFrame):
+            return data.to_numpy(), list(data.columns)
+        elif issparse(data):
+            return data.toarray(), [f'col_{i}' for i in range(data.shape[1])]
+        else:
+            return data, [f'col_{i}' for i in range(data.shape[1])]
+        
+        
+    def _save_index(self, path: str, columns: List[str], verbose: bool) -> None:
         """
         Save the Annoy index and column names to files.
 
         Args:
             path (str): Directory path where the files will be saved.
-            x (np.ndarray): The reference data used to create column names.
+            columns (List[str]): List of column names.
             verbose (bool): If True, log the save operation.
 
         Notes:
@@ -123,7 +151,6 @@ class AnnoyBlocker(BlockingMethod):
             1. 'index.annoy': The Annoy index file.
             2. 'index-colnames.txt': A text file with column names.
         """
-        import os
         path_ann = os.path.join(path, "index.annoy")
         path_ann_cols = os.path.join(path, "index-colnames.txt")
 
@@ -133,4 +160,4 @@ class AnnoyBlocker(BlockingMethod):
         self.index.save(path_ann)
 
         with open(path_ann_cols, 'w') as f:
-            f.write('\n'.join(x.columns if isinstance(x, pd.DataFrame) else [f'col_{i}' for i in range(x.shape[1])]))
+            f.write('\n'.join(columns))

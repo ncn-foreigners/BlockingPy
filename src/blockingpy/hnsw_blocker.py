@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import hnswlib
-import scipy
+from scipy.sparse import issparse, csr_matrix
 import logging
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional, Union, Tuple, List
 import os
 from .base import BlockingMethod
 
@@ -19,16 +19,16 @@ class HNSWBlocker(BlockingMethod):
         self.index: Optional[hnswlib.Index] = None
         self.logger = logging.getLogger(__name__)
 
-    def block(self, x: Union[np.ndarray, scipy.sparse.csr_matrix], 
-            y: Union[np.ndarray, scipy.sparse.csr_matrix], 
+    def block(self, x: Union[np.ndarray, csr_matrix, pd.DataFrame], 
+            y: Union[np.ndarray, csr_matrix, pd.DataFrame], 
             k: int, 
             controls: Dict[str, Any]) -> pd.DataFrame:
         """
         Perform blocking using HNSW algorithm.
 
         Args:
-            x (Union[np.ndarray, scipy.sparse.csr_matrix]): Reference data.
-            y (Union[np.ndarray, scipy.sparse.csr_matrix]): Query data.
+            x (Union[np.ndarray, csr_matrix, pd.DataFrame]): Reference data.
+            y (Union[np.ndarray, csr_matrix, pd.DataFrame]): Query data.
             k (int): Number of nearest neighbors to find. If k is larger than the number of reference points,
                      it will be automatically adjusted.
             controls (Dict[str, Any]): Control parameters for the algorithm.
@@ -39,6 +39,9 @@ class HNSWBlocker(BlockingMethod):
         Raises:
             ValueError: If an invalid distance metric is provided.
         """
+        x, x_columns = self._prepare_input(x)
+        y, _ = self._prepare_input(y)
+
         distance = controls['hnsw'].get('distance')
         verbose = controls['hnsw'].get('verbose', False)
         n_threads = controls['hnsw'].get('n_threads', 1)
@@ -75,7 +78,7 @@ class HNSWBlocker(BlockingMethod):
         l_1nn = self.index.knn_query(y, k=k)
 
         if path:
-            self._save_index(path, x, verbose)
+            self._save_index(path, x_columns, verbose)
         
         result = pd.DataFrame({
             'y': range(y.shape[0]),
@@ -101,14 +104,33 @@ class HNSWBlocker(BlockingMethod):
         if distance not in self.SPACE_MAP:
             valid_metrics = ", ".join(self.SPACE_MAP.keys())
             raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.")
+        
+    
+    def _prepare_input(self, data: Union[np.ndarray, csr_matrix, pd.DataFrame]) -> Tuple[np.ndarray, List[str]]:
+        """
+        Prepare input data for HNSW algorithm.
 
-    def _save_index(self, path: str, x: Union[np.ndarray, 'scipy.sparse.csr_matrix'], verbose: bool) -> None:
+        Args:
+            data Union[np.ndarray, csr_matrix, pd.DataFrame]: Input data in various formats.
+
+        Returns:
+            Tuple of numpy array and list of column names.
+        """
+        if isinstance(data, pd.DataFrame):
+            return data.to_numpy(), list(data.columns)
+        elif issparse(data):
+            return data.toarray(), [f'col_{i}' for i in range(data.shape[1])]
+        else:
+            return data, [f'col_{i}' for i in range(data.shape[1])]
+        
+
+    def _save_index(self, path: str, columns: List[str], verbose: bool) -> None:
         """
         Save the HNSW index and column names to files.
 
         Args:
             path (str): Directory path where the files will be saved.
-            x (Union[np.ndarray, scipy.sparse.csr_matrix]): The reference data used to determine the number of columns.
+            columns (List[str]): List of column names.
             verbose (bool): If True, log the save operation.
 
         Notes:
@@ -124,4 +146,4 @@ class HNSWBlocker(BlockingMethod):
         
         self.index.save_index(path_ann)
         with open(path_ann_cols, 'w') as f:
-            f.write('\n'.join(x.columns if isinstance(x, pd.DataFrame) else [f'col_{i}' for i in range(x.shape[1])]))
+            f.write('\n'.join(columns))
