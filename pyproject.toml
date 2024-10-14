@@ -14,6 +14,7 @@ annoy = "^1.17.3"
 hnswlib = "^0.8.0"
 scipy = ">=1.5.0"
 mlpack = "^4.5.0"
+pynndescent = "^0.5.13"
 
 
 [build-system]
