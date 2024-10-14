@@ -1,0 +1,6 @@
+-> _prepare_input przenieść do Blocking
+-> k i k_search >= x.shape[0] przenieść do Blocking
+-> Fais/meta, voyager/spotify do dodania
+-> update docstrings, testy
+-> parametry do algorytmów z **kwds???
+-> może zmienić parametry w nnd na https://pynndescent.readthedocs.io/en/latest/api.html
