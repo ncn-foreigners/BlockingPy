@@ -58,7 +58,7 @@ class MLPackBlocker(BlockingMethod):
         """
         self.algo = controls.get('algo', None)
         self._check_algo(self.algo)
-        if self.algo == lsh:
+        if self.algo == 'lsh':
             verbose = controls['lsh'].get('verbose', False)
             seed = controls['lsh'].get('seed', None)
             path = controls['lsh'].get('path', None)
