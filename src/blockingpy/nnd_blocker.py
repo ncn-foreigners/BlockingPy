@@ -9,6 +9,23 @@ from .base import BlockingMethod
 
 
 class NNDBlocker(BlockingMethod):
+    """
+    A blocker class that uses the Nearest Neighbor Descent (NND).
+
+    This class performs blocking using the pynndescent library's NNDescent algorithm.
+    For details see: https://pynndescent.readthedocs.io/en/latest/api.html
+
+    Attributes:
+        index: The NNDescent index used for querying.
+        logger: A logger instance for outputting information and warnings.
+
+    The main method of this class is `block()`, which performs the actual
+    blocking operation. Use the `controls` parameter in the `block()` method 
+    to fine-tune the algorithm's behavior.
+
+    This class inherits from the BlockingMethod abstract base class and
+    implements its `block()` method.
+    """
     def __init__(self):
         self.index = None
         self.logger = logging.getLogger(__name__)
@@ -18,6 +35,21 @@ class NNDBlocker(BlockingMethod):
               y: Union[np.ndarray, csr_matrix, pd.DataFrame], 
               k: int, 
               controls: Dict[str, Any]) -> pd.DataFrame:
+        """
+        Perform blocking using NND algorithm.
+
+        Args:
+            x (Union[np.ndarray, pd.DataFrame, csr_matrix]): Reference data.
+            y (Union[np.ndarray, pd.DataFrame, csr_matrix]): Query data.
+            k (int): Number of nearest neighbors to find.
+            controls (Dict[str, Any]): Control parameters for the algorithm.
+
+        Returns:
+            pd.DataFrame: DataFrame containing the blocking results.
+
+        Raises:
+            ValueError: If an invalid distance metric is provided.
+        """
         
         x, x_columns = self._prepare_input(x)
         y, _ = self._prepare_input(y)
