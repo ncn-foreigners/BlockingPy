@@ -3,7 +3,7 @@ import pandas as pd
 import pynndescent
 from scipy.sparse import issparse, csr_matrix
 import logging
-from typing import Dict, Any, Union, Tuple, List, Optional
+from typing import Dict, Any, Union, Tuple, List
 from .base import BlockingMethod
 
 
