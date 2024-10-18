@@ -37,6 +37,7 @@ class HNSWBlocker(BlockingMethod):
     def block(self, x: Union[np.ndarray, csr_matrix, pd.DataFrame], 
             y: Union[np.ndarray, csr_matrix, pd.DataFrame], 
             k: int, 
+            verbose: Optional[bool],
             controls: Dict[str, Any]) -> pd.DataFrame:
         """
         Perform blocking using HNSW algorithm.
@@ -46,6 +47,7 @@ class HNSWBlocker(BlockingMethod):
             y (Union[np.ndarray, csr_matrix, pd.DataFrame]): Query data.
             k (int): Number of nearest neighbors to find. If k is larger than the number of reference points,
                      it will be automatically adjusted.
+            verbose (bool): control the level of verbosity.
             controls (Dict[str, Any]): Control parameters for the algorithm.
 
         Returns:
@@ -58,7 +60,7 @@ class HNSWBlocker(BlockingMethod):
         y, _ = self._prepare_input(y)
 
         distance = controls['hnsw'].get('distance')
-        verbose = controls['hnsw'].get('verbose', False)
+        verbose = verbose
         n_threads = controls['hnsw'].get('n_threads', 1)
         path = controls['hnsw'].get('path')
 

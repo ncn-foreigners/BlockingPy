@@ -38,7 +38,8 @@ class AnnoyBlocker(BlockingMethod):
     
     def block(self, x: Union[np.ndarray, pd.DataFrame, csr_matrix], 
               y: Union[np.ndarray, pd.DataFrame, csr_matrix], 
-              k: int, 
+              k: int,
+              verbose: Optional[bool], 
               controls: Dict[str, Any]) -> pd.DataFrame:
         """
         Perform blocking using Annoy algorithm.
@@ -47,6 +48,7 @@ class AnnoyBlocker(BlockingMethod):
             x (Union[np.ndarray, pd.DataFrame, csr_matrix]): Reference data.
             y (Union[np.ndarray, pd.DataFrame, csr_matrix]): Query data.
             k (int): Number of nearest neighbors to find.
+            verbose (bool): control the level of verbosity.
             controls (Dict[str, Any]): Control parameters for the algorithm.
 
         Returns:
@@ -59,7 +61,7 @@ class AnnoyBlocker(BlockingMethod):
         y, _ = self._prepare_input(y)
 
         distance = controls['annoy'].get('distance', None)
-        verbose = controls['annoy'].get('verbose', False)
+        verbose = verbose
         seed = controls['annoy'].get('seed', None)
         path = controls['annoy'].get('path', None)
         n_trees = controls['annoy'].get('n_trees', 10)

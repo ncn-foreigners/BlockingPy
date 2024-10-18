@@ -3,7 +3,7 @@ import pandas as pd
 import pynndescent
 from scipy.sparse import issparse, csr_matrix
 import logging
-from typing import Dict, Any, Union, Tuple, List
+from typing import Dict, Any, Union, Tuple, List, Optional
 from .base import BlockingMethod
 
 
@@ -31,9 +31,10 @@ class NNDBlocker(BlockingMethod):
         self.logger = logging.getLogger(__name__)
 
 
-    def block(self, x: Union[np.ndarray, csr_matrix, pd.DataFrame], 
-              y: Union[np.ndarray, csr_matrix, pd.DataFrame], 
+    def block(self, x: Union[np.array,np.ndarray, csr_matrix, pd.DataFrame], 
+              y: Union[np.array,np.ndarray, csr_matrix, pd.DataFrame], 
               k: int, 
+              verbose: Optional[bool],
               controls: Dict[str, Any]) -> pd.DataFrame:
         """
         Perform blocking using NND algorithm.
@@ -42,6 +43,7 @@ class NNDBlocker(BlockingMethod):
             x (Union[np.ndarray, pd.DataFrame, csr_matrix]): Reference data.
             y (Union[np.ndarray, pd.DataFrame, csr_matrix]): Query data.
             k (int): Number of nearest neighbors to find.
+            verbose (bool): control the level of verbosity.
             controls (Dict[str, Any]): Control parameters for the algorithm.
 
         Returns:
@@ -55,7 +57,7 @@ class NNDBlocker(BlockingMethod):
         y, _ = self._prepare_input(y)
 
         distance = controls['nnd'].get('metric')
-        verbose = controls['nnd'].get('verbose', False)
+        verbose = verbose
         n_threads = controls['nnd'].get('n_threads', 1)
         k_search = controls['nnd'].get('k_search')
 
@@ -128,20 +130,110 @@ class NNDBlocker(BlockingMethod):
         Returns:
             Tuple of numpy array and list of column names.
         """
+        
         if isinstance(data, pd.DataFrame):
             return data.to_numpy(), list(data.columns)
         elif issparse(data):
             return data.toarray(), [f'col_{i}' for i in range(data.shape[1])]
         else:
-            return data, [f'col_{i}' for i in range(data.shape[1])]
+            return data, [x for x in range(len(data))]
         
 def run_example():
     np.random.seed(42)
-    x = np.random.rand(100, 10)
-    y = np.random.rand(5, 10)
+    from sklearn.feature_extraction.text import CountVectorizer
+
+    import re
+
+    def preprocess_text(text):
+    # Convert to string if not already
+        text = str(text)
+        # Remove special characters, keeping alphanumeric characters and spaces
+        text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
+        # Convert to lowercase
+        return text.lower().strip()
+
+    def tokenize_dataframe(df, min_df=1, max_df=1.0):
+        # Identify numeric and string columns
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        string_cols = df.select_dtypes(include=['object']).columns
+
+        # Initialize an empty DataFrame to store the result
+        result_df = pd.DataFrame()
+
+        # Copy numeric columns as-is
+        result_df[numeric_cols] = df[numeric_cols]
+
+        # Tokenize string columns
+        vectorizer = CountVectorizer(min_df=min_df, max_df=max_df)
+        
+        for col in string_cols:
+            # Preprocess the column data
+            column_data = df[col].fillna('').apply(preprocess_text)
+            
+            try:
+                # Fit and transform the column
+                tokenized = vectorizer.fit_transform(column_data)
+                
+                # Get feature names (tokens)
+                feature_names = vectorizer.get_feature_names_out()
+                
+                if len(feature_names) > 0:
+                    # Create a DataFrame with the tokenized results
+                    tokenized_df = pd.DataFrame(
+                        tokenized.toarray(),
+                        columns=[f"{col}_{token}" for token in feature_names]
+                    )
+                    
+                    # Concatenate with the result DataFrame
+                    result_df = pd.concat([result_df, tokenized_df], axis=1)
+                else:
+                    print(f"Warning: No valid tokens found in column '{col}'. Skipping this column.")
+            
+            except ValueError as e:
+                print(f"Error processing column '{col}': {str(e)}")
+                print(f"Skipping column '{col}'")
+
+        return result_df
+
+    # Example usage:
+    # Assuming 'df' is your input DataFrame
+    # tokenized_df = tokenize_dataframe(df)
+    # print(tokenized_df)
+
+    data = {
+        'rec-id': ['rec-000-dup-0', 'rec-000-org', 'rec-001-org', 'rec-002-dup-0', 'rec-002-org', 'rec-003-org', 'rec-004-org','rec-005-dup-0'],
+        'given-name': ['Makowska', 'Edyta', 'Stanisława', 'Gabryela', 'Wirginia', 'Stanisława', 'Florentyna','Kowalska'],
+        #'age': [0.19,0.91,0.66,0.44,0.33,0.65,0.12,0.67],
+        'second-name': ['Regina', 'Regina', 'Genowefa', 'Bąk', 'Gabryela', 'Izabella', 'Adrianna','Lilianna'],
+        'surname': ['Edyta', 'Makowska', 'Olszewska', 'Wirginia', 'Bąk', 'Kalinowska', 'Maciejewska','Dorota'],
+        'telephone-number': ['', '691027677', '606258815', '', '500469632', '698774701', '600047974', ''],
+        'birthday_year': ['05/10/1906', '05/10/1960', '09/02/1963', '24/10/1989', '24/10/1998', '15/09/2010', '14/02/1983', '10/09/1995']
+    }
+    data_1 = {
+        'rec-id': ['rec-005-dup-0'],
+        'given-name': ['Kowalska'],
+        'age':[0.67],
+        'second-name': ['Lilianna'],
+        'surname': ['Dorota'],
+        'telephone-number': [''],
+        'birthday_year': ['10/09/1995']
+    }
+
+    # Create the DataFrame
+    x = pd.DataFrame(data)
+    y = pd.DataFrame(data_1)
+
+    x = tokenize_dataframe(x)
+    y = x.iloc[[0,3], 2:]
+    x = x.iloc[[1,2,4,5,6,7], 2:]
+    #y = tokenize_dataframe(y)
+
+    print(x)
+    print(y)
+    
 
     nnd_blocker = NNDBlocker()
-    result = nnd_blocker.block(x, y, k=3, controls={
+    result = nnd_blocker.block(x, y, k=1, controls={
         'nnd': {
             'metric': 'euclidean',
             'k_search': 5,
@@ -165,3 +257,38 @@ def run_example():
         }
     })
     print(result.head())
+
+def tokenize_dataframe(df):
+    # Identify numeric and string columns
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    string_cols = df.select_dtypes(include=['object']).columns
+
+    # Initialize an empty DataFrame to store the result
+    result_df = pd.DataFrame()
+
+    # Copy numeric columns as-is
+    result_df[numeric_cols] = df[numeric_cols]
+
+    # Tokenize string columns
+    from sklearn.feature_extraction.text import CountVectorizer
+    vectorizer = CountVectorizer()
+    for col in string_cols:
+        # Fill NaN values with an empty string
+        column_data = df[col].fillna('')
+        
+        # Fit and transform the column
+        tokenized = vectorizer.fit_transform(column_data)
+        
+        # Get feature names (tokens)
+        feature_names = vectorizer.get_feature_names_out()
+        
+        # Create a DataFrame with the tokenized results
+        tokenized_df = pd.DataFrame(
+            tokenized.toarray(),
+            columns=[f"{col}_{token}" for token in feature_names]
+        )
+        
+        # Concatenate with the result DataFrame
+        result_df = pd.concat([result_df, tokenized_df], axis=1)
+
+    return result_df

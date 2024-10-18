@@ -3,7 +3,7 @@ from mlpack import lsh, knn
 import pandas as pd
 import numpy as np
 from scipy.sparse import issparse, csr_matrix
-from typing import Dict, Any, Union, Tuple, List
+from typing import Dict, Any, Union, Tuple, List, Optional
 import os
 from .base import BlockingMethod
 
@@ -40,6 +40,7 @@ class MLPackBlocker(BlockingMethod):
     def block(self, x: Union[np.ndarray, csr_matrix, pd.DataFrame], 
               y: Union[np.ndarray, csr_matrix, pd.DataFrame], 
               k: int, 
+              verbose: Optional[bool],
               controls: Dict[str, Any]) -> pd.DataFrame:
         """
         Perform blocking using MLPack algorithm (LSH or k-d tree).
@@ -48,6 +49,7 @@ class MLPackBlocker(BlockingMethod):
             x (Union[np.ndarray, csr_matrix, pd.DataFrame]): Reference data.
             y (Union[np.ndarray, csr_matrix, pd.DataFrame]): Query data.
             k (int): Number of nearest neighbors to find.
+            verbose (bool): control the level of verbosity.
             controls (Dict[str, Any]): Control parameters for the algorithm.
 
         Returns:
@@ -56,15 +58,15 @@ class MLPackBlocker(BlockingMethod):
         Raises:
             ValueError: If an invalid algorithm is specified in the controls.
         """
-        self.algo = controls.get('algo', None)
+        self.algo = controls.get('algo', 'lsh')
         self._check_algo(self.algo)
         if self.algo == 'lsh':
-            verbose = controls['lsh'].get('verbose', False)
+            verbose = verbose
             seed = controls['lsh'].get('seed', None)
             path = controls['lsh'].get('path', None)
             k_search = controls['lsh'].get('k_search', 5)
         else:
-            verbose = controls['kd'].get('verbose', False)
+            verbose = verbose
             seed = controls['kd'].get('seed', None)
             path = controls['kd'].get('path', None)
             k_search = controls['kd'].get('k_search', 5)
