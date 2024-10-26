@@ -17,6 +17,7 @@ pynndescent = "^0.5.13"
 mlpack = "^4.5.0"
 scikit-learn = "^1.5.2"
 networkx = "^3.1"
+nltk = "^3.9.1"
 
 
 [build-system]
