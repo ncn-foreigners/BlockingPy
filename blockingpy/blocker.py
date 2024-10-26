@@ -11,7 +11,7 @@ from .annoy_blocker import AnnoyBlocker
 from .hnsw_blocker import HNSWBlocker
 from .mlpack_blocker import MLPackBlocker
 from .nnd_blocker import NNDBlocker
-from .helper_functions import validate_input, validate_true_blocks
+from .helper_functions import validate_input, validate_true_blocks, create_sparse_dtm
 from .blocking_result import BlockingResult
 
 class Blocker:
@@ -59,16 +59,20 @@ class Blocker:
         
         validate_true_blocks(true_blocks, deduplication)
 
-        ### TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION
-        ### TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION
-        ### TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION
-        ### TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION
-        x_dtm = x
-        y_dtm = y
-        ### TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION
-        ### TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION
-        ### TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION
-        ### TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION TOKENIZATION
+        #TOKENIZATION
+        if sparse.issparse(x):
+            x_dtm = x
+            y_dtm = y
+        else:
+            if verbose in [1,2]:
+                print("===== creating tokens =====\n")
+            x_dtm = create_sparse_dtm(x,
+                                      control_txt,
+                                      verbose=True if verbose == 2 else False)
+            y_dtm = create_sparse_dtm(y,
+                                      control_txt,
+                                      verbose=True if verbose == 2 else False)  
+        #TOKENIZATION
 
         colnames_xy = np.intersect1d(x_dtm.columns, y_dtm.columns)
 
