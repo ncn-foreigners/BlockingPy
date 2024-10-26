@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 from scipy import sparse
 import os
+import re
+from sklearn.feature_extraction.text import CountVectorizer
+from nltk.util import ngrams
 from typing import Optional, Union, List
 
 def validate_input(#x: Union[np.ndarray, pd.DataFrame, sparse.csr_matrix],
@@ -54,3 +57,34 @@ def validate_true_blocks(true_blocks: Optional[pd.DataFrame],
             if len(true_blocks.columns) != 2 or not all(col in true_blocks.columns for col in ["x", "block"]):
                 raise ValueError("`true blocks` should be a DataFrame with columns: x, block")
     
+def tokenize_character_shingles(text, n=3, lowercase=True, strip_non_alphanum=True):
+    if lowercase:
+        text = text.lower()
+    if strip_non_alphanum:
+        text = re.sub(r'[^a-z0-9]+', '', text)  
+    shingles = [''.join(gram) for gram in ngrams(text, n)]
+    return shingles
+
+def create_sparse_dtm(x, control_txt, verbose=False):
+    vectorizer = CountVectorizer(
+        tokenizer=lambda x: tokenize_character_shingles(
+            x, 
+            n=control_txt['n_shingles'], 
+            lowercase=control_txt['lowercase'], 
+            strip_non_alphanum=control_txt['strip_non_alphanum']
+        ),
+        max_features=control_txt.get('n_chunks')
+    )
+    x_dtm_sparse = vectorizer.fit_transform(x)
+    x_voc = vectorizer.vocabulary_
+
+    x_sparse_df = pd.DataFrame.sparse.from_spmatrix(
+        x_dtm_sparse, columns=vectorizer.get_feature_names_out()
+    )
+
+    if verbose:
+        print("Vocabulary:", x_voc)
+        print("Sparse DataFrame shape:", x_sparse_df.shape)
+        print("Sparse DataFrame:\n", x_sparse_df)
+
+    return x_sparse_df 
