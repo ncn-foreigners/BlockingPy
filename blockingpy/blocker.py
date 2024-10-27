@@ -17,6 +17,8 @@ from .blocking_result import BlockingResult
 class Blocker:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+        self.eval_metrics = None
+        self.confusion = None
 
     def block(self, 
               #x: Union[np.ndarray, pd.DataFrame, sparse.csr_matrix],
@@ -75,7 +77,7 @@ class Blocker:
         #TOKENIZATION
 
         colnames_xy = np.intersect1d(x_dtm.columns, y_dtm.columns)
-
+        print(f"======== Intersect --> {colnames_xy} ========")
         if verbose in [1, 2]:
             print(f"===== starting search ({ann}, x, y: {x_dtm.shape[0]}, {y_dtm.shape[0]}, t: {len(colnames_xy)}) =====")
 
@@ -89,8 +91,8 @@ class Blocker:
             blocker = AnnoyBlocker()
         
         x_df = blocker.block(
-            x=x_dtm[:, colnames_xy],
-            y=y_dtm[:, colnames_xy],
+            x=x_dtm[colnames_xy],
+            y=y_dtm[colnames_xy],
             k=k,
             verbose=True if verbose == 2 else False,
             controls=control_ann
@@ -187,12 +189,12 @@ class Blocker:
             same_block = block_id_array[candidate_pairs[:, 0]] == block_id_array[candidate_pairs[:, 1]]
             same_truth = true_id_array[candidate_pairs[:, 0]] == true_id_array[candidate_pairs[:, 1]]
 
-            confusion = pd.crosstab(same_block, same_truth)
+            self.confusion = pd.crosstab(same_block, same_truth)
             
-            fp = confusion.loc[True, False]   
-            fn = confusion.loc[False, True]   
-            tp = confusion.loc[True, True]    
-            tn = confusion.loc[False, False]  
+            fp = self.confusion.loc[True, False]   
+            fn = self.confusion.loc[False, True]   
+            tp = self.confusion.loc[True, True]    
+            tn = self.confusion.loc[False, False]  
 
             recall = tp / (fn + tp) if (fn + tp) != 0 else 0 
             precision = tp / (tp + fp) if (tp + fp) != 0 else 0
@@ -202,7 +204,7 @@ class Blocker:
             fpr = fp / (fp + tn) if (fp + tn) != 0 else 0
             fnr = fn / (fn + tp) if (fn + tp) != 0 else 0
 
-            eval_metrics = {
+            self.eval_metrics = {
                 'recall': recall,
                 'precision': precision,
                 'fpr': fpr,
@@ -211,7 +213,7 @@ class Blocker:
                 'specificity': specificity,
                 'f1_score': f1_score,
             }
-            eval_metrics = pd.Series(eval_metrics)
+            self.eval_metrics = pd.Series(self.eval_metrics)
         
         x_df = x_df.sort_values(['x', 'y', 'block'])
 
@@ -219,7 +221,7 @@ class Blocker:
                               ann=ann,
                               deduplication=deduplication,
                               true_blocks=true_blocks,
-                              eval_metrics=eval_metrics,
-                              confusion=confusion,
+                              eval_metrics=self.eval_metrics,
+                              confusion=self.confusion,
                               colnames_xy=colnames_xy,
                               graph=graph)
