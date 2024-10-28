@@ -19,10 +19,12 @@ class Blocker:
         self.logger = logging.getLogger(__name__)
         self.eval_metrics = None
         self.confusion = None
+        self.x_colnames = None
+        self.y_colnames = None
 
     def block(self, 
               #x: Union[np.ndarray, pd.DataFrame, sparse.csr_matrix],
-              x,
+              x: Union[pd.DataFrame, sparse.csr_matrix, np.ndarray, np.array, list[str]],
               y: Optional[Union[np.ndarray, pd.DataFrame, sparse.csr_matrix]] = None,
               deduplication: bool = True,
               on: Optional[List[str]] = None,
@@ -37,8 +39,15 @@ class Blocker:
               seed: int = 2023,
               n_threads: int = 1,
               control_txt: Dict[str, Any] = None,
-              control_ann: Dict[str, Any] = None):
+              control_ann: Dict[str, Any] = None,
+              x_colnames: Optional[List[str]] = None,
+              y_colnames: Optional[List[str]] = None):
         
+        self.x_colnames = x_colnames
+        self.y_colnames = y_colnames
+        if deduplication:
+            self.y_colnames = self.x_colnames
+
         if distance is None:
             distance = {  
                 "nnd": "cosine",
@@ -63,8 +72,17 @@ class Blocker:
 
         #TOKENIZATION
         if sparse.issparse(x):
-            x_dtm = x
-            y_dtm = y
+            if self.x_colnames is None or self.y_colnames is None:
+                raise ValueError("Input is sparse, but x_colnames or y_colnames is None.")
+            
+            x_dtm = pd.DataFrame.sparse.from_spmatrix(x, columns=self.x_colnames)
+            y_dtm = pd.DataFrame.sparse.from_spmatrix(y, columns=self.y_colnames)
+        elif isinstance(x, np.ndarray):
+            if self.x_colnames is None or self.y_colnames is None:
+                raise ValueError("Input is np.ndarray, but x_colnames or y_colnames is None.")
+            
+            x_dtm = pd.DataFrame(x, columns=self.x_colnames)
+            y_dtm = pd.DataFrame(y, columns=self.y_colnames)
         else:
             if verbose in [1,2]:
                 self.logger.info("===== creating tokens =====\n")
