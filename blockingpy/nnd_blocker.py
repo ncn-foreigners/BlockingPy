@@ -66,12 +66,6 @@ class NNDBlocker(BlockingMethod):
             k_search = min(k_search, x.shape[0])
             self.logger.warning(f"k ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k to {k_search}.")
 
-
-        if k > x.shape[0]:
-            original_k = k
-            k = min(k, x.shape[0])
-            self.logger.warning(f"k ({original_k}) is larger than the number of reference points ({x.shape[0]}). Adjusted k to {k}.")
-
         if verbose:
             self.logger.info("Initializing NND index...")
 

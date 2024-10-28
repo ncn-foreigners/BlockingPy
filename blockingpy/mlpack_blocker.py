@@ -64,17 +64,20 @@ class MLPackBlocker(BlockingMethod):
             verbose = verbose
             seed = controls['lsh'].get('seed', None)
             path = controls['lsh'].get('path', None)
-            k_search = controls['lsh'].get('k_search', 5)
+            k_search = controls['lsh'].get('k_search', 10)
         else:
             verbose = verbose
             seed = controls['kd'].get('seed', None)
             path = controls['kd'].get('path', None)
-            k_search = controls['kd'].get('k_search', 5)
+            k_search = controls['kd'].get('k_search', 10)
 
         x, self.x_columns = self._prepare_input(x)
         y, _ = self._prepare_input(y)
 
-        k_search = min(k_search, x.shape[0])
+        if k_search > x.shape[0]:
+            original_k_search = k_search
+            k_search = min(k_search, x.shape[0])
+            self.logger.warning(f"k ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k to {k_search}.")
 
         if verbose:
             self.logger.info(f"Initializing MLPack {self.algo.upper()} index...")

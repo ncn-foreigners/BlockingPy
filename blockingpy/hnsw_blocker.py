@@ -64,11 +64,6 @@ class HNSWBlocker(BlockingMethod):
         n_threads = controls['hnsw'].get('n_threads', 1)
         path = controls['hnsw'].get('path')
 
-        if k > x.shape[0]:
-            original_k = k
-            k = min(k, x.shape[0])
-            self.logger.warning(f"k ({original_k}) is larger than the number of reference points ({x.shape[0]}). Adjusted k to {k}.")
-
         self._check_distance(distance)
         space = self.SPACE_MAP[distance]
 
