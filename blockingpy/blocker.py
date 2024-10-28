@@ -67,7 +67,7 @@ class Blocker:
             y_dtm = y
         else:
             if verbose in [1,2]:
-                print("===== creating tokens =====\n")
+                self.logger.info("===== creating tokens =====\n")
             x_dtm = create_sparse_dtm(x,
                                       control_txt,
                                       verbose=True if verbose == 2 else False)
@@ -77,9 +77,10 @@ class Blocker:
         #TOKENIZATION
 
         colnames_xy = np.intersect1d(x_dtm.columns, y_dtm.columns)
-        print(f"======== Intersect --> {colnames_xy} ========")
+        
         if verbose in [1, 2]:
-            print(f"===== starting search ({ann}, x, y: {x_dtm.shape[0]}, {y_dtm.shape[0]}, t: {len(colnames_xy)}) =====")
+            self.logger.info(f"======== Intersect --> {colnames_xy} ========")
+            self.logger.info(f"===== starting search ({ann}, x, y: {x_dtm.shape[0]}, {y_dtm.shape[0]}, t: {len(colnames_xy)}) =====")
 
         if ann == 'nnd':
             blocker = NNDBlocker()
@@ -99,7 +100,7 @@ class Blocker:
             )
     
         if verbose in [1,2]:
-            print("===== creating graph =====\n")
+            self.logger.info("===== creating graph =====\n")
         
         if deduplication:
             x_df = x_df[x_df['y'] > x_df['x']]
