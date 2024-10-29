@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
 from annoy import AnnoyIndex
-from scipy.sparse import issparse, csr_matrix
 from tempfile import NamedTemporaryFile
-from typing import Dict, Any, Union, Tuple, List, Optional
+from typing import Dict, Any, Optional
 import os
 import logging
 from .base import BlockingMethod
@@ -17,6 +16,7 @@ class AnnoyBlocker(BlockingMethod):
     Attributes:
         index (Optional[AnnoyIndex]): The Annoy index used for nearest neighbor search.
         logger (logging.Logger): Logger for the class.
+        x_columns: column names of x
 
     The main method of this class is `block()`, which performs the actual
     blocking operation. Use the `controls` parameter in the `block()` method 
@@ -35,9 +35,10 @@ class AnnoyBlocker(BlockingMethod):
     def __init__(self):
         self.index: Optional[AnnoyIndex] = None
         self.logger = logging.getLogger(__name__)
+        self.x_columns = None
     
-    def block(self, x: Union[np.ndarray, pd.DataFrame, csr_matrix], 
-              y: Union[np.ndarray, pd.DataFrame, csr_matrix], 
+    def block(self, x: pd.DataFrame, 
+              y: pd.DataFrame, 
               k: int,
               verbose: Optional[bool], 
               controls: Dict[str, Any]) -> pd.DataFrame:
@@ -45,8 +46,8 @@ class AnnoyBlocker(BlockingMethod):
         Perform blocking using Annoy algorithm.
 
         Args:
-            x (Union[np.ndarray, pd.DataFrame, csr_matrix]): Reference data.
-            y (Union[np.ndarray, pd.DataFrame, csr_matrix]): Query data.
+            x (pd.DataFrame): Reference data.
+            y (pd.DataFrame): Query data.
             k (int): Number of nearest neighbors to find.
             verbose (bool): control the level of verbosity.
             controls (Dict[str, Any]): Control parameters for the algorithm.
@@ -57,8 +58,7 @@ class AnnoyBlocker(BlockingMethod):
         Raises:
             ValueError: If an invalid distance metric is provided.
         """
-        x, x_columns = self._prepare_input(x)
-        y, _ = self._prepare_input(y)
+        self.x_columns = x.columns
 
         distance = controls['annoy'].get('distance', None)
         verbose = verbose
@@ -110,7 +110,7 @@ class AnnoyBlocker(BlockingMethod):
             l_ind_dist[i] = annoy_res[1][k-1]  
 
         if path:
-            self._save_index(path, x_columns, verbose)
+            self._save_index(path, verbose)
 
         result = {
             'y': np.arange(y.shape[0]),  
@@ -138,33 +138,13 @@ class AnnoyBlocker(BlockingMethod):
         if distance not in self.METRIC_MAP:
             valid_metrics = ", ".join(self.METRIC_MAP.keys())
             raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.")
-        
-    
-    def _prepare_input(self, data: Union[np.ndarray, pd.DataFrame, csr_matrix]) -> Tuple[np.ndarray, List[str]]:
-        """
-        Prepare input data for Annoy algorithm.
-
-        Args:
-            data Union[np.ndarray, pd.DataFrame, csr_matrix]: Input data in various formats.
-
-        Returns:
-            Tuple of numpy array and list of column names.
-        """
-        if isinstance(data, pd.DataFrame):
-            return data.to_numpy(), list(data.columns)
-        elif issparse(data):
-            return data.toarray(), [f'col_{i}' for i in range(data.shape[1])]
-        else:
-            return data, [f'col_{i}' for i in range(data.shape[1])]
-        
-        
-    def _save_index(self, path: str, columns: List[str], verbose: bool) -> None:
+             
+    def _save_index(self, path: str, verbose: bool) -> None:
         """
         Save the Annoy index and column names to files.
 
         Args:
             path (str): Directory path where the files will be saved.
-            columns (List[str]): List of column names.
             verbose (bool): If True, log the save operation.
 
         Notes:
@@ -181,4 +161,4 @@ class AnnoyBlocker(BlockingMethod):
         self.index.save(path_ann)
 
         with open(path_ann_cols, 'w') as f:
-            f.write('\n'.join(columns))
+            f.write('\n'.join(self.x_columns))

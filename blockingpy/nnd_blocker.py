@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
 import pynndescent
-from scipy.sparse import issparse, csr_matrix
 import logging
-from typing import Dict, Any, Union, Tuple, List, Optional
+from typing import Dict, Any, Optional
 from .base import BlockingMethod
-
 
 
 class NNDBlocker(BlockingMethod):
@@ -31,8 +29,8 @@ class NNDBlocker(BlockingMethod):
         self.logger = logging.getLogger(__name__)
 
 
-    def block(self, x: Union[np.array,np.ndarray, csr_matrix, pd.DataFrame], 
-              y: Union[np.array,np.ndarray, csr_matrix, pd.DataFrame], 
+    def block(self, x: pd.DataFrame, 
+              y: pd.DataFrame, 
               k: int, 
               verbose: Optional[bool],
               controls: Dict[str, Any]) -> pd.DataFrame:
@@ -40,8 +38,8 @@ class NNDBlocker(BlockingMethod):
         Perform blocking using NND algorithm.
 
         Args:
-            x (Union[np.ndarray, pd.DataFrame, csr_matrix]): Reference data.
-            y (Union[np.ndarray, pd.DataFrame, csr_matrix]): Query data.
+            x (pd.DataFrame): Reference data.
+            y (pd.DataFrame): Query data.
             k (int): Number of nearest neighbors to find.
             verbose (bool): control the level of verbosity.
             controls (Dict[str, Any]): Control parameters for the algorithm.
@@ -52,9 +50,6 @@ class NNDBlocker(BlockingMethod):
         Raises:
             ValueError: If an invalid distance metric is provided.
         """
-        
-        x, x_columns = self._prepare_input(x)
-        y, _ = self._prepare_input(y)
 
         distance = controls['nnd'].get('metric')
         verbose = verbose
@@ -113,24 +108,4 @@ class NNDBlocker(BlockingMethod):
             self.logger.info("Process completed successfully.")
 
         return result
-
-    def _prepare_input(self, data: Union[np.ndarray, csr_matrix, pd.DataFrame]) -> Tuple[np.ndarray, List[str]]:
-        """
-        Prepare input data for NND algorithm.
-
-        Args:
-            data Union[np.ndarray, csr_matrix, pd.DataFrame]: Input data in various formats.
-
-        Returns:
-            Tuple of numpy array and list of column names.
-        """
         
-        if isinstance(data, pd.DataFrame):
-            return data.to_numpy(), list(data.columns)
-        elif issparse(data):
-            return data.toarray(), [f'col_{i}' for i in range(data.shape[1])]
-        else:
-            return data, [x for x in range(len(data))]
-        
-def run_example():
-    pass
