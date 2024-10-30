@@ -53,7 +53,6 @@ class MLPackBlocker(BlockingMethod):
         Raises:
             ValueError: If an invalid algorithm is specified in the controls.
         """
-        print(controls.get('algo'))
         self.algo = controls.get('algo', 'lsh')
         self._check_algo(self.algo)
         if self.algo == 'lsh':
@@ -80,11 +79,11 @@ class MLPackBlocker(BlockingMethod):
                 reference=x,
                 verbose=verbose,
                 seed=seed,
-                bucket_size=controls['lsh'].get('bucket_size', None),
-                hash_width=controls['lsh'].get('hash_width', None),
-                num_probes=controls['lsh'].get('num_probes', None),
-                projections=controls['lsh'].get('projections', None),
-                tables=controls['lsh'].get('tables', None)
+                bucket_size=controls['lsh'].get('bucket_size', 500),
+                hash_width=controls['lsh'].get('hash_width', 0.0),
+                num_probes=controls['lsh'].get('num_probes', 0),
+                projections=controls['lsh'].get('projections', 10),
+                tables=controls['lsh'].get('tables', 30)
             )
         else:  
             query_result = knn(
