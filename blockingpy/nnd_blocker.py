@@ -52,7 +52,6 @@ class NNDBlocker(BlockingMethod):
         """
 
         distance = controls['nnd'].get('metric', 'euclidean')
-        print(distance)
         verbose = verbose
         k_search = controls['nnd'].get('k_search', 30)
 
