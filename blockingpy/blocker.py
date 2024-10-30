@@ -78,7 +78,7 @@ class Blocker:
             x_dtm = pd.DataFrame(x, columns=self.x_colnames)
             y_dtm = pd.DataFrame(y, columns=self.y_colnames)
         else:
-            if verbose in [1,2]:
+            if verbose in [1, 2, 3]:
                 self.logger.info("===== creating tokens =====\n")
             x_dtm = create_sparse_dtm(x,
                                       control_txt,
@@ -90,7 +90,7 @@ class Blocker:
 
         colnames_xy = np.intersect1d(x_dtm.columns, y_dtm.columns)
         
-        if verbose in [1, 2]:
+        if verbose in [1, 2, 3]:
             self.logger.info(f"======== Intersect --> {colnames_xy} ========")
             self.logger.info(f"===== starting search ({ann}, x, y: {x_dtm.shape[0]}, {y_dtm.shape[0]}, t: {len(colnames_xy)}) =====")
 
@@ -107,11 +107,11 @@ class Blocker:
             x=x_dtm[colnames_xy],
             y=y_dtm[colnames_xy],
             k=k,
-            verbose=True if verbose == 2 else False,
+            verbose=True if verbose in [2,3] else False,
             controls=control_ann
             )
     
-        if verbose in [1,2]:
+        if verbose in [1,2, 3]:
             self.logger.info("===== creating graph =====\n")
         
         if deduplication:

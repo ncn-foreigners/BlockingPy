@@ -110,7 +110,7 @@ def create_sparse_dtm(x: Union[List[str], pd.Series], control_txt: dict, verbose
         x_dtm_sparse, columns=vectorizer.get_feature_names_out()
     )
 
-    if verbose:
+    if verbose == 3:
         print("Vocabulary:", x_voc)
         print("Sparse DataFrame shape:", x_sparse_df.shape)
         print("Sparse DataFrame:\n", x_sparse_df)
