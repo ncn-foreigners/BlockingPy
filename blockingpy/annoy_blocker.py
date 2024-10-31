@@ -50,7 +50,7 @@ class AnnoyBlocker(BlockingMethod):
             y (pd.DataFrame): Query data.
             k (int): Number of nearest neighbors to find.
             verbose (bool): control the level of verbosity.
-            controls (Dict[str, Any]): Control parameters for the algorithm.
+            controls (Dict[str, Any]): Control parameters for the algorithm. For details see: blockingpy/controls.py
 
         Returns:
             pd.DataFrame: DataFrame containing the blocking results.
@@ -60,13 +60,13 @@ class AnnoyBlocker(BlockingMethod):
         """
         self.x_columns = x.columns
 
-        distance = controls['annoy'].get('distance', None)
+        distance = controls['annoy'].get('distance')
         verbose = verbose
-        seed = controls['annoy'].get('seed', None)
-        path = controls['annoy'].get('path', None)
-        n_trees = controls['annoy'].get('n_trees', 10)
-        build_on_disk = controls['annoy'].get('build_on_disk', False)
-        k_search = controls['annoy'].get('k_search', 10)
+        seed = controls['annoy'].get('seed')
+        path = controls['annoy'].get('path')
+        n_trees = controls['annoy'].get('n_trees')
+        build_on_disk = controls['annoy'].get('build_on_disk')
+        k_search = controls['annoy'].get('k_search')
 
 
         self._check_distance(distance)    
@@ -90,7 +90,7 @@ class AnnoyBlocker(BlockingMethod):
             self.logger.info("Building index...")
         
         for i in range(x.shape[0]):
-            self.index.add_item(i, x[i])
+            self.index.add_item(i, x.iloc[i, :])
         self.index.build(n_trees=n_trees)
 
         if verbose:
@@ -105,7 +105,7 @@ class AnnoyBlocker(BlockingMethod):
             self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
         
         for i in range(y.shape[0]):
-            annoy_res = self.index.get_nns_by_vector(y[i], k_search, include_distances=True)
+            annoy_res = self.index.get_nns_by_vector(y.iloc[i, :], k_search, include_distances=True)
             l_ind_nns[i] = annoy_res[0][k-1]
             l_ind_dist[i] = annoy_res[1][k-1]  
 

@@ -45,7 +45,7 @@ class MLPackBlocker(BlockingMethod):
             y (pd.DataFrame): Query data.
             k (int): Number of nearest neighbors to find.
             verbose (bool): control the level of verbosity.
-            controls (Dict[str, Any]): Control parameters for the algorithm.
+            controls (Dict[str, Any]): Control parameters for the algorithm. For details see: blockingpy/controls.py
 
         Returns:
             pd.DataFrame: DataFrame containing the blocking results.
@@ -53,16 +53,16 @@ class MLPackBlocker(BlockingMethod):
         Raises:
             ValueError: If an invalid algorithm is specified in the controls.
         """
-        self.algo = controls.get('algo', 'lsh')
+        self.algo = controls.get('algo')
         self._check_algo(self.algo)
         if self.algo == 'lsh':
             verbose = verbose
-            seed = controls['lsh'].get('seed', None)
-            k_search = controls['lsh'].get('k_search', 10)
+            seed = controls['lsh'].get('seed')
+            k_search = controls['lsh'].get('k_search')
         else:
             verbose = verbose
-            seed = controls['kd'].get('seed', None)
-            k_search = controls['kd'].get('k_search', 10)
+            seed = controls['kd'].get('seed')
+            k_search = controls['kd'].get('k_search')
 
         if k_search > x.shape[0]:
             original_k_search = k_search
@@ -79,11 +79,11 @@ class MLPackBlocker(BlockingMethod):
                 reference=x,
                 verbose=verbose,
                 seed=seed,
-                bucket_size=controls['lsh'].get('bucket_size', 500),
-                hash_width=controls['lsh'].get('hash_width', 0.0),
-                num_probes=controls['lsh'].get('num_probes', 0),
-                projections=controls['lsh'].get('projections', 10),
-                tables=controls['lsh'].get('tables', 30)
+                bucket_size=controls['lsh'].get('bucket_size'),
+                hash_width=controls['lsh'].get('hash_width'),
+                num_probes=controls['lsh'].get('num_probes'),
+                projections=controls['lsh'].get('projections'),
+                tables=controls['lsh'].get('tables')
             )
         else:  
             query_result = knn(
@@ -92,13 +92,13 @@ class MLPackBlocker(BlockingMethod):
                 reference=x,
                 verbose=verbose,
                 seed=seed,
-                algorithm=controls['kd'].get('algorithm', None),
-                leaf_size=controls['kd'].get('leaf_size', None),
-                tree_type=controls['kd'].get('tree_type', None),
-                epsilon=controls['kd'].get('epsilon', None),
-                rho=controls['kd'].get('rho', None),
-                tau=controls['kd'].get('tau', None),
-                random_basis=controls['kd'].get('random_basis', False)
+                algorithm=controls['kd'].get('algorithm'),
+                leaf_size=controls['kd'].get('leaf_size'),
+                tree_type=controls['kd'].get('tree_type'),
+                epsilon=controls['kd'].get('epsilon'),
+                rho=controls['kd'].get('rho'),
+                tau=controls['kd'].get('tau'),
+                random_basis=controls['kd'].get('random_basis')
             )
         
         if verbose:

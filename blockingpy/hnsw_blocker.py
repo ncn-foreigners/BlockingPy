@@ -50,7 +50,7 @@ class HNSWBlocker(BlockingMethod):
             k (int): Number of nearest neighbors to find. If k is larger than the number of reference points,
                      it will be automatically adjusted.
             verbose (bool): control the level of verbosity.
-            controls (Dict[str, Any]): Control parameters for the algorithm.
+            controls (Dict[str, Any]): Control parameters for the algorithm. For details see: blockingpy/controls.py
 
         Returns:
             pd.DataFrame: DataFrame containing the blocking results.
@@ -62,7 +62,7 @@ class HNSWBlocker(BlockingMethod):
 
         distance = controls['hnsw'].get('distance')
         verbose = verbose
-        n_threads = controls['hnsw'].get('n_threads', 1)
+        n_threads = controls['hnsw'].get('n_threads')
         path = controls['hnsw'].get('path')
 
         self._check_distance(distance)
@@ -74,8 +74,8 @@ class HNSWBlocker(BlockingMethod):
         self.index = hnswlib.Index(space=space, dim=x.shape[1])
         self.index.init_index(
             max_elements=x.shape[0], 
-            ef_construction=controls['hnsw'].get('ef_c', 200), 
-            M=controls['hnsw'].get('M', 16)
+            ef_construction=controls['hnsw'].get('ef_c'), 
+            M=controls['hnsw'].get('M')
         )
         self.index.set_num_threads(n_threads)
 
@@ -83,7 +83,7 @@ class HNSWBlocker(BlockingMethod):
             self.logger.info("Adding items to index...")
             
         self.index.add_items(x)
-        self.index.set_ef(controls['hnsw'].get('ef_s', 10))
+        self.index.set_ef(controls['hnsw'].get('ef_s'))
 
         if verbose:
             self.logger.info("Querying index...")

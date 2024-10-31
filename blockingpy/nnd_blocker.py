@@ -42,7 +42,7 @@ class NNDBlocker(BlockingMethod):
             y (pd.DataFrame): Query data.
             k (int): Number of nearest neighbors to find.
             verbose (bool): control the level of verbosity.
-            controls (Dict[str, Any]): Control parameters for the algorithm.
+            controls (Dict[str, Any]): Control parameters for the algorithm. For details see: blockingpy/controls.py
 
         Returns:
             pd.DataFrame: DataFrame containing the blocking results.
@@ -51,9 +51,9 @@ class NNDBlocker(BlockingMethod):
             ValueError: If an invalid distance metric is provided.
         """
 
-        distance = controls.get('nnd').get('metric', 'euclidean')
+        distance = controls.get('nnd').get('metric')
         verbose = verbose
-        k_search = controls.get('nnd').get('k_search', 30)
+        k_search = controls.get('nnd').get('k_search')
 
         if k_search > x.shape[0]:
             original_k_search = k_search
@@ -68,24 +68,24 @@ class NNDBlocker(BlockingMethod):
             data=x,
             n_neighbors=k_search,
             metric=distance,
-            metric_kwds=nnd_params.get('metric_kwds', {}),
+            metric_kwds=nnd_params.get('metric_kwds'),
             verbose=verbose,
-            n_jobs=nnd_params.get('n_threads', None),
-            tree_init=nnd_params.get('tree_init', True),
-            n_trees=nnd_params.get('n_trees', None),
-            leaf_size=nnd_params.get('leaf_size', None),
-            pruning_degree_multiplier=nnd_params.get('pruning_degree_multiplier', 1.5),
-            diversify_prob=nnd_params.get('diversify_prob', 1.0),
-            init_graph=nnd_params.get('init_graph', None),
-            init_dist=nnd_params.get('init_dist', None),
-            #algorithm=nnd_params.get('algorithm', 'standard'),
-            low_memory=nnd_params.get('low_memory', True),
-            max_candidates=nnd_params.get('max_candidates', None),
-            max_rptree_depth=nnd_params.get('max_rptree_depth', 100),
-            n_iters=nnd_params.get('n_iters', None),
-            delta=nnd_params.get('delta', 0.001),
-            compressed=nnd_params.get('compressed', False),
-            parallel_batch_queries=nnd_params.get('parallel_batch_queries', False)
+            n_jobs=nnd_params.get('n_threads'),
+            tree_init=nnd_params.get('tree_init'),
+            n_trees=nnd_params.get('n_trees'),
+            leaf_size=nnd_params.get('leaf_size'),
+            pruning_degree_multiplier=nnd_params.get('pruning_degree_multiplier'),
+            diversify_prob=nnd_params.get('diversify_prob'),
+            init_graph=nnd_params.get('init_graph'),
+            init_dist=nnd_params.get('init_dist'),
+            #algorithm=nnd_params.get('algorithm'),
+            low_memory=nnd_params.get('low_memory'),
+            max_candidates=nnd_params.get('max_candidates'),
+            max_rptree_depth=nnd_params.get('max_rptree_depth'),
+            n_iters=nnd_params.get('n_iters'),
+            delta=nnd_params.get('delta'),
+            compressed=nnd_params.get('compressed'),
+            parallel_batch_queries=nnd_params.get('parallel_batch_queries')
         )
 
         if verbose:
@@ -94,7 +94,7 @@ class NNDBlocker(BlockingMethod):
         l_1nn = self.index.query(
             query_data=y,
             k=k_search,
-            epsilon=nnd_params.get('epsilon', 0.1)
+            epsilon=nnd_params.get('epsilon')
         )
 
         result = pd.DataFrame({
