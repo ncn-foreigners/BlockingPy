@@ -93,15 +93,17 @@ def create_sparse_dtm(x: Union[List[str], pd.Series], control_txt: dict, verbose
         pd.DataFrame: Sparse dataframe containing the document-term matrix
     """
     x = x.tolist() if isinstance(x, pd.Series) else x
+    control_txt_dict = {} if control_txt is None else control_txt
 
     vectorizer = CountVectorizer(
         tokenizer=lambda x: tokenize_character_shingles(
             x, 
-            n=control_txt['n_shingles'], 
-            lowercase=control_txt['lowercase'], 
-            strip_non_alphanum=control_txt['strip_non_alphanum']
+            n=control_txt_dict.get('n_shingles', 3), 
+            lowercase=control_txt_dict.get('lowercase', True), 
+            strip_non_alphanum=control_txt_dict.get('strip_non_alphanum', True)
         ),
-        max_features=control_txt.get('n_chunks')
+        max_features=control_txt_dict.get('n_chunks', 10000),
+        token_pattern=None
     )
     x_dtm_sparse = vectorizer.fit_transform(x)
     x_voc = vectorizer.vocabulary_
@@ -115,4 +117,4 @@ def create_sparse_dtm(x: Union[List[str], pd.Series], control_txt: dict, verbose
         print("Sparse DataFrame shape:", x_sparse_df.shape)
         print("Sparse DataFrame:\n", x_sparse_df)
 
-    return x_sparse_df 
+    return x_sparse_df
