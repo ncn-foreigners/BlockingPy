@@ -7,6 +7,7 @@ import logging
 import itertools
 from collections import OrderedDict
 
+from .controls import controls_ann, controls_txt
 from .annoy_blocker import AnnoyBlocker
 from .hnsw_blocker import HNSWBlocker
 from .mlpack_blocker import MLPackBlocker
@@ -21,6 +22,8 @@ class Blocker:
         self.confusion = None
         self.x_colnames = None
         self.y_colnames = None
+        self.control_ann = {}
+        self.control_txt = {}
 
     def block(self, 
               x: Union[pd.Series, sparse.csr_matrix, np.ndarray, np.array, List[str]],
@@ -32,14 +35,15 @@ class Blocker:
               true_blocks: Optional[pd.DataFrame] = None,
               verbose: int = 0,
               graph: bool = False,
-              control_txt: Dict[str, Any] = None,
-              control_ann: Dict[str, Any] = None,
+              control_txt: Dict[str, Any] = {},
+              control_ann: Dict[str, Any] = {},
               x_colnames: Optional[List[str]] = None,
               y_colnames: Optional[List[str]] = None):
         
         self.x_colnames = x_colnames
         self.y_colnames = y_colnames
-        control_ann = control_ann if control_ann is not None else {}
+        self.control_ann = controls_ann(control_ann)
+        self.control_txt = controls_txt(control_txt)
         
         if deduplication:
             self.y_colnames = self.x_colnames
@@ -83,10 +87,10 @@ class Blocker:
             if verbose in [1, 2, 3]:
                 self.logger.info("===== creating tokens =====\n")
             x_dtm = create_sparse_dtm(x,
-                                      control_txt,
+                                      self.control_txt,
                                       verbose=True if verbose == 2 else False)
             y_dtm = create_sparse_dtm(y,
-                                      control_txt,
+                                      self.control_txt,
                                       verbose=True if verbose == 2 else False)  
         #TOKENIZATION
 
@@ -110,7 +114,7 @@ class Blocker:
             y=y_dtm[colnames_xy],
             k=k,
             verbose=True if verbose in [2,3] else False,
-            controls=control_ann
+            controls=self.control_ann
             )
     
         if verbose in [1,2, 3]:
@@ -230,7 +234,7 @@ class Blocker:
             }
             self.eval_metrics = pd.Series(self.eval_metrics)
         
-        x_df = x_df.sort_values(['x', 'y', 'block'])
+        x_df = x_df.sort_values(['x', 'y', 'block']).reset_index(drop=True)
 
         return BlockingResult(x_df=x_df,
                               ann=ann,
