@@ -102,7 +102,7 @@ class AnnoyBlocker(BlockingMethod):
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            self.logger.warning(f"k ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k to {k_search}.")
+            self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
         
         for i in range(y.shape[0]):
             annoy_res = self.index.get_nns_by_vector(y[i], k_search, include_distances=True)
