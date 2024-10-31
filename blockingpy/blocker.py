@@ -39,6 +39,8 @@ class Blocker:
         
         self.x_colnames = x_colnames
         self.y_colnames = y_colnames
+        control_ann = control_ann if control_ann is not None else {}
+        
         if deduplication:
             self.y_colnames = self.x_colnames
 
