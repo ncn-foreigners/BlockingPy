@@ -2,7 +2,7 @@ import networkx as nx
 import numpy as np
 from math import comb
 from collections import Counter
-from typing import Dict, Optional, Union
+from typing import Dict, Optional
 import pandas as pd
 
 class BlockingResult:
@@ -27,6 +27,7 @@ class BlockingResult:
                 confusion: Optional[pd.DataFrame], 
                 colnames_xy: np.ndarray, 
                 graph: Optional[bool] = False):
+        
         self.result = x_df[["x", "y", "block", "dist"]]
         self.method = ann
         self.deduplication = deduplication
@@ -45,7 +46,6 @@ class BlockingResult:
         
         blocks_tab = self.result['block'].value_counts()   
         block_sizes = Counter(blocks_tab.values)
-        print(block_sizes)
         reduction_ratio = self._calculate_reduction_ratio()
 
         output = []
