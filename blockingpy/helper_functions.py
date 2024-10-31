@@ -86,23 +86,22 @@ def create_sparse_dtm(x: Union[List[str], pd.Series], control_txt: dict, verbose
     
     Args:
         x (Union[List[str], pd.Series]): Input texts
-        control_txt (dict): Configuration dictionary
+        control_txt (dict): Configuration dictionary. For details see: blockingpy/controls.py
         verbose (bool): Whether to print additional information
         
     Returns:
         pd.DataFrame: Sparse dataframe containing the document-term matrix
     """
     x = x.tolist() if isinstance(x, pd.Series) else x
-    control_txt_dict = {} if control_txt is None else control_txt
 
     vectorizer = CountVectorizer(
         tokenizer=lambda x: tokenize_character_shingles(
             x, 
-            n=control_txt_dict.get('n_shingles', 3), 
-            lowercase=control_txt_dict.get('lowercase', True), 
-            strip_non_alphanum=control_txt_dict.get('strip_non_alphanum', True)
+            n=control_txt.get('n_shingles'), 
+            lowercase=control_txt.get('lowercase'), 
+            strip_non_alphanum=control_txt.get('strip_non_alphanum')
         ),
-        max_features=control_txt_dict.get('n_chunks', 10000),
+        max_features=control_txt.get('max_features'),
         token_pattern=None
     )
     x_dtm_sparse = vectorizer.fit_transform(x)
