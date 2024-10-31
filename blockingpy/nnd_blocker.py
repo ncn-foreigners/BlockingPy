@@ -51,14 +51,14 @@ class NNDBlocker(BlockingMethod):
             ValueError: If an invalid distance metric is provided.
         """
 
-        distance = controls['nnd'].get('metric', 'euclidean')
+        distance = controls.get('nnd').get('metric', 'euclidean')
         verbose = verbose
-        k_search = controls['nnd'].get('k_search', 30)
+        k_search = controls.get('nnd').get('k_search', 30)
 
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            self.logger.warning(f"k ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+            self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
 
         if verbose:
             self.logger.info(f"Initializing NND index with {distance} metric.")
