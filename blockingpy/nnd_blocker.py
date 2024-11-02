@@ -52,7 +52,6 @@ class NNDBlocker(BlockingMethod):
         """
 
         distance = controls.get('nnd').get('metric')
-        verbose = verbose
         k_search = controls.get('nnd').get('k_search')
 
         if k_search > x.shape[0]:
@@ -63,40 +62,37 @@ class NNDBlocker(BlockingMethod):
         if verbose:
             self.logger.info(f"Initializing NND index with {distance} metric.")
 
-        nnd_params = controls.get('nnd', {})
         self.index = pynndescent.NNDescent(
             data=x,
             n_neighbors=k_search,
             metric=distance,
-            metric_kwds=nnd_params.get('metric_kwds'),
+            metric_kwds=controls['nnd'].get('metric_kwds'),
             verbose=verbose,
-            n_jobs=nnd_params.get('n_threads'),
-            tree_init=nnd_params.get('tree_init'),
-            n_trees=nnd_params.get('n_trees'),
-            leaf_size=nnd_params.get('leaf_size'),
-            pruning_degree_multiplier=nnd_params.get('pruning_degree_multiplier'),
-            diversify_prob=nnd_params.get('diversify_prob'),
-            init_graph=nnd_params.get('init_graph'),
-            init_dist=nnd_params.get('init_dist'),
+            n_jobs=controls['nnd'].get('n_threads'),
+            tree_init=controls['nnd'].get('tree_init'),
+            n_trees=controls['nnd'].get('n_trees'),
+            leaf_size=controls['nnd'].get('leaf_size'),
+            pruning_degree_multiplier=controls['nnd'].get('pruning_degree_multiplier'),
+            diversify_prob=controls['nnd'].get('diversify_prob'),
+            init_graph=controls['nnd'].get('init_graph'),
+            init_dist=controls['nnd'].get('init_dist'),
             #algorithm=nnd_params.get('algorithm'),
-            low_memory=nnd_params.get('low_memory'),
-            max_candidates=nnd_params.get('max_candidates'),
-            max_rptree_depth=nnd_params.get('max_rptree_depth'),
-            n_iters=nnd_params.get('n_iters'),
-            delta=nnd_params.get('delta'),
-            compressed=nnd_params.get('compressed'),
-            parallel_batch_queries=nnd_params.get('parallel_batch_queries')
+            low_memory=controls['nnd'].get('low_memory'),
+            max_candidates=controls['nnd'].get('max_candidates'),
+            max_rptree_depth=controls['nnd'].get('max_rptree_depth'),
+            n_iters=controls['nnd'].get('n_iters'),
+            delta=controls['nnd'].get('delta'),
+            compressed=controls['nnd'].get('compressed'),
+            parallel_batch_queries=controls['nnd'].get('parallel_batch_queries')
         )
-
         if verbose:
             self.logger.info("Querying index...")
         
         l_1nn = self.index.query(
             query_data=y,
             k=k_search,
-            epsilon=nnd_params.get('epsilon')
+            epsilon=controls['nnd'].get('epsilon')
         )
-
         result = pd.DataFrame({
             'y': np.arange(y.shape[0]),
             'x': l_1nn[0][:, k-1],
