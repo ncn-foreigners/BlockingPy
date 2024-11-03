@@ -96,7 +96,7 @@ class AnnoyBlocker(BlockingMethod):
         self.logger.info("Building index...")
         
         for i in range(x.shape[0]):
-            self.index.add_item(i, x.iloc[i, :])
+            self.index.add_item(i, x.iloc[i].values)
         self.index.build(n_trees=n_trees)
 
         self.logger.info("Querying index...")
@@ -110,7 +110,7 @@ class AnnoyBlocker(BlockingMethod):
             self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
         
         for i in range(y.shape[0]):
-            annoy_res = self.index.get_nns_by_vector(y.iloc[i, :], k_search, include_distances=True)
+            annoy_res = self.index.get_nns_by_vector(y.iloc[i].values, k_search, include_distances=True)
             l_ind_nns[i] = annoy_res[0][k-1]
             l_ind_dist[i] = annoy_res[1][k-1]  
 
