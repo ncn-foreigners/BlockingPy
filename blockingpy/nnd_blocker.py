@@ -12,7 +12,7 @@ class NNDBlocker(BlockingMethod):
     A blocker class that uses the Nearest Neighbor Descent (NND).
 
     This class performs blocking using the pynndescent library's NNDescent algorithm.
-    For details see: https://pynndescent.readthedocs.io/en/latest/api.html
+    For details see: https://pynndescent.readthedocs.io/en/latest/api.html (https://github.com/lmcinnes/pynndescent)
 
     Attributes:
         index: The NNDescent index used for querying.
