@@ -92,10 +92,10 @@ class Blocker:
             self.logger.info("===== creating tokens =====\n")
             x_dtm = create_sparse_dtm(x,
                                       self.control_txt,
-                                      verbose=True if verbose in [2,3] else False)
+                                      verbose=True if verbose == 3 else False)
             y_dtm = create_sparse_dtm(y,
                                       self.control_txt,
-                                      verbose=True if verbose in [2,3] else False)  
+                                      verbose=True if verbose == 3 else False)  
         #TOKENIZATION
 
         colnames_xy = np.intersect1d(x_dtm.columns, y_dtm.columns)
