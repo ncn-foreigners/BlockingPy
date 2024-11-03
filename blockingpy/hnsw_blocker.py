@@ -5,6 +5,7 @@ import logging
 from typing import Dict, Any, Optional
 import os
 from .base import BlockingMethod
+import sys
 
 
 class HNSWBlocker(BlockingMethod):
@@ -35,6 +36,8 @@ class HNSWBlocker(BlockingMethod):
         self.index: Optional[hnswlib.Index] = None
         self.logger = logging.getLogger(__name__)
         self.x_columns = None
+        console_handler = logging.StreamHandler(sys.stdout)
+        self.logger.addHandler(console_handler)
 
     def block(self, x: pd.DataFrame, 
             y: pd.DataFrame, 
@@ -58,6 +61,8 @@ class HNSWBlocker(BlockingMethod):
         Raises:
             ValueError: If an invalid distance metric is provided.
         """
+        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+
         self.x_columns = x.columns
 
         distance = controls['hnsw'].get('distance')
@@ -68,8 +73,7 @@ class HNSWBlocker(BlockingMethod):
         self._check_distance(distance)
         space = self.SPACE_MAP[distance]
 
-        if verbose:
-            self.logger.info("Initializing HNSW index...")
+        self.logger.info("Initializing HNSW index...")
         
         self.index = hnswlib.Index(space=space, dim=x.shape[1])
         self.index.init_index(
@@ -79,14 +83,12 @@ class HNSWBlocker(BlockingMethod):
         )
         self.index.set_num_threads(n_threads)
 
-        if verbose:
-            self.logger.info("Adding items to index...")
+        self.logger.info("Adding items to index...")
             
         self.index.add_items(x)
         self.index.set_ef(controls['hnsw'].get('ef_s'))
 
-        if verbose:
-            self.logger.info("Querying index...")
+        self.logger.info("Querying index...")
 
         l_1nn = self.index.knn_query(y, k=k)
 
@@ -99,8 +101,7 @@ class HNSWBlocker(BlockingMethod):
             'dist': l_1nn[1][:, k-1]
         })
 
-        if verbose:
-            self.logger.info("Process completed successfully.")
+        self.logger.info("Process completed successfully.")
 
         return result
     
@@ -134,8 +135,7 @@ class HNSWBlocker(BlockingMethod):
         path_ann = os.path.join(path, "index.hnsw")
         path_ann_cols = os.path.join(path, "index-colnames.txt")
         
-        if verbose:
-            self.logger.info(f"Writing an index to {path_ann}")
+        self.logger.info(f"Writing an index to {path_ann}")
         
         self.index.save_index(path_ann)
         with open(path_ann_cols, 'w') as f:

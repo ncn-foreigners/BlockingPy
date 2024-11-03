@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional
 import os
 import logging
 from .base import BlockingMethod
+import sys
 
 
 class AnnoyBlocker(BlockingMethod):
@@ -36,6 +37,8 @@ class AnnoyBlocker(BlockingMethod):
         self.index: Optional[AnnoyIndex] = None
         self.logger = logging.getLogger(__name__)
         self.x_columns = None
+        console_handler = logging.StreamHandler(sys.stdout)
+        self.logger.addHandler(console_handler)
     
     def block(self, x: pd.DataFrame, 
               y: pd.DataFrame, 
@@ -58,6 +61,8 @@ class AnnoyBlocker(BlockingMethod):
         Raises:
             ValueError: If an invalid distance metric is provided.
         """
+        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+        
         self.x_columns = x.columns
 
         distance = controls['annoy'].get('distance')
@@ -87,14 +92,14 @@ class AnnoyBlocker(BlockingMethod):
         
         if verbose:
             self.index.verbose(True)
-            self.logger.info("Building index...")
+        
+        self.logger.info("Building index...")
         
         for i in range(x.shape[0]):
             self.index.add_item(i, x.iloc[i, :])
         self.index.build(n_trees=n_trees)
 
-        if verbose:
-            self.logger.info("Querying index...")
+        self.logger.info("Querying index...")
 
         l_ind_nns = np.zeros(y.shape[0], dtype=int)
         l_ind_dist = np.zeros(y.shape[0])
@@ -120,8 +125,7 @@ class AnnoyBlocker(BlockingMethod):
 
         result = pd.DataFrame(result)
 
-        if verbose:
-            self.logger.info("Process completed successfully.")
+        self.logger.info("Process completed successfully.")
 
         return result
 
@@ -155,8 +159,7 @@ class AnnoyBlocker(BlockingMethod):
         path_ann = os.path.join(path, "index.annoy")
         path_ann_cols = os.path.join(path, "index-colnames.txt")
 
-        if verbose:
-             self.logger.info(f"Writing an index to {path_ann}")
+        self.logger.info(f"Writing an index to {path_ann}")
         
         self.index.save(path_ann)
 

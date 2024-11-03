@@ -3,8 +3,8 @@ from mlpack import lsh, knn
 import pandas as pd
 import numpy as np
 from typing import Dict, Any, Optional
-import os
 from .base import BlockingMethod
+import sys
 
 
 class MLPackBlocker(BlockingMethod):
@@ -31,6 +31,8 @@ class MLPackBlocker(BlockingMethod):
     def __init__(self):
         self.algo = None
         self.logger = logging.getLogger(__name__)
+        console_handler = logging.StreamHandler(sys.stdout)
+        self.logger.addHandler(console_handler)
 
     def block(self, x: pd.DataFrame, 
               y: pd.DataFrame, 
@@ -53,6 +55,8 @@ class MLPackBlocker(BlockingMethod):
         Raises:
             ValueError: If an invalid algorithm is specified in the controls.
         """
+        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+
         self.algo = controls.get('algo')
         self._check_algo(self.algo)
         if self.algo == 'lsh':
@@ -69,8 +73,7 @@ class MLPackBlocker(BlockingMethod):
             k_search = min(k_search, x.shape[0])
             self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
 
-        if verbose:
-            self.logger.info(f"Initializing MLPack {self.algo.upper()} index...")
+        self.logger.info(f"Initializing MLPack {self.algo.upper()} index...")
 
         if self.algo == 'lsh':
             query_result = lsh(
@@ -101,8 +104,7 @@ class MLPackBlocker(BlockingMethod):
                 random_basis=controls['kd'].get('random_basis')
             )
         
-        if verbose:
-            self.logger.info("MLPack index query completed.")
+        self.logger.info("MLPack index query completed.")
 
         result = pd.DataFrame({
             'y': range(y.shape[0]),
@@ -110,8 +112,7 @@ class MLPackBlocker(BlockingMethod):
             'dist': query_result['distances'][:, k-1]
         })
 
-        if verbose:
-            self.logger.info("Blocking process completed successfully.")
+        self.logger.info("Blocking process completed successfully.")
 
         return result
 

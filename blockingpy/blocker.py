@@ -6,6 +6,7 @@ from typing import Optional, Union, List, Dict, Any
 import logging
 import itertools
 from collections import OrderedDict
+import sys
 
 from .controls import controls_ann, controls_txt
 from .annoy_blocker import AnnoyBlocker
@@ -18,6 +19,8 @@ from .blocking_result import BlockingResult
 class Blocker:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+        console_handler = logging.StreamHandler(sys.stdout)
+        self.logger.addHandler(console_handler)
         self.eval_metrics = None
         self.confusion = None
         self.x_colnames = None
@@ -40,6 +43,8 @@ class Blocker:
               x_colnames: Optional[List[str]] = None,
               y_colnames: Optional[List[str]] = None):
         
+        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+
         self.x_colnames = x_colnames
         self.y_colnames = y_colnames
         self.control_ann = controls_ann(control_ann)
@@ -83,23 +88,20 @@ class Blocker:
             
             x_dtm = pd.DataFrame(x, columns=self.x_colnames)
             y_dtm = pd.DataFrame(y, columns=self.y_colnames)
-        else:
-            if verbose in [1, 2, 3]:
-                self.logger.info("===== creating tokens =====\n")
+        else:  
+            self.logger.info("===== creating tokens =====\n")
             x_dtm = create_sparse_dtm(x,
                                       self.control_txt,
-                                      verbose=True if verbose == 2 else False)
+                                      verbose=True if verbose in [2,3] else False)
             y_dtm = create_sparse_dtm(y,
                                       self.control_txt,
-                                      verbose=True if verbose == 2 else False)  
+                                      verbose=True if verbose in [2,3] else False)  
         #TOKENIZATION
 
         colnames_xy = np.intersect1d(x_dtm.columns, y_dtm.columns)
         
-        if verbose in [1, 2, 3]:
-            self.logger.info(f"======== Intersect --> {colnames_xy} ========")
-            self.logger.info(f"===== starting search ({ann}, x, y: {x_dtm.shape[0]}, {y_dtm.shape[0]}, t: {len(colnames_xy)}) =====")
-
+        self.logger.info(f"===== starting search ({ann}, x, y: {x_dtm.shape[0]}, {y_dtm.shape[0]}, t: {len(colnames_xy)}) =====")
+    
         if ann == 'nnd':
             blocker = NNDBlocker()
         elif ann == 'hnsw':
@@ -117,8 +119,7 @@ class Blocker:
             controls=self.control_ann
             )
     
-        if verbose in [1,2, 3]:
-            self.logger.info("===== creating graph =====\n")
+        self.logger.info("===== creating graph =====\n")
         
         if deduplication:
             x_df = x_df[x_df['y'] > x_df['x']]

@@ -4,6 +4,7 @@ import pynndescent
 import logging
 from typing import Dict, Any, Optional
 from .base import BlockingMethod
+import sys
 
 
 class NNDBlocker(BlockingMethod):
@@ -27,6 +28,8 @@ class NNDBlocker(BlockingMethod):
     def __init__(self):
         self.index = None
         self.logger = logging.getLogger(__name__)
+        console_handler = logging.StreamHandler(sys.stdout)
+        self.logger.addHandler(console_handler)
 
 
     def block(self, x: pd.DataFrame, 
@@ -49,7 +52,8 @@ class NNDBlocker(BlockingMethod):
 
         Raises:
             ValueError: If an invalid distance metric is provided.
-        """
+        """ 
+        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
         distance = controls.get('nnd').get('metric')
         k_search = controls.get('nnd').get('k_search')
@@ -58,9 +62,8 @@ class NNDBlocker(BlockingMethod):
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
             self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
-
-        if verbose:
-            self.logger.info(f"Initializing NND index with {distance} metric.")
+        
+        self.logger.info(f"Initializing NND index with {distance} metric.")
 
         self.index = pynndescent.NNDescent(
             data=x,
@@ -85,8 +88,8 @@ class NNDBlocker(BlockingMethod):
             compressed=controls['nnd'].get('compressed'),
             parallel_batch_queries=controls['nnd'].get('parallel_batch_queries')
         )
-        if verbose:
-            self.logger.info("Querying index...")
+        
+        self.logger.info("Querying index...")
         
         l_1nn = self.index.query(
             query_data=y,
@@ -99,8 +102,7 @@ class NNDBlocker(BlockingMethod):
             'dist': l_1nn[1][:, k-1]
         })
 
-        if verbose:
-            self.logger.info("Process completed successfully.")
+        self.logger.info("Process completed successfully.")
 
         return result
         
