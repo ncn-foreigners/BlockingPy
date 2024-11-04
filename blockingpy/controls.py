@@ -31,6 +31,7 @@ def controls_ann(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
     - HNSW: https://github.com/nmslib/hnswlib
     - Annoy: https://github.com/spotify/annoy
     - LSH and KD: https://github.com/mlpack/mlpack
+    - Voyager: https://github.com/spotify/voyager
 
     Args:
         controls (Dict[str, Any], optional): Dictionary of controls
@@ -97,6 +98,18 @@ def controls_ann(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
             'distance': 'angular',
             'n_trees': 250,
             'build_on_disk': False
+        },
+        'voyager': {
+            'k_search': 30,
+            'path': None,
+            'random_seed': 1,
+            'distance': 'cosine',
+            'M' : 12,
+            'ef_construction': 200,
+            'max_elements': 1,
+            'num_threads': -1,
+            'query_ef': -1
+
         },
         'algo': 'lsh',
     }
