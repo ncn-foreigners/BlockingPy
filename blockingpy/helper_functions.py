@@ -36,6 +36,9 @@ def validate_input(x: Union[pd.Series, sparse.csr_matrix, np.ndarray, np.array, 
     if ann == "annoy" and distance not in ["euclidean", "manhattan", "hamming", "angular"]:
         raise ValueError("Distance for Annoy should be `euclidean, manhattan, hamming, angular`")
     
+    if ann == "voyager" and distance not in ["euclidean", "cosine", "inner_product"]:
+        raise ValueError("Distance for Voyager should be `euclidean, cosine, inner_product`")
+    
 def validate_true_blocks(true_blocks: Optional[pd.DataFrame],
                          deduplication: bool):
     """
