@@ -720,7 +720,53 @@ files = [
     {file = "tzdata-2024.2.tar.gz", hash = "sha256:7d85cc416e9382e69095b7bdf4afd9e3880418a2413feec7069d533d6b4e31cc"},
 ]
 
+[[package]]
+name = "voyager"
+version = "2.0.9"
+description = "Easy-to-use, fast, simple multi-platform approximate nearest-neighbor search library."
+optional = false
+python-versions = "*"
+files = [
+    {file = "voyager-2.0.9-cp310-cp310-macosx_10_13_universal2.whl", hash = "sha256:f3cfe84666314daaf51836f77dabaafeb064bcbe5d9435d9c97886af19ae2876"},
+    {file = "voyager-2.0.9-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:956a60f864a586991cdde09373caf5630ab3319c47b6cdad4bf05ea8ba96a578"},
+    {file = "voyager-2.0.9-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:56e6e7d6f1597207141d224d5420dc690ae27a2feb6c4164180cecc453cd5816"},
+    {file = "voyager-2.0.9-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7be032a8ae5447ce289f1c95f349e825e9d4edc915db7ea1b2c273940de2acbe"},
+    {file = "voyager-2.0.9-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ed85d23006f98091a137f637894560d1020ba25217b5332729417ac0a200b0bd"},
+    {file = "voyager-2.0.9-cp310-cp310-win_amd64.whl", hash = "sha256:053f22b23bd090f6376cf026c31653d3c040f9eaf0c6d1267e766a442a5b8ff8"},
+    {file = "voyager-2.0.9-cp311-cp311-macosx_10_13_universal2.whl", hash = "sha256:d270b29bafb5a133abd611a03b1b9ec7b03a44361966609abef72dde2518eb5e"},
+    {file = "voyager-2.0.9-cp311-cp311-macosx_10_13_x86_64.whl", hash = "sha256:216c517dd66e0095f5f14277627a233c081797119028737f71168f094bacb9d0"},
+    {file = "voyager-2.0.9-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:a2ea7f5e61bb7de06d0196b1fbd43826908c6f2811576c94d97e353e7b32cb78"},
+    {file = "voyager-2.0.9-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4c451b25d449ac6923f7424a3255995f97263ed694fa873119703da01a09f6d7"},
+    {file = "voyager-2.0.9-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ecd1e690a69a044b988fd102676bb8584ed423af4b7aa9e69349203690263aad"},
+    {file = "voyager-2.0.9-cp311-cp311-win_amd64.whl", hash = "sha256:5e1c264f4202b551ca8cb5a33d456f451c598ea7b9680134177dc5443819f328"},
+    {file = "voyager-2.0.9-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:2d344617a1c97d6b317f13e801b3377a55f1e5b91786f9354dcde12b7945b3e0"},
+    {file = "voyager-2.0.9-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:d58682f2f8d9cfccb95d2278eeec01ed76f90636cf6123db7850eb9a4b7e70e7"},
+    {file = "voyager-2.0.9-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:510485dafa539ae130f2ad8bf7c95b21a2fa454f0b25581b37be3ca36bab29a1"},
+    {file = "voyager-2.0.9-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a4015db48c0c5d596e8bc536f4b05b601a2138e6439e00b06410e18286896273"},
+    {file = "voyager-2.0.9-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:805f1736e5fe309ae8884e572b78d9816ff4fd6f1ef364298a2f62566ea86bc9"},
+    {file = "voyager-2.0.9-cp312-cp312-win_amd64.whl", hash = "sha256:abc7041ba8047d25942afe457db597be6f33161a669aac00dfffc00b7d833bfa"},
+    {file = "voyager-2.0.9-cp37-cp37m-macosx_10_13_x86_64.whl", hash = "sha256:eea92842f73abd3af384ef002134dc94b399a896d9f3b3220768e4b7cda252ab"},
+    {file = "voyager-2.0.9-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:14089469f872b1e2b52d87d7d07d665035e10399d1fc38b64294c694617060ae"},
+    {file = "voyager-2.0.9-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2468edbd5560f21b931e0a24953daaea4fa6763a1376009354846ba5f50ce687"},
+    {file = "voyager-2.0.9-cp37-cp37m-win_amd64.whl", hash = "sha256:915fa8582414ea65c40a96685c37f2f44773e663da5ae8098ef2bd5af19e153c"},
+    {file = "voyager-2.0.9-cp38-cp38-macosx_10_13_universal2.whl", hash = "sha256:21585007295f6d3d7623751375a599cd3aa3644460cb70a37b59d9bc58771210"},
+    {file = "voyager-2.0.9-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:cc2b74cfa98da3ff7b091c66165c63767ef7b98f6385a5c4c9e4a26d03ff5faf"},
+    {file = "voyager-2.0.9-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:5a27d4b61b056af93eca94b5714cf8f101a98e8baf823ca3fefd5ee2ab536e3b"},
+    {file = "voyager-2.0.9-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:07f0a93a2c624310ae192c0225149a52d14f70ba6440904101ca6467400b47a2"},
+    {file = "voyager-2.0.9-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fb7d77de57bae225e57109a6dde4cede575c304f63db5c57d99e1aa3d1e27737"},
+    {file = "voyager-2.0.9-cp38-cp38-win_amd64.whl", hash = "sha256:1b528c2d4290d944e7e4a22a8a02412fe80d09081fdab70747e2173b75fcc519"},
+    {file = "voyager-2.0.9-cp39-cp39-macosx_10_13_universal2.whl", hash = "sha256:a38b7a232367095ef28350889b0c4ec8ce9f53c0a7839f2b06f517b652938e2c"},
+    {file = "voyager-2.0.9-cp39-cp39-macosx_10_13_x86_64.whl", hash = "sha256:e5968f516a94832a599c9c1b64246b7f81344ed3fb49247fbdaba7e673c1e8a9"},
+    {file = "voyager-2.0.9-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:f4095d4012479fa53b21f8a65c7790e844c3634a8ead1fca04f69a4a34ebc362"},
+    {file = "voyager-2.0.9-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d55f85d36111e950d42e7d78accca84c582d5606ec1bae2d4b2da41ccc3e7f2e"},
+    {file = "voyager-2.0.9-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:83e1dd648040df093ddda74a6f361ec912caf981d20dfdd4b0d3bd7fb230147b"},
+    {file = "voyager-2.0.9-cp39-cp39-win_amd64.whl", hash = "sha256:a2b17036c9b825f7062eb09ac613ca1e3fdb11712b1fc6d58bbbc201698e09c9"},
+]
+
+[package.dependencies]
+numpy = "*"
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "9d5e57d453ff55ac3b743c6f258aa80c23a71eb187aabed57d592fff1eda5d3f"
+content-hash = "a81f5965de18fc8d5494eb84acb47df5b65270d83a49c0b4e475a84d1c6af389"
