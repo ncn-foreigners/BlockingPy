@@ -13,6 +13,7 @@ from .annoy_blocker import AnnoyBlocker
 from .hnsw_blocker import HNSWBlocker
 from .mlpack_blocker import MLPackBlocker
 from .nnd_blocker import NNDBlocker
+from .voyager_blocker import VoyagerBlocker
 from .helper_functions import validate_input, validate_true_blocks, create_sparse_dtm
 from .blocking_result import BlockingResult
 
@@ -32,8 +33,7 @@ class Blocker:
               x: Union[pd.Series, sparse.csr_matrix, np.ndarray, np.array, List[str]],
               y: Optional[Union[np.ndarray, pd.Series, sparse.csr_matrix, List[str]]] = None,
               deduplication: bool = True,
-              ann: str = "nnd",
-              distance: Optional[str] = None,
+              ann: str = "annoy",
               ann_write: Optional[str] = None,
               true_blocks: Optional[pd.DataFrame] = None,
               verbose: int = 0,
@@ -53,11 +53,19 @@ class Blocker:
         if deduplication:
             self.y_colnames = self.x_colnames
 
+        if ann == 'nnd':
+            distance = self.control_ann.get('nnd').get('metric')
+        elif ann in ['annoy', 'voyager', 'hnsw']:
+            distance = self.control_ann.get(ann).get('distance')
+        else:
+            distance = None
+
         if distance is None:
             distance = {  
                 "nnd": "cosine",
                 "hnsw": "cosine",
                 "annoy": "angular",
+                'voyager': "cosine",
                 "lsh": None,
                 "kd": None
             }.get(ann)
@@ -110,7 +118,9 @@ class Blocker:
             blocker = MLPackBlocker()
         elif ann == 'annoy':
             blocker = AnnoyBlocker()
-        
+        elif ann == 'voyager':
+            blocker = VoyagerBlocker()
+
         x_df = blocker.block(
             x=x_dtm[colnames_xy],
             y=y_dtm[colnames_xy],
