@@ -119,13 +119,12 @@ class HNSWBlocker(BlockingMethod):
             valid_metrics = ", ".join(self.SPACE_MAP.keys())
             raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.")
         
-    def _save_index(self, path: str, verbose: bool) -> None:
+    def _save_index(self, path: str) -> None:
         """
         Save the HNSW index and column names to files.
 
         Args:
             path (str): Directory path where the files will be saved.
-            verbose (bool): If True, log the save operation.
 
         Notes:
             Creates two files:

@@ -113,7 +113,8 @@ class AnnoyBlocker(BlockingMethod):
             annoy_res = self.index.get_nns_by_vector(y.iloc[i].values, k_search, include_distances=True)
             l_ind_nns[i] = annoy_res[0][k-1]
             l_ind_dist[i] = annoy_res[1][k-1]  
-
+        print(l_ind_nns)
+        print(l_ind_dist)
         if path:
             self._save_index(path, verbose)
 
@@ -124,7 +125,7 @@ class AnnoyBlocker(BlockingMethod):
         }
 
         result = pd.DataFrame(result)
-
+        print(result)
         self.logger.info("Process completed successfully.")
 
         return result
@@ -143,13 +144,12 @@ class AnnoyBlocker(BlockingMethod):
             valid_metrics = ", ".join(self.METRIC_MAP.keys())
             raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.")
              
-    def _save_index(self, path: str, verbose: bool) -> None:
+    def _save_index(self, path: str) -> None:
         """
         Save the Annoy index and column names to files.
 
         Args:
             path (str): Directory path where the files will be saved.
-            verbose (bool): If True, log the save operation.
 
         Notes:
             Creates two files:
