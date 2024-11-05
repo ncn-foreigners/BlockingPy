@@ -14,6 +14,7 @@ from .hnsw_blocker import HNSWBlocker
 from .mlpack_blocker import MLPackBlocker
 from .nnd_blocker import NNDBlocker
 from .voyager_blocker import VoyagerBlocker
+from .faiss_blocker import FaissBlocker
 from .helper_functions import validate_input, validate_true_blocks, create_sparse_dtm
 from .blocking_result import BlockingResult
 
@@ -55,7 +56,7 @@ class Blocker:
 
         if ann == 'nnd':
             distance = self.control_ann.get('nnd').get('metric')
-        elif ann in ['annoy', 'voyager', 'hnsw']:
+        elif ann in ['annoy', 'voyager', 'hnsw', 'faiss']:
             distance = self.control_ann.get(ann).get('distance')
         else:
             distance = None
@@ -66,6 +67,7 @@ class Blocker:
                 "hnsw": "cosine",
                 "annoy": "angular",
                 'voyager': "cosine",
+                'faiss': "euclidean",
                 "lsh": None,
                 "kd": None
             }.get(ann)
@@ -120,6 +122,8 @@ class Blocker:
             blocker = AnnoyBlocker()
         elif ann == 'voyager':
             blocker = VoyagerBlocker()
+        elif ann == 'faiss':
+            blocker = FaissBlocker()
 
         x_df = blocker.block(
             x=x_dtm[colnames_xy],
