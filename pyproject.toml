@@ -19,6 +19,7 @@ scikit-learn = "^1.5.2"
 networkx = "^3.1"
 nltk = "^3.9.1"
 voyager = "^2.0.9"
+faiss-cpu = "^1.9.0"
 
 
 [build-system]
