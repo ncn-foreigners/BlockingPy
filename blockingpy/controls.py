@@ -32,6 +32,7 @@ def controls_ann(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
     - Annoy: https://github.com/spotify/annoy
     - LSH and KD: https://github.com/mlpack/mlpack
     - Voyager: https://github.com/spotify/voyager
+    - FAISS: https://github.com/facebookresearch/faiss (cpu only for now)
 
     Args:
         controls (Dict[str, Any], optional): Dictionary of controls
@@ -110,6 +111,14 @@ def controls_ann(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
             'num_threads': -1,
             'query_ef': -1
 
+        },
+        'faiss': {
+            # to my knowledge, faiss only allows these parameters to be set
+            'k_search': 30,
+            'distance': 'euclidean',
+            #'use_gpu': False, NOT SUPPORTED YET
+            #'use_mutltiple_gpus': False, NOT SUPPORTED YET
+            'path': None
         },
         'algo': 'lsh',
     }
