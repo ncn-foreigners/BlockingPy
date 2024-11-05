@@ -113,7 +113,7 @@ class AnnoyBlocker(BlockingMethod):
             annoy_res = self.index.get_nns_by_vector(y.iloc[i].values, k_search, include_distances=True)
             l_ind_nns[i] = annoy_res[0][k-1]
             l_ind_dist[i] = annoy_res[1][k-1]  
-            
+
         if path:
             self._save_index(path, verbose)
 
@@ -124,7 +124,6 @@ class AnnoyBlocker(BlockingMethod):
         }
 
         result = pd.DataFrame(result)
-        print(result)
         self.logger.info("Process completed successfully.")
 
         return result
