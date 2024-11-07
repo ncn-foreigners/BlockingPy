@@ -5,9 +5,9 @@ import os
 import re
 from sklearn.feature_extraction.text import CountVectorizer
 from nltk.util import ngrams
-from typing import Optional, Union, List
+from typing import Optional, Union
 
-def validate_input(x: Union[pd.Series, sparse.csr_matrix, np.ndarray, np.array, List[str]],
+def validate_input(x: Union[pd.Series, sparse.csr_matrix, np.ndarray],
                    ann: str,
                    distance: str,
                    ann_write: Optional[str],
@@ -16,7 +16,7 @@ def validate_input(x: Union[pd.Series, sparse.csr_matrix, np.ndarray, np.array, 
     Validate input parameters for the block method in the Blocker class.
 
     Args:
-        x (Union[pd.Series, sparse.csr_matrix, np.ndarray, np.array, List[str]]): Reference data
+        x (Union[pd.Series, sparse.csr_matrix, np.ndarray]): Reference data
         ann (str): Approximate Nearest Neighbor algorithm
         distance (str) : Distance metric
         ann_write (Optional[str]): Path to write ANN index
@@ -24,8 +24,8 @@ def validate_input(x: Union[pd.Series, sparse.csr_matrix, np.ndarray, np.array, 
     Raises:
         ValueError: If any input validation fails
     """
-    if not (isinstance(x, (str, np.ndarray)) or sparse.issparse(x) or isinstance(x, pd.Series)) or (isinstance(x, list) and all(isinstance(i, str) for i in x)):
-        raise ValueError("Only character, dense (np.ndarray) or sparse (csr_matrix) matrix or pd.Series with str data is supported")
+    if not (isinstance(x, np.ndarray) or sparse.issparse(x) or isinstance(x, pd.Series)):
+        raise ValueError("Only dense (np.ndarray) or sparse (csr_matrix) matrix or pd.Series with str data is supported")
     
     if ann_write is not None and not os.path.exists(os.path.dirname(ann_write)):
         raise ValueError("Path provided in the `ann_write` is incorrect")
@@ -86,12 +86,12 @@ def tokenize_character_shingles(text, n=3, lowercase=True, strip_non_alphanum=Tr
     shingles = [''.join(gram) for gram in ngrams(text, n)]
     return shingles
 
-def create_sparse_dtm(x: Union[List[str], pd.Series], control_txt: dict, verbose: bool = False):
+def create_sparse_dtm(x: pd.Series, control_txt: dict, verbose: bool = False):
     """
     Create a sparse document-term matrix from input texts.
     
     Args:
-        x (Union[List[str], pd.Series]): Input texts
+        x (pd.Series): Input texts
         control_txt (dict): Configuration dictionary. For details see: blockingpy/controls.py
         verbose (bool): Whether to print additional information
         

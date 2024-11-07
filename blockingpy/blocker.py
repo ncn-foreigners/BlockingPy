@@ -31,8 +31,8 @@ class Blocker:
         self.control_txt = {}
 
     def block(self, 
-              x: Union[pd.Series, sparse.csr_matrix, np.ndarray, np.array, List[str]],
-              y: Optional[Union[np.ndarray, pd.Series, sparse.csr_matrix, List[str]]] = None,
+              x: Union[pd.Series, sparse.csr_matrix, np.ndarray],
+              y: Optional[Union[np.ndarray, pd.Series, sparse.csr_matrix]] = None,
               deduplication: bool = True,
               ann: str = "annoy",
               ann_write: Optional[str] = None,
@@ -96,8 +96,8 @@ class Blocker:
             if self.x_colnames is None or self.y_colnames is None:
                 raise ValueError("Input is np.ndarray, but x_colnames or y_colnames is None.")
             
-            x_dtm = pd.DataFrame(x, columns=self.x_colnames)
-            y_dtm = pd.DataFrame(y, columns=self.y_colnames)
+            x_dtm = pd.DataFrame(x, columns=self.x_colnames).astype(pd.SparseDtype("int", fill_value=0))
+            y_dtm = pd.DataFrame(y, columns=self.y_colnames).astype(pd.SparseDtype("int", fill_value=0))
         else:  
             self.logger.info("===== creating tokens =====\n")
             x_dtm = create_sparse_dtm(x,
