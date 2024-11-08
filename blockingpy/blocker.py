@@ -170,9 +170,8 @@ class Blocker:
                 pairs_to_eval = pairs_to_eval.merge(true_blocks[['x','y']],
                                                     on=['x','y'],
                                                     how='left',
-                                                    indicator='both')
+                                                    indicator='both')                
                 pairs_to_eval['both'] = np.where(pairs_to_eval['both'] == 'both',0,-1)
-
                 true_blocks = true_blocks.merge(pairs_to_eval[['x', 'y']], 
                                                 on=['x', 'y'], 
                                                 how='left', 
@@ -188,9 +187,11 @@ class Blocker:
                 pairs_to_eval_long = pd.melt(pairs_to_eval[['y', 'x2', 'row_id', 'block', 'both']],
                                             id_vars=['row_id', 'block', 'both'],
                                             )
-                pairs_to_eval_long = pairs_to_eval_long[pairs_to_eval_long['both'] == 0]
-                pairs_to_eval_long['block_id'] = pairs_to_eval_long.groupby('block').ngroup()
-                pairs_to_eval_long['true_id'] = pairs_to_eval_long['block_id']
+                
+                filtered_df = pairs_to_eval_long[pairs_to_eval_long['both'] == 0].copy()
+                filtered_df['group_id'] = filtered_df.groupby('block').ngroup()
+                pairs_to_eval_long.loc[pairs_to_eval_long['both'] == 0, 'block_id'] = filtered_df['group_id']
+                pairs_to_eval_long.loc[pairs_to_eval_long['both'] == 0, 'true_id'] = filtered_df['group_id']
 
                 block_id_max = pairs_to_eval_long['block_id'].max(skipna=True)
                 pairs_to_eval_long.loc[pairs_to_eval_long['both'] == -1, 'block_id'] = block_id_max + pairs_to_eval_long.groupby('row_id').ngroup() + 1 
@@ -201,12 +202,11 @@ class Blocker:
 
                 true_id_max = pairs_to_eval_long['true_id'].max(skipna=True)
                 pairs_to_eval_long.loc[pairs_to_eval_long['both'] == 1, 'true_id'] = true_id_max + pairs_to_eval_long.groupby('row_id').ngroup() + 1
-                true_id_max = pairs_to_eval_long['treu_id'].max(skipna=True)
+                true_id_max = pairs_to_eval_long['true_id'].max(skipna=True)
                 # recreating R's rleid function again
                 pairs_to_eval_long['rleid'] = (pairs_to_eval_long['row_id'] != pairs_to_eval_long['row_id'].shift(1)).cumsum()
                 pairs_to_eval_long.loc[(pairs_to_eval_long['both'] == -1) & (pairs_to_eval_long['true_id'].isna()), 'true_id'] = true_id_max + pairs_to_eval_long['rleid']
-
-                pairs_to_eval_long.drop('rleid', inplace=True)
+                pairs_to_eval_long.drop(columns=['rleid'], axis=1, inplace=True)
 
             else:
                 pairs_to_eval_long = (pd.melt(x_df[['x', 'y', 'block']], id_vars=['block'])
@@ -216,8 +216,7 @@ class Blocker:
                       .merge(true_blocks[['x', 'block']], on='x', how='left')
                       .rename(columns={'block': 'true_id'}))
             
-            candidate_pairs = np.fromiter(itertools.combinations(range(pairs_to_eval_long.shape[0]), 2), dtype=int).reshape(-1, 2)
-
+            candidate_pairs = np.array(list(itertools.combinations(range(pairs_to_eval_long.shape[0]), 2)))
             block_id_array = pairs_to_eval_long['block_id'].values
             true_id_array = pairs_to_eval_long['true_id'].values
             same_block = block_id_array[candidate_pairs[:, 0]] == block_id_array[candidate_pairs[:, 1]]
@@ -228,7 +227,7 @@ class Blocker:
             fp = self.confusion.loc[True, False]   
             fn = self.confusion.loc[False, True]   
             tp = self.confusion.loc[True, True]    
-            tn = self.confusion.loc[False, False]  
+            tn = self.confusion.loc[False, False]
 
             recall = tp / (fn + tp) if (fn + tp) != 0 else 0 
             precision = tp / (tp + fp) if (tp + fp) != 0 else 0
