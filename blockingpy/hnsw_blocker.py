@@ -34,10 +34,8 @@ class HNSWBlocker(BlockingMethod):
 
     def __init__(self):
         self.index: Optional[hnswlib.Index] = None
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger('__main__')
         self.x_columns = None
-        console_handler = logging.StreamHandler(sys.stdout)
-        self.logger.addHandler(console_handler)
 
     def block(self, x: pd.DataFrame, 
             y: pd.DataFrame, 

@@ -21,8 +21,10 @@ from .blocking_result import BlockingResult
 class Blocker:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        console_handler = logging.StreamHandler(sys.stdout)
-        self.logger.addHandler(console_handler)
+        if not self.logger.handlers:
+            console_handler = logging.StreamHandler(sys.stdout)
+            self.logger.addHandler(console_handler)
+            
         self.eval_metrics = None
         self.confusion = None
         self.x_colnames = None

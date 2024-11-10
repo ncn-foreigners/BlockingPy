@@ -30,9 +30,7 @@ class MLPackBlocker(BlockingMethod):
 
     def __init__(self):
         self.algo = None
-        self.logger = logging.getLogger(__name__)
-        console_handler = logging.StreamHandler(sys.stdout)
-        self.logger.addHandler(console_handler)
+        self.logger = logging.getLogger('__main__')
 
     def block(self, x: pd.DataFrame, 
               y: pd.DataFrame, 
