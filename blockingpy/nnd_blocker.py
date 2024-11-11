@@ -4,28 +4,43 @@ import pynndescent
 import logging
 from typing import Dict, Any, Optional
 from .base import BlockingMethod
-import sys
 
 
 class NNDBlocker(BlockingMethod):
     """
-    A blocker class that uses the Nearest Neighbor Descent (NND).
+    A blocker class that uses the Nearest Neighbor Descent (NND) algorithm.
 
-    This class performs blocking using the pynndescent library's NNDescent algorithm.
-    For details see: https://pynndescent.readthedocs.io/en/latest/api.html (https://github.com/lmcinnes/pynndescent)
+    This class implements blocking functionality using the pynndescent library's 
+    NNDescent algorithm for efficient approximate nearest neighbor search.
 
-    Attributes:
-        index: The NNDescent index used for querying.
-        logger: A logger instance for outputting information and warnings.
+    Parameters
+    ----------
+    None
 
-    The main method of this class is `block()`, which performs the actual
-    blocking operation. Use the `controls` parameter in the `block()` method 
-    to fine-tune the algorithm's behavior.
+    Attributes
+    ----------
+    index : pynndescent.NNDescent or None
+        The NNDescent index used for querying
+    logger : logging.Logger
+        Logger instance for outputting information and warnings
 
-    This class inherits from the BlockingMethod abstract base class and
-    implements its `block()` method.
+    See Also
+    --------
+    BlockingMethod : Abstract base class defining the blocking interface
+    pynndescent.NNDescent : The underlying nearest neighbor descent implementation
+
+    Notes
+    -----
+    For more details about the algorithm and implementation, see:
+    https://pynndescent.readthedocs.io/en/latest/api.html
+    https://github.com/lmcinnes/pynndescent
     """
     def __init__(self):
+        """
+        Initialize the NNDBlocker instance.
+
+        Creates a new NNDBlocker with empty index and default logger settings.
+        """
         self.index = None
         self.logger = logging.getLogger('__main__')
 
@@ -36,20 +51,63 @@ class NNDBlocker(BlockingMethod):
               verbose: Optional[bool],
               controls: Dict[str, Any]) -> pd.DataFrame:
         """
-        Perform blocking using NND algorithm.
+        Perform blocking using the NND algorithm.
 
-        Args:
-            x (pd.DataFrame): Reference data.
-            y (pd.DataFrame): Query data.
-            k (int): Number of nearest neighbors to find.
-            verbose (bool): control the level of verbosity.
-            controls (Dict[str, Any]): Control parameters for the algorithm. For details see: blockingpy/controls.py
+        Parameters
+        ----------
+        x : pandas.DataFrame
+            Reference dataset containing features for indexing
+        y : pandas.DataFrame
+            Query dataset to find nearest neighbors for
+        k : int
+            Number of nearest neighbors to find
+        verbose : bool, optional
+            If True, print detailed progress information
+        controls : dict
+            Algorithm control parameters with the following structure:
+            {
+                'nnd': {
+                    'metric': str,
+                    'k_search': int,
+                    'metric_kwds': dict,
+                    'n_threads': int,
+                    'tree_init': bool,
+                    'n_trees': int,
+                    'leaf_size': int,
+                    'pruning_degree_multiplier': float,
+                    'diversify_prob': float,
+                    'init_graph': array-like or None,
+                    'init_dist': array-like or None,
+                    'low_memory': bool,
+                    'max_candidates': int,
+                    'max_rptree_depth': int,
+                    'n_iters': int,
+                    'delta': float,
+                    'compressed': bool,
+                    'parallel_batch_queries': bool,
+                    'epsilon': float
+                }
+            }
 
-        Returns:
-            pd.DataFrame: DataFrame containing the blocking results.
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the blocking results with columns:
+            - 'y': indices from query dataset
+            - 'x': indices of matched items from reference dataset
+            - 'dist': distances to matched items
 
-        Raises:
-            ValueError: If an invalid distance metric is provided.
+        Raises
+        ------
+        ValueError
+            If an invalid distance metric is provided
+
+        Notes
+        -----
+        The algorithm builds an approximate nearest neighbor index using 
+        random projection trees and neighbor descent. The quality of the 
+        approximation can be controlled through various parameters such 
+        as n_trees, n_iters, and epsilon.
         """ 
         self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
 

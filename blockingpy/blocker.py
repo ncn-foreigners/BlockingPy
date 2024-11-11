@@ -19,7 +19,49 @@ from .helper_functions import validate_input, validate_true_blocks, create_spars
 from .blocking_result import BlockingResult
 
 class Blocker:
+    """
+    A class implementing various blocking methods for record linkage and deduplication.
+
+    This class provides a unified interface to multiple approximate nearest neighbor
+    search algorithms for blocking in record linkage and deduplication tasks.
+
+    Parameters
+    ----------
+    None
+
+    Attributes
+    ----------
+    logger : logging.Logger
+        Logger instance for the class
+    eval_metrics : pandas.Series or None
+        Evaluation metrics when true blocks are provided
+    confusion : pandas.DataFrame or None
+        Confusion matrix when true blocks are provided
+    x_colnames : list of str or None
+        Column names for reference dataset
+    y_colnames : list of str or None
+        Column names for query dataset
+    control_ann : dict
+        Control parameters for ANN algorithms
+    control_txt : dict
+        Control parameters for text processing
+
+    Notes
+    -----
+    Supported algorithms:
+    - Annoy (Spotify)
+    - HNSW (Hierarchical Navigable Small World)
+    - MLPack (LSH and k-d tree)
+    - NND (Nearest Neighbor Descent)
+    - Voyager (Spotify)
+    - FAISS (Facebook AI Similarity Search)
+    """
     def __init__(self):
+        """
+        Initialize the Blocker instance.
+
+        Sets up logging and initializes empty state variables.
+        """
         self.logger = logging.getLogger(__name__)
         if not self.logger.handlers:
             console_handler = logging.StreamHandler(sys.stdout)
@@ -36,8 +78,7 @@ class Blocker:
               x: Union[pd.Series, sparse.csr_matrix, np.ndarray],
               y: Optional[Union[np.ndarray, pd.Series, sparse.csr_matrix]] = None,
               deduplication: bool = True,
-              ann: str = "annoy",
-              ann_write: Optional[str] = None,
+              ann: str = "faiss",
               true_blocks: Optional[pd.DataFrame] = None,
               verbose: int = 0,
               graph: bool = False,
@@ -45,6 +86,55 @@ class Blocker:
               control_ann: Dict[str, Any] = {},
               x_colnames: Optional[List[str]] = None,
               y_colnames: Optional[List[str]] = None):
+        """
+        Perform blocking using the specified algorithm.
+
+        Parameters
+        ----------
+        x : pandas.Series or scipy.sparse.csr_matrix or numpy.ndarray
+            Reference dataset for blocking
+        y : numpy.ndarray or pandas.Series or scipy.sparse.csr_matrix, optional
+            Query dataset (defaults to x for deduplication)
+        deduplication : bool, default True
+            Whether to perform deduplication instead of record linkage
+        ann : str, default "faiss"
+            Approximate Nearest Neighbor algorithm to use
+        true_blocks : pandas.DataFrame, optional
+            True blocking information for evaluation
+        verbose : int, default 0
+            Verbosity level (0-3)
+        graph : bool, default False
+            Whether to create a graph representation of blocks
+        control_txt : dict, default {}
+            Text processing parameters
+        control_ann : dict, default {}
+            ANN algorithm parameters
+        x_colnames : list of str, optional
+            Column names for reference dataset used with csr_matrix or np.ndarray
+        y_colnames : list of str, optional
+            Column names for query dataset used with csr_matrix or np.ndarray
+
+        Returns
+        -------
+        BlockingResult
+            Object containing blocking results and evaluation metrics
+
+        Notes
+        -----
+        The function supports three input types:
+        1. Text data (pandas.Series)
+        2. Sparse matrices (scipy.sparse.csr_matrix) as a Document-Term Matrix (DTM)
+        3. Dense matrices (numpy.ndarray) as a Document-Term Matrix (DTM)
+
+        For text data, additional preprocessing is performed using
+        the parameters in control_txt.
+
+        See Also
+        --------
+        BlockingResult : Class containing blocking results
+        controls_ann : Function to create ANN control parameters
+        controls_txt : Function to create text control parameters
+        """
         
         self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
@@ -74,7 +164,7 @@ class Blocker:
                 "kd": None
             }.get(ann)
 
-        validate_input(x, ann, distance, ann_write)
+        validate_input(x, ann, distance)
 
         if y is not None:
             deduplication = False

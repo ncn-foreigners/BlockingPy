@@ -5,25 +5,40 @@ from typing import Dict, Any, Optional
 import os
 import logging
 from .base import BlockingMethod
-import sys
 
 
 class VoyagerBlocker(BlockingMethod):
     """
     A class for performing blocking using the Voyager algorithm from Spotify.
-    For details see: https://github.com/spotify/voyager
 
-    Attributes:
-        index (Optional[Index]): The Voyager index used for nearest neighbor search.
-        logger (logging.Logger): Logger for the class.
-        x_columns: column names of x
+    This class implements blocking functionality using Spotify's Voyager algorithm 
+    for efficient approximate nearest neighbor search. It supports multiple distance 
+    metrics and is designed for high-dimensional data.
 
-    The main method of this class is `block()`, which performs the actual
-    blocking operation. Use the `controls` parameter in the `block()` method 
-    to fine-tune the algorithm's behavior.
+    Parameters
+    ----------
+    None
 
-    This class inherits from the BlockingMethod abstract base class and
-    implements its `block()` method.
+    Attributes
+    ----------
+    index : voyager.Index or None
+        The Voyager index used for nearest neighbor search
+    logger : logging.Logger
+        Logger instance for the class
+    x_columns : array-like or None
+        Column names of the reference dataset
+    METRIC_MAP : dict
+        Mapping of distance metric names to Voyager Space types
+
+    See Also
+    --------
+    BlockingMethod : Abstract base class defining the blocking interface
+    voyager.Index : The underlying Voyager index implementation
+
+    Notes
+    -----
+    For more details about the Voyager algorithm and implementation, see:
+    https://github.com/spotify/voyager
     """
     METRIC_MAP: Dict[str, Space] = {
         "euclidean": Space.Euclidean,
@@ -32,6 +47,11 @@ class VoyagerBlocker(BlockingMethod):
     }
 
     def __init__(self):
+        """
+        Initialize the VoyagerBlocker instance.
+
+        Creates a new VoyagerBlocker with empty index and default logger settings.
+        """
         self.index: Optional[Index] = None
         self.logger = logging.getLogger('__main__')
         self.x_columns = None
@@ -42,20 +62,52 @@ class VoyagerBlocker(BlockingMethod):
               verbose: Optional[bool], 
               controls: Dict[str, Any]) -> pd.DataFrame:
         """
-        Perform blocking using Voyager algorithm.
+        Perform blocking using the Voyager algorithm.
 
-        Args:
-            x (pd.DataFrame): Reference data.
-            y (pd.DataFrame): Query data.
-            k (int): Number of nearest neighbors to find.
-            verbose (bool): control the level of verbosity.
-            controls (Dict[str, Any]): Control parameters for the algorithm.
+        Parameters
+        ----------
+        x : pandas.DataFrame
+            Reference dataset containing features for indexing
+        y : pandas.DataFrame
+            Query dataset to find nearest neighbors for
+        k : int
+            Number of nearest neighbors to find
+        verbose : bool, optional
+            If True, print detailed progress information
+        controls : dict
+            Algorithm control parameters with the following structure:
+            {
+                'voyager': {
+                    'distance': str,
+                    'k_search': int,
+                    'path': str,
+                    'M': int,
+                    'ef_construction': int,
+                    'random_seed': int,
+                    'max_elements': int,
+                    'num_threads': int,
+                    'query_ef': int
+                }
+            }
 
-        Returns:
-            pd.DataFrame: DataFrame containing the blocking results.
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the blocking results with columns:
+            - 'y': indices from query dataset
+            - 'x': indices of matched items from reference dataset
+            - 'dist': distances to matched items
 
-        Raises:
-            ValueError: If an invalid distance metric is provided.
+        Raises
+        ------
+        ValueError
+            If an invalid distance metric is provided or if path is provided but incorrect
+
+        Notes
+        -----
+        The algorithm uses a graph-based approach for approximate 
+        nearest neighbor search. The quality of approximation can be controlled 
+        through parameters like ef_construction and query_ef.
         """
         self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
         
@@ -120,11 +172,20 @@ class VoyagerBlocker(BlockingMethod):
         """
         Validate the provided distance metric.
 
-        Args:
-            distance (str): The distance metric to validate.
+        Parameters
+        ----------
+        distance : str
+            The distance metric to validate
 
-        Raises:
-            ValueError: If the provided distance is not in the METRIC_MAP.
+        Raises
+        ------
+        ValueError
+            If the provided distance is not in the METRIC_MAP
+
+        Notes
+        -----
+        Valid metrics are defined in the METRIC_MAP class attribute.
+        Available metrics are: euclidean, cosine, and inner_product.
         """
         if distance not in self.METRIC_MAP:
             valid_metrics = ", ".join(self.METRIC_MAP.keys())
@@ -134,14 +195,27 @@ class VoyagerBlocker(BlockingMethod):
         """
         Save the Voyager index and column names to files.
 
-        Args:
-            path (str): Directory path where the files will be saved.
+        Parameters
+        ----------
+        path : str
+            Directory path where the files will be saved
+        verbose : bool
+            If True, print information about the save operation
+        
+        Raises
+        ------
+        ValueError
+            If the provided path is incorrect
 
-        Notes:
-            Creates two files:
-            1. 'index.voyager': The Voyager index file.
-            2. 'index-colnames.txt': A text file with column names.
+        Notes
+        -----
+        Creates two files:
+            - 'index.voyager': The Voyager index file
+            - 'index-colnames.txt': A text file with column names
         """
+        if not os.path.exists(os.path.dirname(path)):
+            raise ValueError("Provided path is incorrect")
+        
         path_voy = os.path.join(path, "index.voyager")
         path_voy_cols = os.path.join(path, "index-colnames.txt")
 

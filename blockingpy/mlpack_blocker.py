@@ -4,24 +4,37 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, Optional
 from .base import BlockingMethod
-import sys
 
 
 class MLPackBlocker(BlockingMethod):
     """
     A class for performing blocking using MLPack algorithms (LSH or k-d tree).
-    For details see: https://github.com/mlpack
 
-    Attributes:
-        algo (Optional[str]): The selected algorithm ('lsh' or 'kd').
-        logger (logging.Logger): Logger for the class.
+    This class implements blocking functionality using either Locality-Sensitive 
+    Hashing (LSH) or k-d tree algorithms from the MLPack library for efficient 
+    similarity search and nearest neighbor queries.
 
-    The main method of this class is `block()`, which performs the actual
-    blocking operation. Use the `controls` parameter in the `block()` method 
-    to fine-tune the algorithm's behavior.
+    Parameters
+    ----------
+    None
 
-    This class inherits from the BlockingMethod abstract base class and
-    implements its `block()` method.
+    Attributes
+    ----------
+    algo : str or None
+        The selected algorithm ('lsh' or 'kd')
+    logger : logging.Logger
+        Logger instance for the class
+    ALGO_MAP : dict
+        Mapping of algorithm names to their MLPack implementations
+
+    See Also
+    --------
+    BlockingMethod : Abstract base class defining the blocking interface
+
+    Notes
+    -----
+    For more details about the MLPack library and its algorithms, see:
+    https://github.com/mlpack
     """
     ALGO_MAP: Dict[str, str] = {
         "lsh": "lsh",
@@ -29,6 +42,12 @@ class MLPackBlocker(BlockingMethod):
     }
 
     def __init__(self):
+        """
+        Initialize the MLPackBlocker instance.
+
+        Creates a new MLPackBlocker with no algorithm selected and default 
+        logger settings.
+        """
         self.algo = None
         self.logger = logging.getLogger('__main__')
 
@@ -40,18 +59,60 @@ class MLPackBlocker(BlockingMethod):
         """
         Perform blocking using MLPack algorithm (LSH or k-d tree).
 
-        Args:
-            x (pd.DataFrame): Reference data.
-            y (pd.DataFrame): Query data.
-            k (int): Number of nearest neighbors to find.
-            verbose (bool): control the level of verbosity.
-            controls (Dict[str, Any]): Control parameters for the algorithm. For details see: blockingpy/controls.py
+        Parameters
+        ----------
+        x : pandas.DataFrame
+            Reference dataset containing features for indexing
+        y : pandas.DataFrame
+            Query dataset to find nearest neighbors for
+        k : int
+            Number of nearest neighbors to find
+        verbose : bool, optional
+            If True, print detailed progress information
+        controls : dict
+            Algorithm control parameters with the following structure:
+            {
+                'algo': str,
+                'lsh': {  # if using LSH
+                    'seed': int,
+                    'k_search': int,
+                    'bucket_size': int,
+                    'hash_width': float,
+                    'num_probes': int,
+                    'projections': int,
+                    'tables': int
+                },
+                'kd': {   # if using k-d tree
+                    'seed': int,
+                    'k_search': int,
+                    'algorithm': str,
+                    'leaf_size': int,
+                    'tree_type': str,
+                    'epsilon': float,
+                    'rho': float,
+                    'tau': float,
+                    'random_basis': bool
+                }
+            }
 
-        Returns:
-            pd.DataFrame: DataFrame containing the blocking results.
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the blocking results with columns:
+            - 'y': indices from query dataset
+            - 'x': indices of matched items from reference dataset
+            - 'dist': distances to matched items
 
-        Raises:
-            ValueError: If an invalid algorithm is specified in the controls.
+        Raises
+        ------
+        ValueError
+            If an invalid algorithm is specified in the controls
+
+        Notes
+        -----
+        The function supports two different algorithms:
+        - LSH (Locality-Sensitive Hashing): Better for high-dimensional data
+        - k-d tree: Better for low-dimensional data
         """
         self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
@@ -119,11 +180,21 @@ class MLPackBlocker(BlockingMethod):
         """
         Validate the provided algorithm.
 
-        Args:
-            algo (str): The algorithm to validate.
+        Parameters
+        ----------
+        algo : str
+            The algorithm to validate
 
-        Raises:
-            ValueError: If the provided algorithm is not in the ALGO_MAP.
+        Raises
+        ------
+        ValueError
+            If the provided algorithm is not in the ALGO_MAP
+
+        Notes
+        -----
+        Valid algorithms are defined in the ALGO_MAP class attribute.
+        Currently supports 'lsh' for Locality-Sensitive Hashing and
+        'kd' for k-d tree based search.
         """
         if algo not in self.ALGO_MAP:
             valid_algos = ", ".join(self.ALGO_MAP.keys())

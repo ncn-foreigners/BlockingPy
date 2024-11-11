@@ -9,15 +9,50 @@ class BlockingResult:
     """
     A class to represent and analyze the results of a blocking operation.
 
-    Args:
-        x_df (pd.DataFrame): DataFrame containing blocking results with columns ['x', 'y', 'block', 'dist'].
-        ann (str): The blocking method used (e.g., 'nnd', 'hnsw', 'annoy', etc.).
-        deduplication (bool): Whether the blocking was performed for deduplication.
-        true_blocks (Optional[pd.DataFrame]): DataFrame with true blocks to calculate evaluation metrics.
-        eval_metrics (Optional[pd.Series]): Evaluation metrics if true blocks were provided.
-        confusion (Optional[pd.DataFrame]): Confusion matrix if true blocks were provided.
-        colnames_xy (np.ndarray): Column names used in the blocking process.
-        graph (Optional[bool]): Whether to create a graph from the blocking results.
+    This class provides functionality to analyze and evaluate blocking results,
+    including calculation of reduction ratios, metrics evaluation, and optional
+    graph representation of the blocking structure.
+
+    Parameters
+    ----------
+    x_df : pandas.DataFrame
+        DataFrame containing blocking results with columns ['x', 'y', 'block', 'dist']
+    ann : str
+        The blocking method used (e.g., 'nnd', 'hnsw', 'annoy', etc.)
+    deduplication : bool
+        Whether the blocking was performed for deduplication
+    true_blocks : pandas.DataFrame, optional
+        DataFrame with true blocks to calculate evaluation metrics
+    eval_metrics : pandas.Series, optional
+        Evaluation metrics if true blocks were provided
+    confusion : pandas.DataFrame, optional
+        Confusion matrix if true blocks were provided
+    colnames_xy : numpy.ndarray
+        Column names used in the blocking process
+    graph : bool, optional
+        Whether to create a graph from the blocking results (default False)
+
+    Attributes
+    ----------
+    result : pandas.DataFrame
+        The blocking results containing ['x', 'y', 'block', 'dist'] columns
+    method : str
+        Name of the blocking method used
+    deduplication : bool
+        Indicates if this was a deduplication operation
+    metrics : pandas.Series or None
+        Evaluation metrics if true blocks were provided
+    confusion : pandas.DataFrame or None
+        Confusion matrix if true blocks were provided
+    colnames : numpy.ndarray
+        Names of columns used in blocking
+    graph : networkx.Graph or None
+        Network representation of blocking results if requested
+
+    Notes
+    -----
+    The class provides methods for calculating reduction ratio and formatting
+    evaluation metrics for blocking quality assessment.
     """
     def __init__(self, x_df,
                 ann: str,
@@ -27,7 +62,9 @@ class BlockingResult:
                 confusion: Optional[pd.DataFrame], 
                 colnames_xy: np.ndarray, 
                 graph: Optional[bool] = False):
-        
+        """
+        Initialize a BlockingResult instance.
+        """   
         self.result = x_df[["x", "y", "block", "dist"]]
         self.method = ann
         self.deduplication = deduplication
@@ -37,12 +74,34 @@ class BlockingResult:
         self.graph = nx.from_pandas_edgelist(x_df[["x", "y"]], source="x", target="y") if graph else None
 
     def __repr__(self):
-        """Provide a concise representation of the blocking result."""
+        """
+        Provide a concise representation of the blocking result.
+
+        Returns
+        -------
+        str
+            A string representation showing method and deduplication status
+        """
         return f"BlockingResult(method={self.method}, deduplication={self.deduplication})"
     
 
     def __str__(self) -> str:
-        """Create a string representation of the blocking result."""
+        """
+        Create a detailed string representation of the blocking result.
+
+        Returns
+        -------
+        str
+            A formatted string containing:
+            - Basic information about the blocking
+            - Block size distribution
+            - Evaluation metrics (if available)
+
+        Notes
+        -----
+        The output includes reduction ratio and detailed block size statistics.
+        If evaluation metrics are available, they are included in the output.
+        """
         
         blocks_tab = self.result['block'].value_counts()   
         block_sizes = Counter(blocks_tab.values)
@@ -73,9 +132,21 @@ class BlockingResult:
     def _calculate_reduction_ratio(self) -> float:
         """
         Calculate the reduction ratio for the blocking method.
-        
-        Returns:
-            float: Reduction ratio
+
+        The reduction ratio measures how much the blocking method reduces
+        the number of comparisons needed compared to all possible pairs.
+
+        Returns
+        -------
+        float
+            The reduction ratio, where:
+            - 1.0 means maximum reduction (minimal comparisons)
+            - 0.0 means no reduction (all pairs compared)
+
+        Notes
+        -----
+        The ratio is calculated as:
+        1 - (number of comparisons after blocking / total possible comparisons)
         """
         blocks_tab = self.result['block'].value_counts()
 
@@ -89,10 +160,18 @@ class BlockingResult:
     
     def _format_metrics(self) -> Dict[str, float]:
         """
-        Format the evaluation metrics for the blocking method.
-        
-        Returns:
-            Dict[str, float]: Formatted evaluation metrics
+        Format the evaluation metrics for display.
+
+        Returns
+        -------
+        dict
+            Dictionary of metric names and formatted values as percentages,
+            rounded to 4 decimal places
+
+        Notes
+        -----
+        Returns an empty dictionary if no metrics are available.
+        Values are multiplied by 100 to convert to percentages.
         """
         if self.metrics is None:
             return {}

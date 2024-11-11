@@ -5,25 +5,38 @@ import logging
 from typing import Dict, Any, Optional
 import os
 from .base import BlockingMethod
-import sys
 
 
 class HNSWBlocker(BlockingMethod):
     """
     A class for performing blocking using the Hierarchical Navigable Small World (HNSW) algorithm.
-    For details see: https://github.com/nmslib/hnswlib
 
-    Attributes:
-        index (Optional[hnswlib.Index]): The HNSW index used for nearest neighbor search.
-        logger (logging.Logger): Logger for the class.
-        x_columns: column names of x.
+    This class implements blocking functionality using the HNSW algorithm for efficient 
+    similarity search and nearest neighbor queries.
 
-    The main method of this class is `block()`, which performs the actual
-    blocking operation. Use the `controls` parameter in the `block()` method 
-    to fine-tune the algorithm's behavior.
+    Parameters
+    ----------
+    None
 
-    This class inherits from the BlockingMethod abstract base class and
-    implements its `block()` method.
+    Attributes
+    ----------
+    index : hnswlib.Index or None
+        The HNSW index used for nearest neighbor search
+    logger : logging.Logger
+        Logger instance for the class
+    x_columns : array-like or None
+        Column names of the reference dataset
+    SPACE_MAP : dict
+        Mapping of distance metric names to their HNSW implementations
+
+    See Also
+    --------
+    BlockingMethod : Abstract base class defining the blocking interface
+
+    Notes
+    -----
+    For more details about the HNSW algorithm, see:
+    https://github.com/nmslib/hnswlib
     """
     SPACE_MAP: Dict[str, str] = {
         "l2": "l2",
@@ -33,6 +46,11 @@ class HNSWBlocker(BlockingMethod):
     }
 
     def __init__(self):
+        """
+        Initialize the HNSWBlocker instance.
+
+        Creates a new HNSWBlocker with empty index and default logger settings.
+        """
         self.index: Optional[hnswlib.Index] = None
         self.logger = logging.getLogger('__main__')
         self.x_columns = None
@@ -43,21 +61,51 @@ class HNSWBlocker(BlockingMethod):
             verbose: Optional[bool],
             controls: Dict[str, Any]) -> pd.DataFrame:
         """
-        Perform blocking using HNSW algorithm.
+        Perform blocking using the HNSW algorithm.
 
-        Args:
-            x (pd.DataFrame): Reference data.
-            y (pd.DataFrame): Query data.
-            k (int): Number of nearest neighbors to find. If k is larger than the number of reference points,
-                     it will be automatically adjusted.
-            verbose (bool): control the level of verbosity.
-            controls (Dict[str, Any]): Control parameters for the algorithm. For details see: blockingpy/controls.py
+        Parameters
+        ----------
+        x : pandas.DataFrame
+            Reference dataset containing features for indexing
+        y : pandas.DataFrame
+            Query dataset to find nearest neighbors for
+        k : int
+            Number of nearest neighbors to find. If k is larger than the number 
+            of reference points, it will be automatically adjusted
+        verbose : bool, optional
+            If True, print detailed progress information
+        controls : dict
+            Algorithm control parameters with the following structure:
+            {
+                'hnsw': {
+                    'distance': str,
+                    'n_threads': int,
+                    'path': str,
+                    'ef_c': int,
+                    'ef_s': int,
+                    'M': int
+                }
+            }
 
-        Returns:
-            pd.DataFrame: DataFrame containing the blocking results.
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the blocking results with columns:
+            - 'y': indices from query dataset
+            - 'x': indices of matched items from reference dataset
+            - 'dist': distances to matched items
 
-        Raises:
-            ValueError: If an invalid distance metric is provided.
+        Raises
+        ------
+        ValueError
+            If an invalid distance metric is provided in controls or if path is provided but incorrect
+
+        Notes
+        -----
+        The function builds an HNSW index from the reference dataset and finds 
+        the k-nearest neighbors for each point in the query dataset. The index 
+        parameters ef_c (construction) and ef_s (search) control the trade-off 
+        between search accuracy and speed.
         """
         self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
@@ -107,11 +155,19 @@ class HNSWBlocker(BlockingMethod):
         """
         Validate the provided distance metric.
 
-        Args:
-            distance (str): The distance metric to validate.
+        Parameters
+        ----------
+        distance : str
+            The distance metric to validate
 
-        Raises:
-            ValueError: If the provided distance is not in the SPACE_MAP.
+        Raises
+        ------
+        ValueError
+            If the provided distance is not in the SPACE_MAP
+
+        Notes
+        -----
+        Valid distance metrics are defined in the SPACE_MAP class attribute.
         """
         if distance not in self.SPACE_MAP:
             valid_metrics = ", ".join(self.SPACE_MAP.keys())
@@ -121,14 +177,27 @@ class HNSWBlocker(BlockingMethod):
         """
         Save the HNSW index and column names to files.
 
-        Args:
-            path (str): Directory path where the files will be saved.
+        Parameters
+        ----------
+        path : str
+            Directory path where the files will be saved
+        verbose : bool
+            If True, print information about the save operation
+        
+        Raises
+        ------
+        ValueError
+            If the provided path is incorrect
 
-        Notes:
-            Creates two files:
-            1. 'index.hnsw': The HNSW index file.
-            2. 'index-colnames.txt': A text file with column names.
+        Notes
+        -----
+        Creates two files:
+            - 'index.hnsw': The HNSW index file
+            - 'index-colnames.txt': A text file with column names
         """
+        if not os.path.exists(os.path.dirname(path)):
+            raise ValueError("Provided path is incorrect")
+        
         path_ann = os.path.join(path, "index.hnsw")
         path_ann_cols = os.path.join(path, "index-colnames.txt")
         

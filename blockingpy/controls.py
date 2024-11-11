@@ -3,13 +3,24 @@ from copy import deepcopy
 
 def deep_update(base_dict: Dict, update_dict: Dict) -> Dict:
     """
-    Update controls dictionaries while leaving default values intact.
-    
-    Args:
-        base_dict (Dict): The base dictionary with default values
-        update_dict (Dict): The dictionary with values to update       
-    Returns:
-        Dict: Updated dictionary with preserved nested structure
+    Update nested dictionaries while preserving default values.
+
+    Parameters
+    ----------
+    base_dict : dict
+        The base dictionary containing default values
+    update_dict : dict
+        The dictionary containing values to update
+
+    Returns
+    -------
+    dict
+        Updated dictionary with preserved nested structure
+
+    Notes
+    -----
+    This function performs a deep copy and recursive update of nested dictionaries,
+    ensuring that default values are preserved when not explicitly overridden.
     """
     result = deepcopy(base_dict)
     
@@ -23,23 +34,57 @@ def deep_update(base_dict: Dict, update_dict: Dict) -> Dict:
 
 def controls_ann(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
     """
-    Create controls dictionary for ANN algorithms.
-    Handles nested dictionary updates while preserving defaults.
+    Create configuration dictionary for Approximate Nearest Neighbor algorithms.
 
-    For details on each algorithm's parameters, see:
+    This function provides a centralized configuration for multiple ANN algorithms,
+    with sensible defaults and easy override capabilities.
+
+    Parameters
+    ----------
+    controls : dict, optional
+        Dictionary of control parameters to override defaults
+    **kwargs : dict
+        Additional keyword arguments for direct parameter updates
+
+    Returns
+    -------
+    dict
+        Configuration dictionary with the following structure:
+        {
+            'nnd': {
+                'metric': str,
+                'k_search': int,
+                'metric_kwds': dict or None,
+                'n_threads': int or None,
+                ...
+            },
+            'hnsw': {
+                'distance': str,
+                'n_threads': int,
+                'M': int,
+                ...
+            },
+            'lsh': {...},
+            'kd': {...},
+            'annoy': {...},
+            'voyager': {...},
+            'faiss': {...},
+            'algo': str
+        }
+
+    Notes
+    -----
+    Supported algorithms and their documentation:
     - NND: https://github.com/lmcinnes/pynndescent
     - HNSW: https://github.com/nmslib/hnswlib
     - Annoy: https://github.com/spotify/annoy
     - LSH and KD: https://github.com/mlpack/mlpack
     - Voyager: https://github.com/spotify/voyager
-    - FAISS: https://github.com/facebookresearch/faiss (cpu only for now)
+    - FAISS: https://github.com/facebookresearch/faiss (CPU only)
 
-    Args:
-        controls (Dict[str, Any], optional): Dictionary of controls
-        **kwargs: Additional keyword arguments
-    
-    Returns:
-        (Dict): Configuration dictionary for ANN algorithms with default values
+    Examples
+    --------
+    >>> config = controls_ann(hnsw={'M': 30, 'ef_c': 300})
     """
     defaults = {
         'nnd': {
@@ -133,19 +178,38 @@ def controls_ann(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
 
 def controls_txt(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
     """
-    Create controls dictionary for text processing.
+    Create configuration dictionary for text processing operations.
 
-    Args:
-        controls (Dict[str, Any], optional): Dictionary of controls
-        **kwargs: Additional keyword arguments
+    Parameters
+    ----------
+    controls : dict, optional
+        Dictionary of control parameters to override defaults
+    **kwargs : dict
+        Additional keyword arguments for direct parameter updates
 
-        n_shingles (int): Number of shingles.
-        n_chunks (int): Number of chunks.
-        lowercase (bool): Wheather to convert text to lowercase.
-        strip_non_alphanum (bool): Wheather to strip non-alphanumeric characters.
-    
-    Returns:
-        (Dict): Configuration dictionary for text processing with default values
+    Returns
+    -------
+    dict
+        Configuration dictionary with the following structure:
+        {
+            'n_shingles': int,
+            'max_features': int,
+            'lowercase': bool,
+            'strip_non_alphanum': bool
+        }
+
+    Notes
+    -----
+    Configuration options:
+    - n_shingles: Number of consecutive tokens to combine
+    - max_features: Maximum number of features to keep
+    - lowercase: Convert text to lowercase if True
+    - strip_non_alphanum: Remove non-alphanumeric characters if True
+
+    Examples
+    --------
+    >>> config = controls_txt(n_shingles=3, lowercase=False)
+    >>> config = controls_txt({'max_features': 10000})
     """
     defaults = {
         'n_shingles': 2,
@@ -162,37 +226,4 @@ def controls_txt(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
     
     return deep_update(defaults, updates)
 
-# Example usage:
-if __name__ == "__main__":
-    config_dict = {
-        'nnd': {
-            'metric': 'euclidean',
-            'n_threads': None,
-            'tree_init': True,
-            'n_trees': None,
-            'leaf_size': None,
-        
-        },
-        'algo': 'lsh'
-    }
-    custom_config = controls_ann(config_dict) 
     
-    print("\nNND configuration:")
-    for k, v in custom_config['nnd'].items():
-        print(f"{k}: {v}")
-    print(f"Algorithm: {custom_config['algo']}")
-    
-    another_config = controls_ann(hnsw={
-        'M': 30,
-        'ef_c': 300, 
-    })
-    
-    print("\nHNSW configuration:")
-    print(another_config['hnsw'])
-    
-    mixed_config = controls_ann(
-        {
-            'nnd': {'metric': 'cosine'}
-        },
-        algo='nnd'
-    )

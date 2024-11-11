@@ -6,25 +6,38 @@ from typing import Dict, Any, Optional
 import os
 import logging
 from .base import BlockingMethod
-import sys
 
 
 class AnnoyBlocker(BlockingMethod):
     """
     A class for performing blocking using the Annoy algorithm.
-    For details see: https://github.com/spotify/annoy
 
-    Attributes:
-        index (Optional[AnnoyIndex]): The Annoy index used for nearest neighbor search.
-        logger (logging.Logger): Logger for the class.
-        x_columns: column names of x
+    This class implements blocking functionality using Spotify's Annoy (Approximate 
+    Nearest Neighbors Oh Yeah) algorithm for efficient similarity search. 
 
-    The main method of this class is `block()`, which performs the actual
-    blocking operation. Use the `controls` parameter in the `block()` method 
-    to fine-tune the algorithm's behavior.
+    Parameters
+    ----------
+    None
 
-    This class inherits from the BlockingMethod abstract base class and
-    implements its `block()` method.
+    Attributes
+    ----------
+    index : AnnoyIndex or None
+        The Annoy index used for nearest neighbor search
+    logger : logging.Logger
+        Logger instance for the class
+    x_columns : array-like or None
+        Column names of the reference dataset
+    METRIC_MAP : dict
+        Mapping of distance metric names to their Annoy implementations
+
+    See Also
+    --------
+    BlockingMethod : Abstract base class defining the blocking interface
+    
+    Notes
+    -----
+    For more details about the Annoy algorithm, see:
+    https://github.com/spotify/annoy
     """
     METRIC_MAP: Dict[str, str] = {
         "euclidean": "euclidean",
@@ -34,11 +47,14 @@ class AnnoyBlocker(BlockingMethod):
     }
 
     def __init__(self):
+        """
+        Initialize the AnnoyBlocker instance.
+
+        Creates a new AnnoyBlocker with empty index and default logger settings.
+        """
         self.index: Optional[AnnoyIndex] = None
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger('__main__')
         self.x_columns = None
-        console_handler = logging.StreamHandler(sys.stdout)
-        self.logger.addHandler(console_handler)
     
     def block(self, x: pd.DataFrame, 
               y: pd.DataFrame, 
@@ -46,21 +62,50 @@ class AnnoyBlocker(BlockingMethod):
               verbose: Optional[bool], 
               controls: Dict[str, Any]) -> pd.DataFrame:
         """
-        Perform blocking using Annoy algorithm.
+        Perform blocking using the Annoy algorithm.
 
-        Args:
-            x (pd.DataFrame): Reference data.
-            y (pd.DataFrame): Query data.
-            k (int): Number of nearest neighbors to find.
-            verbose (bool): control the level of verbosity.
-            controls (Dict[str, Any]): Control parameters for the algorithm. For details see: blockingpy/controls.py
+        Parameters
+        ----------
+        x : pandas.DataFrame
+            Reference dataset containing features for indexing
+        y : pandas.DataFrame
+            Query dataset to find nearest neighbors for
+        k : int
+            Number of nearest neighbors to find
+        verbose : bool, optional
+            If True, print detailed progress information
+        controls : dict
+            Algorithm control parameters with the following structure:
+            {
+                'annoy': {
+                    'distance': str,
+                    'seed': int,
+                    'path': str,
+                    'n_trees': int,
+                    'build_on_disk': bool,
+                    'k_search': int
+                }
+            }
 
-        Returns:
-            pd.DataFrame: DataFrame containing the blocking results.
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame containing the blocking results with columns:
+            - 'y': indices from query dataset
+            - 'x': indices of matched items from reference dataset
+            - 'dist': distances to matched items
 
-        Raises:
-            ValueError: If an invalid distance metric is provided.
+        Raises
+        ------
+        ValueError
+            If an invalid distance metric is provided in controls or if path is provided but incorrect
+
+        Notes
+        -----
+        The function builds an Annoy index from the reference dataset 
+        and finds the k-nearest neighbors for each point in the query dataset.
         """
+        
         self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
         
         self.x_columns = x.columns
@@ -132,11 +177,15 @@ class AnnoyBlocker(BlockingMethod):
         """
         Validate the provided distance metric.
 
-        Args:
-            distance (str): The distance metric to validate.
+        Parameters
+        ----------
+        distance : str
+            The distance metric to validate
 
-        Raises:
-            ValueError: If the provided distance is not in the METRIC_MAP.
+        Raises
+        ------
+        ValueError
+            If the provided distance is not in the METRIC_MAP
         """
         if distance not in self.METRIC_MAP:
             valid_metrics = ", ".join(self.METRIC_MAP.keys())
@@ -146,14 +195,27 @@ class AnnoyBlocker(BlockingMethod):
         """
         Save the Annoy index and column names to files.
 
-        Args:
-            path (str): Directory path where the files will be saved.
+        Parameters
+        ----------
+        path : str
+            Directory path where the files will be saved
+        verbose : bool
+            If True, print information about the save operation
+        
+        Raises
+        ------
+        ValueError
+            If the provided path is incorrect 
 
-        Notes:
-            Creates two files:
-            1. 'index.annoy': The Annoy index file.
-            2. 'index-colnames.txt': A text file with column names.
+        Notes
+        -----
+        Creates two files:
+            - 'index.annoy': The Annoy index file
+            - 'index-colnames.txt': A text file with column names
         """
+        if not os.path.exists(os.path.dirname(path)):
+            raise ValueError("Provided path is incorrect")
+        
         path_ann = os.path.join(path, "index.annoy")
         path_ann_cols = os.path.join(path, "index-colnames.txt")
 
