@@ -1,3 +1,5 @@
+"""Contains the FaissBlocker class for performing blocking using the FAISS algorithm from Meta."""
+
 import numpy as np
 import pandas as pd
 import logging

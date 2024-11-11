@@ -1,3 +1,5 @@
+"""Contains the VoyagerBlocker class for performing blocking using the Voyager algorithm from Spotify."""
+
 import numpy as np
 import pandas as pd
 from voyager import Index, Space

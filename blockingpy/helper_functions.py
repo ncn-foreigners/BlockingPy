@@ -1,3 +1,5 @@
+"""Contains helper functions for blocking operations such as input validation and Document Term Matrix (DTM) creation."""
+
 import numpy as np
 import pandas as pd
 from scipy import sparse

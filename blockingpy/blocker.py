@@ -1,3 +1,5 @@
+"""Contains the main Blocker class for record linkage and deduplication blocking."""
+
 import numpy as np
 import pandas as pd
 import networkx as nx

@@ -1,3 +1,5 @@
+"""Contains the BlockingResult class for analyzing and printing blocking results."""
+
 import networkx as nx
 import numpy as np
 from math import comb

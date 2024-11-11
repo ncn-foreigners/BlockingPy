@@ -1,3 +1,5 @@
+"""Contains AnnnoyBlocker class for blocking using Annoy algorithm from Spotify."""
+
 import numpy as np
 import pandas as pd
 from annoy import AnnoyIndex

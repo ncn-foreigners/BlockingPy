@@ -1,3 +1,5 @@
+"""Contains the abstract base class for blocking methods."""
+
 from abc import ABC, abstractmethod
 import pandas as pd
 from typing import Dict, Any, Optional

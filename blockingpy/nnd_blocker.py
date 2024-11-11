@@ -1,3 +1,5 @@
+"""Cotains the NNDBlocker class for blocking using the Nearest Neighbor Descent algorithm."""
+
 import numpy as np
 import pandas as pd
 import pynndescent

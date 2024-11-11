@@ -1,3 +1,5 @@
+"""Contains the MLPackBlocker class for performing blocking using MLPack algorithms."""
+
 import logging
 from mlpack import lsh, knn
 import pandas as pd

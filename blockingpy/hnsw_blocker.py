@@ -1,3 +1,5 @@
+"""Contains the HNSWBlocker class for performing blocking using the HNSW algorithm."""
+
 import numpy as np
 import pandas as pd
 import hnswlib
