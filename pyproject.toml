@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "blockingpy"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 numpy = "^1.21"
 pandas = "^2.2.3"
 annoy = "^1.17.3"
@@ -21,6 +21,11 @@ nltk = "^3.9.1"
 voyager = "^2.0.9"
 faiss-cpu = "^1.9.0"
 
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+mypy = "^1.13.0"
+flake8 = "^7.1.1"
 
 [build-system]
 requires = ["poetry-core"]
