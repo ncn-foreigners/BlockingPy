@@ -1,18 +1,20 @@
 """Contains helper functions for blocking operations such as input validation and Document Term Matrix (DTM) creation."""
 
+import os
+import re
+from typing import List, Optional, Union
+
+from nltk.util import ngrams
 import numpy as np
 import pandas as pd
 from scipy import sparse
-import os
-import re
 from sklearn.feature_extraction.text import CountVectorizer
-from nltk.util import ngrams
-from typing import Optional, Union
+
 
 def validate_input(x: Union[pd.Series, sparse.csr_matrix, np.ndarray],
                    ann: str,
                    distance: str,
-                   ):
+                   ) -> None:
     """
     Validate input parameters for the block method in the Blocker class.
 
@@ -57,7 +59,7 @@ def validate_input(x: Union[pd.Series, sparse.csr_matrix, np.ndarray],
         raise ValueError("Distance for Faiss should be `euclidean, l2, inner_product, cosine, l1, manhattan, linf, canberra, bray_curtis, jensen_shannon`")
     
 def validate_true_blocks(true_blocks: Optional[pd.DataFrame],
-                         deduplication: bool):
+                         deduplication: bool) -> None:
     """
     Validate true_blocks input parameter for the block method in the Blocker class.
 
@@ -89,7 +91,7 @@ def validate_true_blocks(true_blocks: Optional[pd.DataFrame],
             if len(true_blocks.columns) != 2 or not all(col in true_blocks.columns for col in ["x", "block"]):
                 raise ValueError("`true blocks` should be a DataFrame with columns: x, block")
     
-def tokenize_character_shingles(text, n=2, lowercase=True, strip_non_alphanum=True):
+def tokenize_character_shingles(text: List[str], n: int = 2, lowercase: bool = True, strip_non_alphanum:bool = True) -> List[str]:
     """
     Generate character n-grams (shingles) from input text.
 
@@ -137,7 +139,7 @@ def tokenize_character_shingles(text, n=2, lowercase=True, strip_non_alphanum=Tr
     shingles = [''.join(gram) for gram in ngrams(text, n)]
     return shingles
 
-def create_sparse_dtm(x: pd.Series, control_txt: dict, verbose: bool = False):
+def create_sparse_dtm(x: pd.Series, control_txt: dict, verbose: bool = False) -> pd.DataFrame:
     """
     Create a sparse document-term matrix from input texts.
 

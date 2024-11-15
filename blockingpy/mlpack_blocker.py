@@ -1,10 +1,12 @@
 """Contains the MLPackBlocker class for performing blocking using MLPack algorithms."""
 
 import logging
-from mlpack import lsh, knn
-import pandas as pd
-import numpy as np
 from typing import Dict, Any, Optional
+
+from mlpack import lsh, knn
+import numpy as np
+import pandas as pd
+
 from .base import BlockingMethod
 
 
@@ -43,7 +45,7 @@ class MLPackBlocker(BlockingMethod):
         "kd": "knn"
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the MLPackBlocker instance.
 

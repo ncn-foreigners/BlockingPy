@@ -1,24 +1,33 @@
-"""Contains the main Blocker class for record linkage and deduplication blocking."""
+"""
+Contains the main Blocker class for record linkage
+and deduplication blocking.
+"""
 
+from collections import OrderedDict
+import itertools
+import logging
+import sys
+from typing import Optional, Union, List, Dict, Any
+
+import networkx as nx
 import numpy as np
 import pandas as pd
-import networkx as nx
 from scipy import sparse
-from typing import Optional, Union, List, Dict, Any
-import logging
-import itertools
-from collections import OrderedDict
-import sys
 
-from .controls import controls_ann, controls_txt
 from .annoy_blocker import AnnoyBlocker
+from .blocking_result import BlockingResult
+from .controls import controls_ann, controls_txt
+from .faiss_blocker import FaissBlocker
+from .helper_functions import (
+    validate_input,
+    validate_true_blocks,
+    create_sparse_dtm
+)
 from .hnsw_blocker import HNSWBlocker
 from .mlpack_blocker import MLPackBlocker
 from .nnd_blocker import NNDBlocker
 from .voyager_blocker import VoyagerBlocker
-from .faiss_blocker import FaissBlocker
-from .helper_functions import validate_input, validate_true_blocks, create_sparse_dtm
-from .blocking_result import BlockingResult
+
 
 class Blocker:
     """
@@ -58,7 +67,7 @@ class Blocker:
     - Voyager (Spotify)
     - FAISS (Facebook AI Similarity Search)
     """
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the Blocker instance.
 
@@ -87,7 +96,7 @@ class Blocker:
               control_txt: Dict[str, Any] = {},
               control_ann: Dict[str, Any] = {},
               x_colnames: Optional[List[str]] = None,
-              y_colnames: Optional[List[str]] = None):
+              y_colnames: Optional[List[str]] = None) -> BlockingResult:
         """
         Perform blocking using the specified algorithm.
 
@@ -137,7 +146,7 @@ class Blocker:
         controls_ann : Function to create ANN control parameters
         controls_txt : Function to create text control parameters
         """
-        
+
         self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
         self.x_colnames = x_colnames
@@ -156,7 +165,7 @@ class Blocker:
             distance = None
 
         if distance is None:
-            distance = {  
+            distance = {
                 "nnd": "cosine",
                 "hnsw": "cosine",
                 "annoy": "angular",
@@ -181,14 +190,18 @@ class Blocker:
 
         #TOKENIZATION
         if sparse.issparse(x):
-            if self.x_colnames is None or self.y_colnames is None:
-                raise ValueError("Input is sparse, but x_colnames or y_colnames is None.")
+            if self.x_colnames is None:
+                raise ValueError("Input is sparse, but x_colnames is None.")
+            if self.y_colnames is None:
+                raise ValueError("Input is sparse, but y_colnames is None.")
             
             x_dtm = pd.DataFrame.sparse.from_spmatrix(x, columns=self.x_colnames)
             y_dtm = pd.DataFrame.sparse.from_spmatrix(y, columns=self.y_colnames)
         elif isinstance(x, np.ndarray):
-            if self.x_colnames is None or self.y_colnames is None:
-                raise ValueError("Input is np.ndarray, but x_colnames or y_colnames is None.")
+            if self.x_colnames is None:
+                raise ValueError("Input is np.ndarray, but x_colnames is None.")
+            if self.y_colnames is None:
+                raise ValueError("Input is np.ndarray, but y_colnames is None.")
             
             x_dtm = pd.DataFrame(x, columns=self.x_colnames).astype(pd.SparseDtype("int", fill_value=0))
             y_dtm = pd.DataFrame(y, columns=self.y_colnames).astype(pd.SparseDtype("int", fill_value=0))

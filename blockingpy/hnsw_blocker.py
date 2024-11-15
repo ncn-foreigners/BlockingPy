@@ -1,11 +1,12 @@
 """Contains the HNSWBlocker class for performing blocking using the HNSW algorithm."""
 
-import numpy as np
-import pandas as pd
-import hnswlib
 import logging
-from typing import Dict, Any, Optional
 import os
+from typing import Dict, Any, Optional
+
+import hnswlib
+import pandas as pd
+
 from .base import BlockingMethod
 
 
@@ -47,7 +48,7 @@ class HNSWBlocker(BlockingMethod):
         "ip": "ip"
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the HNSWBlocker instance.
 
@@ -141,7 +142,7 @@ class HNSWBlocker(BlockingMethod):
         l_1nn = self.index.knn_query(y, k=k)
 
         if path:
-            self._save_index(path, verbose)
+            self._save_index(path)
         
         result = pd.DataFrame({
             'y': range(y.shape[0]),
@@ -199,12 +200,12 @@ class HNSWBlocker(BlockingMethod):
         """
         if not os.path.exists(os.path.dirname(path)):
             raise ValueError("Provided path is incorrect")
-        
+
         path_ann = os.path.join(path, "index.hnsw")
         path_ann_cols = os.path.join(path, "index-colnames.txt")
-        
+
         self.logger.info(f"Writing an index to {path_ann}")
-        
+
         self.index.save_index(path_ann)
         with open(path_ann_cols, 'w') as f:
             f.write('\n'.join(self.x_columns))

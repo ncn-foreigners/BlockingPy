@@ -1,11 +1,16 @@
-"""Contains the BlockingResult class for analyzing and printing blocking results."""
+"""
+Contains the BlockingResult class for analyzing and printing
+blocking results.
+"""
+
+from collections import Counter
+from math import comb
+from typing import Dict, Optional
 
 import networkx as nx
 import numpy as np
-from math import comb
-from collections import Counter
-from typing import Dict, Optional
 import pandas as pd
+
 
 class BlockingResult:
     """
@@ -56,14 +61,14 @@ class BlockingResult:
     The class provides methods for calculating reduction ratio and formatting
     evaluation metrics for blocking quality assessment.
     """
-    def __init__(self, x_df,
+    def __init__(self, x_df: pd.DataFrame,
                 ann: str,
                 deduplication: bool,
                 true_blocks: Optional[pd.DataFrame],
                 eval_metrics: Optional[pd.Series],
                 confusion: Optional[pd.DataFrame], 
                 colnames_xy: np.ndarray, 
-                graph: Optional[bool] = False):
+                graph: Optional[bool] = False) -> None:
         """
         Initialize a BlockingResult instance.
         """   
@@ -75,7 +80,7 @@ class BlockingResult:
         self.colnames = colnames_xy
         self.graph = nx.from_pandas_edgelist(x_df[["x", "y"]], source="x", target="y") if graph else None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Provide a concise representation of the blocking result.
 

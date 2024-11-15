@@ -1,14 +1,16 @@
 """Contains the abstract base class for blocking methods."""
 
 from abc import ABC, abstractmethod
-import pandas as pd
 from typing import Dict, Any, Optional
+
+import pandas as pd
+
 
 class BlockingMethod(ABC):
     """
     Abstract base class for blocking methods.
 
-    This class defines the interface for all blocking method implementations. 
+    This class defines the interface for all blocking method implementations.
 
     Parameters
     ----------
@@ -29,16 +31,16 @@ class BlockingMethod(ABC):
     VoyagerBlocker : Blocking using Voyager algorithm
     """
     @abstractmethod
-    def block(self, x: pd.DataFrame, 
-              y: pd.DataFrame, 
-              k: int, 
-              verbose: Optional[bool], 
+    def block(self, x: pd.DataFrame,
+              y: pd.DataFrame,
+              k: int,
+              verbose: Optional[bool],
               controls: Dict[str, Any]) -> pd.DataFrame:
         """
         Perform blocking operation to identify potential matches.
 
         This abstract method must be implemented by all blocking method classes.
-        It should efficiently find approximate nearest neighbors for each query 
+        It should efficiently find approximate nearest neighbors for each query
         point in the input dataset.
 
         Parameters
@@ -58,7 +60,7 @@ class BlockingMethod(ABC):
             - Search parameters
             - Index construction parameters
             - Performance tuning options
-            
+
         Returns
         -------
         pandas.DataFrame

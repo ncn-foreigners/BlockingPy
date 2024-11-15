@@ -1,12 +1,17 @@
-"""Contains AnnnoyBlocker class for blocking using Annoy algorithm from Spotify."""
+"""
+Contains AnnnoyBlocker class for blocking using
+Annoy algorithm from Spotify.
+"""
 
-import numpy as np
-import pandas as pd
-from annoy import AnnoyIndex
+import logging
+import os
 from tempfile import NamedTemporaryFile
 from typing import Dict, Any, Optional
-import os
-import logging
+
+from annoy import AnnoyIndex
+import numpy as np
+import pandas as pd
+
 from .base import BlockingMethod
 
 
@@ -14,8 +19,9 @@ class AnnoyBlocker(BlockingMethod):
     """
     A class for performing blocking using the Annoy algorithm.
 
-    This class implements blocking functionality using Spotify's Annoy (Approximate 
-    Nearest Neighbors Oh Yeah) algorithm for efficient similarity search. 
+    This class implements blocking functionality using Spotify's
+    Annoy (Approximate Nearest Neighbors Oh Yeah) algorithm
+    for efficient similarity search.
 
     Parameters
     ----------
@@ -35,7 +41,7 @@ class AnnoyBlocker(BlockingMethod):
     See Also
     --------
     BlockingMethod : Abstract base class defining the blocking interface
-    
+
     Notes
     -----
     For more details about the Annoy algorithm, see:
@@ -48,7 +54,7 @@ class AnnoyBlocker(BlockingMethod):
         "angular": "angular"
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the AnnoyBlocker instance.
 
@@ -107,9 +113,9 @@ class AnnoyBlocker(BlockingMethod):
         The function builds an Annoy index from the reference dataset 
         and finds the k-nearest neighbors for each point in the query dataset.
         """
-        
+
         self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
-        
+
         self.x_columns = x.columns
 
         distance = controls['annoy'].get('distance')
@@ -120,8 +126,7 @@ class AnnoyBlocker(BlockingMethod):
         build_on_disk = controls['annoy'].get('build_on_disk')
         k_search = controls['annoy'].get('k_search')
 
-
-        self._check_distance(distance)    
+        self._check_distance(distance)
 
         ncols = x.shape[1]
         metric = self.METRIC_MAP[distance]
@@ -139,9 +144,9 @@ class AnnoyBlocker(BlockingMethod):
         
         if verbose:
             self.index.verbose(True)
-        
+
         self.logger.info("Building index...")
-        
+
         for i in range(x.shape[0]):
             self.index.add_item(i, x.iloc[i].values)
         self.index.build(n_trees=n_trees)
@@ -159,14 +164,14 @@ class AnnoyBlocker(BlockingMethod):
         for i in range(y.shape[0]):
             annoy_res = self.index.get_nns_by_vector(y.iloc[i].values, k_search, include_distances=True)
             l_ind_nns[i] = annoy_res[0][k-1]
-            l_ind_dist[i] = annoy_res[1][k-1]  
+            l_ind_dist[i] = annoy_res[1][k-1]
 
         if path:
-            self._save_index(path, verbose)
+            self._save_index(path)
 
         result = {
-            'y': np.arange(y.shape[0]),  
-            'x': l_ind_nns, 
+            'y': np.arange(y.shape[0]),
+            'x': l_ind_nns,
             'dist': l_ind_dist,
         }
 

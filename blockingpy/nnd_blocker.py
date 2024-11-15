@@ -1,10 +1,12 @@
 """Cotains the NNDBlocker class for blocking using the Nearest Neighbor Descent algorithm."""
 
+import logging
+from typing import Dict, Any, Optional
+
 import numpy as np
 import pandas as pd
 import pynndescent
-import logging
-from typing import Dict, Any, Optional
+
 from .base import BlockingMethod
 
 
@@ -37,7 +39,7 @@ class NNDBlocker(BlockingMethod):
     https://pynndescent.readthedocs.io/en/latest/api.html
     https://github.com/lmcinnes/pynndescent
     """
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the NNDBlocker instance.
 

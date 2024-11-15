@@ -1,7 +1,8 @@
 """Contains controls for ANN algorithms and text processing operations."""
 
-from typing import Dict, Any
 from copy import deepcopy
+from typing import Dict, Any
+
 
 def deep_update(base_dict: Dict, update_dict: Dict) -> Dict:
     """
@@ -25,16 +26,17 @@ def deep_update(base_dict: Dict, update_dict: Dict) -> Dict:
     ensuring that default values are preserved when not explicitly overridden.
     """
     result = deepcopy(base_dict)
-    
+
     for key, value in update_dict.items():
         if key in result and isinstance(result[key], dict) and isinstance(value, dict):
             result[key] = deep_update(result[key], value)
         else:
             result[key] = deepcopy(value)
-    
+
     return result
 
-def controls_ann(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
+
+def controls_ann(controls: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
     """
     Create configuration dictionary for Approximate Nearest Neighbor algorithms.
 
@@ -43,7 +45,7 @@ def controls_ann(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
 
     Parameters
     ----------
-    controls : dict, optional
+    controls : dict
         Dictionary of control parameters to override defaults
     **kwargs : dict
         Additional keyword arguments for direct parameter updates
@@ -152,7 +154,7 @@ def controls_ann(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
             'path': None,
             'random_seed': 1,
             'distance': 'cosine',
-            'M' : 12,
+            'M': 12,
             'ef_construction': 200,
             'max_elements': 1,
             'num_threads': -1,
@@ -178,13 +180,13 @@ def controls_ann(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
     
     return deep_update(defaults, updates)
 
-def controls_txt(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
+def controls_txt(controls: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
     """
     Create configuration dictionary for text processing operations.
 
     Parameters
     ----------
-    controls : dict, optional
+    controls : dict
         Dictionary of control parameters to override defaults
     **kwargs : dict
         Additional keyword arguments for direct parameter updates
@@ -219,13 +221,13 @@ def controls_txt(controls: Dict[str, Any] = None, **kwargs) -> Dict[str, Any]:
         'lowercase': True,
         'strip_non_alphanum': True
     }
-    
+
     updates = {}
     if controls is not None:
         updates.update(controls)
     if kwargs:
         updates.update(kwargs)
-    
+
     return deep_update(defaults, updates)
 
     

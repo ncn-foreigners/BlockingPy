@@ -1,11 +1,13 @@
 """Contains the VoyagerBlocker class for performing blocking using the Voyager algorithm from Spotify."""
 
+import logging
+import os
+from typing import Dict, Any, Optional
+
 import numpy as np
 import pandas as pd
 from voyager import Index, Space
-from typing import Dict, Any, Optional
-import os
-import logging
+
 from .base import BlockingMethod
 
 
@@ -48,7 +50,7 @@ class VoyagerBlocker(BlockingMethod):
         "inner_product": Space.InnerProduct,
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the VoyagerBlocker instance.
 
@@ -156,7 +158,7 @@ class VoyagerBlocker(BlockingMethod):
         l_ind_dist = all_distances[:, k-1]
 
         if path:
-            self._save_index(path, verbose)
+            self._save_index(path)
 
         result = {
             'y': np.arange(y.shape[0]),  

@@ -1,19 +1,22 @@
 """Contains the FaissBlocker class for performing blocking using the FAISS algorithm from Meta."""
 
+import logging
+import os
+from typing import Dict, Any, Optional
+
+import faiss
 import numpy as np
 import pandas as pd
-import logging
-from typing import Dict, Any, Optional
+
 from .base import BlockingMethod
-import faiss
-import os
+
 
 class FaissBlocker(BlockingMethod):
    """
     A class for performing blocking using the FAISS (Facebook AI Similarity Search) algorithm.
 
-    This class implements blocking functionality using Facebook's FAISS library for 
-    efficient similarity search and nearest neighbor queries. It supports multiple 
+    This class implements blocking functionality using Facebook's FAISS library for
+    efficient similarity search and nearest neighbor queries. It supports multiple
     distance metrics and is optimized for high-performance computing.
 
     Parameters
@@ -45,21 +48,21 @@ class FaissBlocker(BlockingMethod):
     - Cosine similarity is implemented through L2 normalization
     - Jensen-Shannon and Canberra metrics require smoothing to handle zero values
     """
-   METRIC_MAP: Dict[str, any] = {
-         "euclidean": faiss.METRIC_L2,
-         'l2': faiss.METRIC_L2,
-         "inner_product": faiss.METRIC_INNER_PRODUCT,
-         "cosine": faiss.METRIC_INNER_PRODUCT, #note: later handled by vector normalisation (https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances)
-         "l1" : faiss.METRIC_L1,
-         "manhattan" : faiss.METRIC_L1,
-         "linf" : faiss.METRIC_Linf,
-         #"lp" : faiss.METRIC_Lp,
-        "canberra" : faiss.METRIC_Canberra, #note: requires smoothing since 0/0 is undefined
-        "bray_curtis" : faiss.METRIC_BrayCurtis,
-        "jensen_shannon" : faiss.METRIC_JensenShannon, #note: requires smoothing since log(0) is undefined
+   METRIC_MAP: Dict[str, Any] = {
+        "euclidean": faiss.METRIC_L2,
+        "l2": faiss.METRIC_L2,
+        "inner_product": faiss.METRIC_INNER_PRODUCT,
+        "cosine": faiss.METRIC_INNER_PRODUCT,#note: later handled by vector normalisation (https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances)
+        "l1": faiss.METRIC_L1,
+        "manhattan": faiss.METRIC_L1,
+        "linf": faiss.METRIC_Linf,
+        #"lp" : faiss.METRIC_Lp,
+        "canberra": faiss.METRIC_Canberra,#note: requires smoothing since 0/0 is undefined
+        "bray_curtis": faiss.METRIC_BrayCurtis,
+        "jensen_shannon": faiss.METRIC_JensenShannon,#note: requires smoothing since log(0) is undefined
     }
    
-   def __init__(self):
+   def __init__(self) -> None:
        """
        Initialize the FaissBlocker instance.
 
@@ -69,10 +72,10 @@ class FaissBlocker(BlockingMethod):
        self.logger = logging.getLogger('__main__')
        self.x_columns = None
 
-   def block(self, x: pd.DataFrame, 
-             y: pd.DataFrame, 
+   def block(self, x: pd.DataFrame,
+             y: pd.DataFrame,
              k: int,
-             verbose: Optional[bool], 
+             verbose: Optional[bool],
              controls: Dict[str, Any]) -> pd.DataFrame:
        """
         Perform blocking using the FAISS algorithm.
@@ -132,7 +135,7 @@ class FaissBlocker(BlockingMethod):
        elif distance in ['jensen_shannon', 'canberra']:
            smooth = 1e-12
            x = x + smooth
-           y = y + smooth 
+           y = y + smooth
 
        metric = self.METRIC_MAP[distance]
 
