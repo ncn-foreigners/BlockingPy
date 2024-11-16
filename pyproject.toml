@@ -26,6 +26,8 @@ faiss-cpu = "^1.9.0"
 ipykernel = "^6.29.5"
 mypy = "^1.13.0"
 flake8 = "^7.1.1"
+pytest = "^8.3.3"
+pytest-cov = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]
