@@ -1,75 +1,75 @@
 import numpy as np
 import pandas as pd
 import pytest
-
-
-@pytest.fixture
-def mat_x():
-    """Create sparse DataFrame X for testing."""
-    columns = [
-        "cy", "ij", "im", "km", "lj", "mj", "nk", "nm", "rk", "yr", "yp",
-        "ho", "ki", "ls", "py", "sk", "th", "yt", "al", "an", "ja", "ko",
-        "mo", "nt", "ow", "ty", "wa", "on"
-    ]
-    
-
-    data = np.zeros((3, 28))
-
-    data[0, [columns.index(col) for col in ["ij", "ho", "ki", "ls", "nt", "py", "sk", "ty", "al", "on"]]] = 1
-
-    data[1, [columns.index(col) for col in ["ij", "ho", "ko", "mo", "py", "ty", "al", "an"]]] = 1
-
-    data[2, [columns.index(col) for col in ["ij", "ho"]]] = 2
-
-    df = pd.DataFrame(data, columns=columns)
-    return df.astype(pd.SparseDtype("float", np.nan))
+from scipy import sparse
 
 @pytest.fixture
-def mat_y():
-    """Create sparse DataFrame Y for testing."""
-    data = np.zeros((8, 28))
-    columns = [
-        "cy", "ij", "im", "km", "lj", "mj", "nk", "nm", "rk", "yr", "yp",
-        "ho", "ki", "ls", "py", "sk", "th", "yt", "al", "an", "ja", "ko",
-        "mo", "nt", "ow", "ty", "wa", "on"
-    ]
-
-    group1_cols = ["al", "an", "ja", "ko", "mo", "nt", "ow", "ty", "wa", "on"]
-    group1_start = 18
-    for i in range(4):
-        for j in range(len(group1_cols)):
-            data[i, group1_start + j] = 1
-
-    for i in range(4, 7):
-        for j in range(len(group1_cols)):
-            data[i, group1_start + j] = 1
-
-    data[7, group1_start:group1_start+len(group1_cols)] = 2
-
-    df = pd.DataFrame(data, columns=columns)
-    return df.astype(pd.SparseDtype("float", np.nan))
+def blocker():
+    """Create a fresh MLPackBlocker instance for each test."""
+    from blockingpy.mlpack_blocker import MLPackBlocker
+    return MLPackBlocker()
 
 @pytest.fixture
-def small_sparse_x():
-    """Create small sparse DataFrame for basic testing."""
-    data = [
-        [1, 0, 1],
-        [0, 1, 0],
-        [1, 1, 0]
-    ]
-    columns = ["feat1", "feat2", "feat3"]
-    df = pd.DataFrame(data, columns=columns)
-    return df.astype(pd.SparseDtype("float", np.nan))
+def small_sparse_data():
+    """Create small sparse test datasets."""
+    np.random.seed(42)
+    x = sparse.csr_matrix(np.random.rand(5, 3))
+    y = sparse.csr_matrix(np.random.rand(3, 3))
+    return pd.DataFrame.sparse.from_spmatrix(x), pd.DataFrame.sparse.from_spmatrix(y)
 
 @pytest.fixture
-def small_sparse_y():
-    """Create small sparse DataFrame for basic testing."""
-    data = [
-        [1, 0, 1],
-        [0, 1, 1],
-        [1, 0, 0],
-        [0, 1, 0]
-    ]
-    columns = ["feat1", "feat2", "feat3"]
-    df = pd.DataFrame(data, columns=columns)
-    return df.astype(pd.SparseDtype("float", np.nan))
+def large_sparse_data():
+    """Create larger sparse test datasets."""
+    np.random.seed(42)
+    x = sparse.random(100, 10, density=0.1, format='csr')
+    y = sparse.random(50, 10, density=0.1, format='csr')
+    return pd.DataFrame.sparse.from_spmatrix(x), pd.DataFrame.sparse.from_spmatrix(y)
+
+@pytest.fixture
+def identical_sparse_data():
+    """Create sparse datasets with identical points."""
+    data = np.array([[1.0, 2.0], [1.0, 2.0], [1.0, 2.0]])
+    x = sparse.csr_matrix(data)
+    y = sparse.csr_matrix(data[0:1])
+    return pd.DataFrame.sparse.from_spmatrix(x), pd.DataFrame.sparse.from_spmatrix(y)
+
+@pytest.fixture
+def single_sparse_point():
+    """Create sparse single point datasets."""
+    x = sparse.csr_matrix([[1.0, 2.0]])
+    y = sparse.csr_matrix([[1.5, 2.5]])
+    return pd.DataFrame.sparse.from_spmatrix(x), pd.DataFrame.sparse.from_spmatrix(y)
+
+@pytest.fixture
+def lsh_controls():
+    """Default LSH control parameters."""
+    return {
+        'algo': 'lsh',
+        'lsh': {
+            'seed': 42,
+            'k_search': 5,
+            'bucket_size': 500,
+            'hash_width': 10.0,
+            'num_probes': 0,
+            'projections': 10,
+            'tables': 30
+        }
+    }
+
+@pytest.fixture
+def kd_controls():
+    """Default k-d tree control parameters."""
+    return {
+        'algo': 'kd',
+        'kd': {
+            'seed': 42,
+            'k_search': 5,
+            'algorithm': "dual_tree",
+            'leaf_size': 20,
+            'tree_type': "kd",
+            'epsilon': 0.0,
+            'rho': 0.7,
+            'tau': 0.0,
+            'random_basis': False
+        }
+    }
