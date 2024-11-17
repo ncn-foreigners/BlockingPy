@@ -4,10 +4,16 @@ import pytest
 from scipy import sparse
 
 @pytest.fixture
-def blocker():
+def mlpack_blocker():
     """Create a fresh MLPackBlocker instance for each test."""
     from blockingpy.mlpack_blocker import MLPackBlocker
     return MLPackBlocker()
+
+@pytest.fixture
+def nnd_blocker():
+    """Create a fresh NNDBlocker instance for each test."""
+    from blockingpy.nnd_blocker import NNDBlocker
+    return NNDBlocker()
 
 @pytest.fixture
 def small_sparse_data():
