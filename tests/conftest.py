@@ -5,15 +5,21 @@ from scipy import sparse
 
 @pytest.fixture
 def mlpack_blocker():
-    """Create a fresh MLPackBlocker instance for each test."""
+    """Create MLPackBlocker instance for each test."""
     from blockingpy.mlpack_blocker import MLPackBlocker
     return MLPackBlocker()
 
 @pytest.fixture
 def nnd_blocker():
-    """Create a fresh NNDBlocker instance for each test."""
+    """Create NNDBlocker instance for each test."""
     from blockingpy.nnd_blocker import NNDBlocker
     return NNDBlocker()
+
+@pytest.fixture
+def voyager_blocker():
+    """Create VoyagerBlocker instance for each test."""
+    from blockingpy.voyager_blocker import VoyagerBlocker
+    return VoyagerBlocker()
 
 @pytest.fixture
 def small_sparse_data():
