@@ -22,6 +22,18 @@ def voyager_blocker():
     return VoyagerBlocker()
 
 @pytest.fixture
+def faiss_blocker():
+    """Create FaissBlocker instance for each test."""
+    from blockingpy.faiss_blocker import FaissBlocker
+    return FaissBlocker()
+
+@pytest.fixture
+def hnsw_blocker():
+    """Create HNSWBlocker instance for each test."""
+    from blockingpy.hnsw_blocker import HNSWBlocker
+    return HNSWBlocker()
+
+@pytest.fixture
 def small_sparse_data():
     """Create small sparse test datasets."""
     np.random.seed(42)
