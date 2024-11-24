@@ -114,6 +114,7 @@ def controls_ann(controls: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
             'epsilon': 0.1
         },
         'hnsw': {
+            'k_search': 30,
             'distance': 'cosine',
             'n_threads': 1,
             'path': None,

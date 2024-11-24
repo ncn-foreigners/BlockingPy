@@ -81,6 +81,7 @@ class HNSWBlocker(BlockingMethod):
             Algorithm control parameters with the following structure:
             {
                 'hnsw': {
+                    'k_search': int,
                     'distance': str,
                     'n_threads': int,
                     'path': str,
@@ -118,6 +119,7 @@ class HNSWBlocker(BlockingMethod):
         verbose = verbose
         n_threads = controls['hnsw'].get('n_threads')
         path = controls['hnsw'].get('path')
+        k_search = controls['hnsw'].get('k_search')
 
         self._check_distance(distance)
         space = self.SPACE_MAP[distance]
@@ -139,7 +141,12 @@ class HNSWBlocker(BlockingMethod):
 
         self.logger.info("Querying index...")
 
-        l_1nn = self.index.knn_query(y, k=k)
+        if k_search > x.shape[0]:
+            original_k_search = k_search
+            k_search = min(k_search, x.shape[0])
+            self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+
+        l_1nn = self.index.knn_query(y, k=k_search)
 
         if path:
             self._save_index(path)
