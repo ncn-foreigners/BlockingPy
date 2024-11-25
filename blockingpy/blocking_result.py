@@ -123,8 +123,9 @@ class BlockingResult:
         output.append("=" * 56)
 
         output.append("Distribution of the size of the blocks:")
+        output.append(f"{'Block Size':>10} | {'Number of Blocks':<15}")
         for size, count in sorted(block_sizes.items()):
-            output.append(f"Size -> {size} : {count} <- Number of blocks with this size")
+            output.append(f"{size:>10} | {count:<15}")
 
         if self.metrics is not None:
             output.append("=" * 56)
