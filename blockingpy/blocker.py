@@ -77,6 +77,7 @@ class Blocker:
         if not self.logger.handlers:
             console_handler = logging.StreamHandler(sys.stdout)
             self.logger.addHandler(console_handler)
+        self.logger.propagate = False
             
         self.eval_metrics = None
         self.confusion = None
