@@ -10,6 +10,9 @@ import pandas as pd
 from .base import BlockingMethod
 
 
+logger = logging.getLogger(__name__)
+
+
 class MLPackBlocker(BlockingMethod):
     """
     A class for performing blocking using MLPack algorithms (LSH or k-d tree).
@@ -53,7 +56,6 @@ class MLPackBlocker(BlockingMethod):
         logger settings.
         """
         self.algo = None
-        self.logger = logging.getLogger('__main__')
 
     def block(self, x: pd.DataFrame, 
               y: pd.DataFrame, 
@@ -118,7 +120,7 @@ class MLPackBlocker(BlockingMethod):
         - LSH (Locality-Sensitive Hashing): Better for high-dimensional data
         - k-d tree: Better for low-dimensional data
         """
-        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+        logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
         self.algo = controls.get('algo')
         self._check_algo(self.algo)
@@ -134,9 +136,9 @@ class MLPackBlocker(BlockingMethod):
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+            logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
 
-        self.logger.info(f"Initializing MLPack {self.algo.upper()} index...")
+        logger.info(f"Initializing MLPack {self.algo.upper()} index...")
 
         if self.algo == 'lsh':
             query_result = lsh(
@@ -167,7 +169,7 @@ class MLPackBlocker(BlockingMethod):
                 random_basis=controls['kd'].get('random_basis')
             )
         
-        self.logger.info("MLPack index query completed.")
+        logger.info("MLPack index query completed.")
 
         result = pd.DataFrame({
             'y': range(y.shape[0]),
@@ -175,7 +177,7 @@ class MLPackBlocker(BlockingMethod):
             'dist': query_result['distances'][:, k-1]
         })
 
-        self.logger.info("Blocking process completed successfully.")
+        logger.info("Blocking process completed successfully.")
 
         return result
 

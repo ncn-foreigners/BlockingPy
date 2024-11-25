@@ -29,6 +29,9 @@ from .nnd_blocker import NNDBlocker
 from .voyager_blocker import VoyagerBlocker
 
 
+logger = logging.getLogger(__name__)
+
+
 class Blocker:
     """
     A class implementing various blocking methods for record linkage and deduplication.
@@ -73,11 +76,6 @@ class Blocker:
 
         Sets up logging and initializes empty state variables.
         """
-        self.logger = logging.getLogger(__name__)
-        if not self.logger.handlers:
-            console_handler = logging.StreamHandler(sys.stdout)
-            self.logger.addHandler(console_handler)
-        self.logger.propagate = False
             
         self.eval_metrics = None
         self.confusion = None
@@ -148,7 +146,7 @@ class Blocker:
         controls_txt : Function to create text control parameters
         """
 
-        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+        logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
         self.x_colnames = x_colnames
         self.y_colnames = y_colnames
@@ -207,7 +205,7 @@ class Blocker:
             x_dtm = pd.DataFrame(x, columns=self.x_colnames).astype(pd.SparseDtype("int", fill_value=0))
             y_dtm = pd.DataFrame(y, columns=self.y_colnames).astype(pd.SparseDtype("int", fill_value=0))
         else:  
-            self.logger.info("===== creating tokens =====\n")
+            logger.info("===== creating tokens =====\n")
             x_dtm = create_sparse_dtm(x,
                                       self.control_txt,
                                       verbose=True if verbose == 3 else False)
@@ -218,7 +216,7 @@ class Blocker:
 
         colnames_xy = np.intersect1d(x_dtm.columns, y_dtm.columns)
         
-        self.logger.info(f"===== starting search ({ann}, x, y: {x_dtm.shape[0]}, {y_dtm.shape[0]}, t: {len(colnames_xy)}) =====")
+        logger.info(f"===== starting search ({ann}, x, y: {x_dtm.shape[0]}, {y_dtm.shape[0]}, t: {len(colnames_xy)}) =====")
     
         if ann == 'nnd':
             blocker = NNDBlocker()
@@ -241,7 +239,7 @@ class Blocker:
             controls=self.control_ann
             )
     
-        self.logger.info("===== creating graph =====\n")
+        logger.info("===== creating graph =====\n")
         
         if deduplication:
             x_df = x_df[x_df['y'] > x_df['x']]

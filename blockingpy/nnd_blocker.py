@@ -10,6 +10,9 @@ import pynndescent
 from .base import BlockingMethod
 
 
+logger = logging.getLogger(__name__)
+
+
 class NNDBlocker(BlockingMethod):
     """
     A blocker class that uses the Nearest Neighbor Descent (NND) algorithm.
@@ -46,7 +49,6 @@ class NNDBlocker(BlockingMethod):
         Creates a new NNDBlocker with empty index and default logger settings.
         """
         self.index = None
-        self.logger = logging.getLogger('__main__')
 
 
     def block(self, x: pd.DataFrame, 
@@ -113,7 +115,7 @@ class NNDBlocker(BlockingMethod):
         approximation can be controlled through various parameters such 
         as n_trees, n_iters, and epsilon.
         """ 
-        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+        logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
         distance = controls.get('nnd').get('metric')
         k_search = controls.get('nnd').get('k_search')
@@ -121,9 +123,9 @@ class NNDBlocker(BlockingMethod):
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+            logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
         
-        self.logger.info(f"Initializing NND index with {distance} metric.")
+        logger.info(f"Initializing NND index with {distance} metric.")
 
         self.index = pynndescent.NNDescent(
             data=x,
@@ -149,7 +151,7 @@ class NNDBlocker(BlockingMethod):
             parallel_batch_queries=controls['nnd'].get('parallel_batch_queries')
         )
         
-        self.logger.info("Querying index...")
+        logger.info("Querying index...")
         
         l_1nn = self.index.query(
             query_data=y,
@@ -162,7 +164,7 @@ class NNDBlocker(BlockingMethod):
             'dist': l_1nn[1][:, k-1]
         })
 
-        self.logger.info("Process completed successfully.")
+        logger.info("Process completed successfully.")
 
         return result
         

@@ -10,6 +10,9 @@ import pandas as pd
 from .base import BlockingMethod
 
 
+logger = logging.getLogger(__name__)
+
+
 class HNSWBlocker(BlockingMethod):
     """
     A class for performing blocking using the Hierarchical Navigable Small World (HNSW) algorithm.
@@ -55,7 +58,6 @@ class HNSWBlocker(BlockingMethod):
         Creates a new HNSWBlocker with empty index and default logger settings.
         """
         self.index: Optional[hnswlib.Index] = None
-        self.logger = logging.getLogger('__main__')
         self.x_columns = None
 
     def block(self, x: pd.DataFrame, 
@@ -111,7 +113,7 @@ class HNSWBlocker(BlockingMethod):
         parameters ef_c (construction) and ef_s (search) control the trade-off 
         between search accuracy and speed.
         """
-        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+        logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
         self.x_columns = x.columns
 
@@ -124,7 +126,7 @@ class HNSWBlocker(BlockingMethod):
         self._check_distance(distance)
         space = self.SPACE_MAP[distance]
 
-        self.logger.info("Initializing HNSW index...")
+        logger.info("Initializing HNSW index...")
         
         self.index = hnswlib.Index(space=space, dim=x.shape[1])
         self.index.init_index(
@@ -134,17 +136,17 @@ class HNSWBlocker(BlockingMethod):
         )
         self.index.set_num_threads(n_threads)
 
-        self.logger.info("Adding items to index...")
+        logger.info("Adding items to index...")
             
         self.index.add_items(x)
         self.index.set_ef(controls['hnsw'].get('ef_s'))
 
-        self.logger.info("Querying index...")
+        logger.info("Querying index...")
 
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+            logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
 
         l_1nn = self.index.knn_query(y, k=k_search)
 
@@ -157,7 +159,7 @@ class HNSWBlocker(BlockingMethod):
             'dist': l_1nn[1][:, k-1]
         })
 
-        self.logger.info("Process completed successfully.")
+        logger.info("Process completed successfully.")
 
         return result
     
@@ -211,7 +213,7 @@ class HNSWBlocker(BlockingMethod):
         path_ann = os.path.join(path, "index.hnsw")
         path_ann_cols = os.path.join(path, "index-colnames.txt")
 
-        self.logger.info(f"Writing an index to {path_ann}")
+        logger.info(f"Writing an index to {path_ann}")
 
         self.index.save_index(path_ann)
         with open(path_ann_cols, 'w') as f:

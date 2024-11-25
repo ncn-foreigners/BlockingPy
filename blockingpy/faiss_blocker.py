@@ -11,6 +11,8 @@ import pandas as pd
 from .base import BlockingMethod
 
 
+logger = logging.getLogger(__name__)
+
 class FaissBlocker(BlockingMethod):
    """
     A class for performing blocking using the FAISS (Facebook AI Similarity Search) algorithm.
@@ -69,7 +71,6 @@ class FaissBlocker(BlockingMethod):
        Creates a new FaissBlocker with empty index and default logger settings.
        """
        self.index: Optional[faiss.IndexFlat] = None
-       self.logger = logging.getLogger('__main__')
        self.x_columns = None
 
    def block(self, x: pd.DataFrame,
@@ -121,7 +122,7 @@ class FaissBlocker(BlockingMethod):
           to prevent undefined values
         """ 
 
-       self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+       logger.setLevel(logging.INFO if verbose else logging.WARNING)
        self.x_columns = x.columns
 
        distance = controls['faiss'].get('distance')
@@ -141,15 +142,15 @@ class FaissBlocker(BlockingMethod):
 
        self.index = faiss.IndexFlat(x.shape[1], metric)
 
-       self.logger.info("Building index...")
+       logger.info("Building index...")
        self.index.add(x=x)    
          
-       self.logger.info("Querying index...")
+       logger.info("Querying index...")
 
        if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+            logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
 
        distances, indices = self.index.search(x=y, k=k_search)
 
@@ -164,7 +165,7 @@ class FaissBlocker(BlockingMethod):
 
        result = pd.DataFrame(result)
 
-       self.logger.info("Process completed successfully.")
+       logger.info("Process completed successfully.")
 
        return result
     
@@ -221,7 +222,7 @@ class FaissBlocker(BlockingMethod):
        path_faiss = os.path.join(path, "index.faiss")
        path_faiss_cols = os.path.join(path, "index-colnames.txt")
 
-       self.logger.info(f"Writing index to {path_faiss}")
+       logger.info(f"Writing index to {path_faiss}")
        
        faiss.write_index(self.index, path_faiss)
 

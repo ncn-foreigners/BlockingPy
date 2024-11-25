@@ -11,6 +11,9 @@ from voyager import Index, Space
 from .base import BlockingMethod
 
 
+logger = logging.getLogger(__name__)
+
+
 class VoyagerBlocker(BlockingMethod):
     """
     A class for performing blocking using the Voyager algorithm from Spotify.
@@ -57,7 +60,6 @@ class VoyagerBlocker(BlockingMethod):
         Creates a new VoyagerBlocker with empty index and default logger settings.
         """
         self.index: Optional[Index] = None
-        self.logger = logging.getLogger('__main__')
         self.x_columns = None
     
     def block(self, x: pd.DataFrame, 
@@ -113,7 +115,7 @@ class VoyagerBlocker(BlockingMethod):
         nearest neighbor search. The quality of approximation can be controlled 
         through parameters like ef_construction and query_ef.
         """
-        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+        logger.setLevel(logging.INFO if verbose else logging.WARNING)
         
         self.x_columns = x.columns
 
@@ -132,13 +134,13 @@ class VoyagerBlocker(BlockingMethod):
             max_elements=controls['voyager'].get('max_elements'),
         )
 
-        self.logger.info("Building index...")
+        logger.info("Building index...")
         
         self.index.add_items(x.sparse.to_dense().values.tolist(),
                              num_threads=controls['voyager'].get('num_threads'),
                             )
 
-        self.logger.info("Querying index...")
+        logger.info("Querying index...")
 
         l_ind_nns = np.zeros(y.shape[0], dtype=int)
         l_ind_dist = np.zeros(y.shape[0])
@@ -146,7 +148,7 @@ class VoyagerBlocker(BlockingMethod):
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+            logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
 
         all_neighbor_ids, all_distances = self.index.query(vectors=y.sparse.to_dense().values.tolist(),
                          k=k_search,
@@ -168,7 +170,7 @@ class VoyagerBlocker(BlockingMethod):
 
         result = pd.DataFrame(result)
 
-        self.logger.info("Process completed successfully.")
+        logger.info("Process completed successfully.")
 
         return result
 
@@ -223,7 +225,7 @@ class VoyagerBlocker(BlockingMethod):
         path_voy = os.path.join(path, "index.voyager")
         path_voy_cols = os.path.join(path, "index-colnames.txt")
 
-        self.logger.info(f"Writing an index to {path_voy}")
+        logger.info(f"Writing an index to {path_voy}")
         
         self.index.save(path_voy)
 

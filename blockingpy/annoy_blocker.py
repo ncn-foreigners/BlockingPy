@@ -14,6 +14,7 @@ import pandas as pd
 
 from .base import BlockingMethod
 
+logger = logging.getLogger(__name__)
 
 class AnnoyBlocker(BlockingMethod):
     """
@@ -61,7 +62,6 @@ class AnnoyBlocker(BlockingMethod):
         Creates a new AnnoyBlocker with empty index and default logger settings.
         """
         self.index: Optional[AnnoyIndex] = None
-        self.logger = logging.getLogger('__main__')
         self.x_columns = None
     
     def block(self, x: pd.DataFrame, 
@@ -114,7 +114,7 @@ class AnnoyBlocker(BlockingMethod):
         and finds the k-nearest neighbors for each point in the query dataset.
         """
 
-        self.logger.setLevel(logging.INFO if verbose else logging.WARNING)
+        logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
         self.x_columns = x.columns
 
@@ -139,19 +139,19 @@ class AnnoyBlocker(BlockingMethod):
             if build_on_disk:
                 with NamedTemporaryFile(prefix="annoy", suffix=".tree") as temp_file:
                     if verbose:
-                        self.logger.info(f"Building index on disk: {temp_file.name}")
+                        logger.info(f"Building index on disk: {temp_file.name}")
                     self.index.on_disk_build(temp_file.name)
         
         if verbose:
             self.index.verbose(True)
 
-        self.logger.info("Building index...")
+        logger.info("Building index...")
 
         for i in range(x.shape[0]):
             self.index.add_item(i, x.iloc[i].values)
         self.index.build(n_trees=n_trees)
 
-        self.logger.info("Querying index...")
+        logger.info("Querying index...")
 
         l_ind_nns = np.zeros(y.shape[0], dtype=int)
         l_ind_dist = np.zeros(y.shape[0])
@@ -159,7 +159,7 @@ class AnnoyBlocker(BlockingMethod):
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            self.logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+            logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
         
         for i in range(y.shape[0]):
             annoy_res = self.index.get_nns_by_vector(y.iloc[i].values, k_search, include_distances=True)
@@ -176,7 +176,7 @@ class AnnoyBlocker(BlockingMethod):
         }
 
         result = pd.DataFrame(result)
-        self.logger.info("Process completed successfully.")
+        logger.info("Process completed successfully.")
 
         return result
 
@@ -226,7 +226,7 @@ class AnnoyBlocker(BlockingMethod):
         path_ann = os.path.join(path, "index.annoy")
         path_ann_cols = os.path.join(path, "index-colnames.txt")
 
-        self.logger.info(f"Writing an index to {path_ann}")
+        logger.info(f"Writing an index to {path_ann}")
         
         self.index.save(path_ann)
 
