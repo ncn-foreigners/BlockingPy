@@ -99,25 +99,25 @@ def test_result_reproducibility(faiss_blocker, small_sparse_data, faiss_controls
 def test_k_search_warning(faiss_blocker, small_sparse_data, faiss_controls, caplog):
     """Test warning when k_search is larger than reference points."""
     x, y = small_sparse_data
-    caplog.set_level(logging.WARNING)
     
     faiss_controls['faiss']['k_search'] = len(x) + 10
-    faiss_blocker.block(x=x, y=y, k=1, verbose=True, controls=faiss_controls)
+    with caplog.at_level(logging.WARNING):
+        faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=faiss_controls)
     
-    warning_message = f"k_search ({len(x) + 10}) is larger than the number of reference points ({len(x)})"
-    assert any(warning_message in record.message for record in caplog.records)
+    warning_message = f"k_search ({len(x) + 10}) is larger than the number of reference points ({len(x)}). Adjusted k_search to {len(x)}."
+    assert warning_message in caplog.text
 
 
 def test_verbose_logging(faiss_blocker, small_sparse_data, faiss_controls, caplog):
     """Test verbose logging."""
     x, y = small_sparse_data
-    caplog.set_level(logging.INFO)
+
+    with caplog.at_level(logging.DEBUG):
+        faiss_blocker.block(x=x, y=y, k=1, verbose=True, controls=faiss_controls)
     
-    faiss_blocker.block(x=x, y=y, k=1, verbose=True, controls=faiss_controls)
-    
-    assert any("Building index" in record.message for record in caplog.records)
-    assert any("Querying index" in record.message for record in caplog.records)
-    assert any("Process completed successfully" in record.message for record in caplog.records)
+    assert "Building index..." in caplog.text
+    assert "Querying index..." in caplog.text
+    assert "Process completed successfully." in caplog.text
 
 
 def test_identical_points(faiss_blocker, identical_sparse_data, faiss_controls):

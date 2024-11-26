@@ -9,4 +9,4 @@ formatter = logging.Formatter('%(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-logger.propagate = False
+logger.propagate = True
