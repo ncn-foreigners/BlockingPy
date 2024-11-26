@@ -28,8 +28,6 @@ class HNSWBlocker(BlockingMethod):
     ----------
     index : hnswlib.Index or None
         The HNSW index used for nearest neighbor search
-    logger : logging.Logger
-        Logger instance for the class
     x_columns : array-like or None
         Column names of the reference dataset
     SPACE_MAP : dict
@@ -55,7 +53,7 @@ class HNSWBlocker(BlockingMethod):
         """
         Initialize the HNSWBlocker instance.
 
-        Creates a new HNSWBlocker with empty index and default logger settings.
+        Creates a new HNSWBlocker with empty index.
         """
         self.index: Optional[hnswlib.Index] = None
         self.x_columns = None
@@ -193,8 +191,6 @@ class HNSWBlocker(BlockingMethod):
         ----------
         path : str
             Directory path where the files will be saved
-        verbose : bool
-            If True, print information about the save operation
         
         Raises
         ------

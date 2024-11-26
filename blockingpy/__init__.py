@@ -1,3 +1,5 @@
+"""Set up logging for blockingpy package."""
+
 import logging
 import sys
 

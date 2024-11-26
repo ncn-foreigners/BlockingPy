@@ -30,8 +30,6 @@ class VoyagerBlocker(BlockingMethod):
     ----------
     index : voyager.Index or None
         The Voyager index used for nearest neighbor search
-    logger : logging.Logger
-        Logger instance for the class
     x_columns : array-like or None
         Column names of the reference dataset
     METRIC_MAP : dict
@@ -57,7 +55,7 @@ class VoyagerBlocker(BlockingMethod):
         """
         Initialize the VoyagerBlocker instance.
 
-        Creates a new VoyagerBlocker with empty index and default logger settings.
+        Creates a new VoyagerBlocker with empty index.
         """
         self.index: Optional[Index] = None
         self.x_columns = None
@@ -205,8 +203,6 @@ class VoyagerBlocker(BlockingMethod):
         ----------
         path : str
             Directory path where the files will be saved
-        verbose : bool
-            If True, print information about the save operation
         
         Raises
         ------

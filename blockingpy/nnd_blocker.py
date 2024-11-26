@@ -28,8 +28,6 @@ class NNDBlocker(BlockingMethod):
     ----------
     index : pynndescent.NNDescent or None
         The NNDescent index used for querying
-    logger : logging.Logger
-        Logger instance for outputting information and warnings
 
     See Also
     --------
@@ -46,7 +44,7 @@ class NNDBlocker(BlockingMethod):
         """
         Initialize the NNDBlocker instance.
 
-        Creates a new NNDBlocker with empty index and default logger settings.
+        Creates a new NNDBlocker with empty index.
         """
         self.index = None
 

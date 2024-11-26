@@ -29,8 +29,6 @@ class FaissBlocker(BlockingMethod):
     ----------
     index : faiss.IndexFlat or None
         The FAISS index used for nearest neighbor search
-    logger : logging.Logger
-        Logger instance for the class
     x_columns : array-like or None
         Column names of the reference dataset
     METRIC_MAP : dict
@@ -68,7 +66,7 @@ class FaissBlocker(BlockingMethod):
        """
        Initialize the FaissBlocker instance.
 
-       Creates a new FaissBlocker with empty index and default logger settings.
+       Creates a new FaissBlocker with empty index.
        """
        self.index: Optional[faiss.IndexFlat] = None
        self.x_columns = None
@@ -202,8 +200,6 @@ class FaissBlocker(BlockingMethod):
        ----------
        path : str
            Directory path where the files will be saved
-       verbose : bool, optional
-           If True, print information about the save operation (default True)
         
         Raises
         ------

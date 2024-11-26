@@ -45,8 +45,6 @@ class Blocker:
 
     Attributes
     ----------
-    logger : logging.Logger
-        Logger instance for the class
     eval_metrics : pandas.Series or None
         Evaluation metrics when true blocks are provided
     confusion : pandas.DataFrame or None
@@ -74,7 +72,7 @@ class Blocker:
         """
         Initialize the Blocker instance.
 
-        Sets up logging and initializes empty state variables.
+        Initializes empty state variables.
         """
             
         self.eval_metrics = None
@@ -112,7 +110,9 @@ class Blocker:
         true_blocks : pandas.DataFrame, optional
             True blocking information for evaluation
         verbose : int, default 0
-            Verbosity level (0-3)
+            Verbosity level (0-3). Controls logging level:
+            - 0: WARNING level
+            - 1-3: INFO level with increasing detail
         graph : bool, default False
             Whether to create a graph representation of blocks
         control_txt : dict, default {}
@@ -205,7 +205,7 @@ class Blocker:
             x_dtm = pd.DataFrame(x, columns=self.x_colnames).astype(pd.SparseDtype("int", fill_value=0))
             y_dtm = pd.DataFrame(y, columns=self.y_colnames).astype(pd.SparseDtype("int", fill_value=0))
         else:  
-            logger.info("===== creating tokens =====\n")
+            logger.info("===== creating tokens =====")
             x_dtm = create_sparse_dtm(x,
                                       self.control_txt,
                                       verbose=True if verbose == 3 else False)

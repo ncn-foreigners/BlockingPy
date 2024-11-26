@@ -29,8 +29,6 @@ class MLPackBlocker(BlockingMethod):
     ----------
     algo : str or None
         The selected algorithm ('lsh' or 'kd')
-    logger : logging.Logger
-        Logger instance for the class
     ALGO_MAP : dict
         Mapping of algorithm names to their MLPack implementations
 
@@ -52,8 +50,7 @@ class MLPackBlocker(BlockingMethod):
         """
         Initialize the MLPackBlocker instance.
 
-        Creates a new MLPackBlocker with no algorithm selected and default 
-        logger settings.
+        Creates a new MLPackBlocker with no algorithm selected.
         """
         self.algo = None
 

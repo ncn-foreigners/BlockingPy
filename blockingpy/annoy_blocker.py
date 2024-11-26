@@ -32,8 +32,6 @@ class AnnoyBlocker(BlockingMethod):
     ----------
     index : AnnoyIndex or None
         The Annoy index used for nearest neighbor search
-    logger : logging.Logger
-        Logger instance for the class
     x_columns : array-like or None
         Column names of the reference dataset
     METRIC_MAP : dict
@@ -59,7 +57,7 @@ class AnnoyBlocker(BlockingMethod):
         """
         Initialize the AnnoyBlocker instance.
 
-        Creates a new AnnoyBlocker with empty index and default logger settings.
+        Creates a new AnnoyBlocker with empty index and default column storage.
         """
         self.index: Optional[AnnoyIndex] = None
         self.x_columns = None
@@ -206,8 +204,6 @@ class AnnoyBlocker(BlockingMethod):
         ----------
         path : str
             Directory path where the files will be saved
-        verbose : bool
-            If True, print information about the save operation
         
         Raises
         ------
