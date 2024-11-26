@@ -34,6 +34,12 @@ def hnsw_blocker():
     return HNSWBlocker()
 
 @pytest.fixture
+def annoy_blocker():
+    """Create AnnoyBlocker instance for each test."""
+    from blockingpy.annoy_blocker import AnnoyBlocker
+    return AnnoyBlocker()
+
+@pytest.fixture
 def small_sparse_data():
     """Create small sparse test datasets."""
     np.random.seed(42)
