@@ -165,7 +165,7 @@ def test_large_input(annoy_blocker, large_sparse_data, annoy_controls):
 
 @pytest.mark.xfail(reason="Issue with NotADirectoryError")
 def test_save_index(annoy_blocker, small_sparse_data, annoy_controls):
-    """Test saving the HNSW index and colnames."""
+    """Test saving the Annoy index and colnames."""
     x, y = small_sparse_data
     x.columns = x.columns.astype(str)
     

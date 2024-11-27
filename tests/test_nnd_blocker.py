@@ -71,6 +71,7 @@ def test_result_reproducibility(nnd_blocker, small_sparse_data, nnd_controls):
 
     result1 = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)
     result2 = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)
+    print(result1)
     
     pd.testing.assert_frame_equal(result1, result2)
 

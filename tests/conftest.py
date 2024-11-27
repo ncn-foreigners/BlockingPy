@@ -3,6 +3,14 @@ import pandas as pd
 import pytest
 from scipy import sparse
 
+
+@pytest.fixture
+def blocker():
+    """Create Blocker instance for each test."""
+    from blockingpy.blocker import Blocker
+    return Blocker()
+
+
 @pytest.fixture
 def mlpack_blocker():
     """Create MLPackBlocker instance for each test."""
@@ -54,6 +62,52 @@ def large_sparse_data():
     x = sparse.random(100, 10, density=0.1, format='csr')
     y = sparse.random(50, 10, density=0.1, format='csr')
     return pd.DataFrame.sparse.from_spmatrix(x), pd.DataFrame.sparse.from_spmatrix(y)
+
+
+@pytest.fixture
+def small_named_csr_data():
+    """Create small sparse test datasets with column names."""
+    np.random.seed(42)
+    x = sparse.csr_matrix(np.random.rand(5, 3))
+    y = sparse.csr_matrix(np.random.rand(3, 3))
+    x_cols = ['ja', 'nk', 'ko']
+    y_cols = ['ja', 'nk', 'ok']
+    return x, y, x_cols, y_cols
+
+@pytest.fixture
+def small_named_ndarray_data():
+    """Create small ndarray test datasets with column names."""
+    np.random.seed(42)
+    x = np.random.rand(5, 3)
+    y = np.random.rand(3, 3)
+    x_cols = ['ja', 'nk', 'ko']
+    y_cols = ['ja', 'nk', 'ok']
+    return x, y, x_cols, y_cols
+
+@pytest.fixture
+def small_named_txt_data():
+    """Create small text test datasets."""
+    x = pd.DataFrame({
+    'txt': [
+        "jankowalski",
+        "kowalskijan",
+        "kowalskimjan",
+        "kowaljan",
+        "montypython",
+        "pythonmonty",
+        "cyrkmontypython",
+        "monty"
+        ]
+    })
+
+    y = pd.DataFrame({
+        'txt': [
+            "montypython", 
+            "kowalskijan", 
+            "other",
+        ]
+    })
+    return x, y
 
 @pytest.fixture
 def identical_sparse_data():
