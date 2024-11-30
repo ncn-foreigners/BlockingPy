@@ -73,7 +73,7 @@ def controls_ann(controls: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
             'annoy': {...},
             'voyager': {...},
             'faiss': {...},
-            'algo': str
+            'algo': str ['lsh' or 'kd']
         }
 
     Notes
@@ -135,11 +135,11 @@ def controls_ann(controls: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
             'k_search': 30,
             'seed': None,
             'algorithm': "dual_tree",
-            'epsilon': 0,
+            'epsilon': 0.0,
             'leaf_size': 20,
             'random_basis': False,
             'rho': 0.7,
-            'tau': 0,
+            'tau': 0.0,
             'tree_type': "kd"
         },
         'annoy': {

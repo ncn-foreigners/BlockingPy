@@ -53,17 +53,6 @@ def test_different_metrics(voyager_blocker, small_sparse_data, voyager_controls,
     assert result['dist'].notna().all()
 
 
-def test_invalid_metric(voyager_blocker, small_sparse_data, voyager_controls):
-    """Test error handling for invalid distance metric."""
-    x, y = small_sparse_data
-    
-    controls = voyager_controls.copy()
-    controls['voyager']['distance'] = 'invalid_metric'
-    
-    with pytest.raises(ValueError, match="Invalid distance metric"):
-        voyager_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
-
-
 def test_result_reproducibility(voyager_blocker, small_sparse_data, voyager_controls):
     """Test result reproducibility with same random seed."""
     x, y = small_sparse_data

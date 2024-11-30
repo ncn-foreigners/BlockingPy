@@ -264,14 +264,31 @@ def test_true_blocks_validation_errors(small_named_txt_data):
         )
 
 @pytest.mark.parametrize("algo", ["hnsw", "annoy", "faiss", "voyager"])
-def test_validations(small_named_txt_data, algo):
+def test_metric_validations_error(small_named_txt_data, algo):
     """Test error handling for invalid distance metric."""
     blocker = Blocker()
     x_txt, _ = small_named_txt_data
     
-    with pytest.raises(ValueError, match="Distance for"):
+    with pytest.raises(ValueError):
         blocker.block(
             x_txt['txt'],
             ann=algo,
             control_ann={algo: {'distance': 'bad_distance'}}
         )
+
+def test_algo_validation_error(small_named_txt_data):
+    """Test validation for different distance metrics."""
+    blocker = Blocker()
+    x_txt, _ = small_named_txt_data
+
+    with pytest.raises(ValueError, match='Unsupported algorithm'):
+        blocker.block(
+            x_txt['txt'],
+            ann='bad_algo',
+        )
+
+@pytest.mark.parametrize("bad_input", [1, "bad_x", True])
+def test_input_x_validation(bad_input):
+    with pytest.raises(ValueError):
+        blocker = Blocker()
+        blocker.block(bad_input, ann='faiss')

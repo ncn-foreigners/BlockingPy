@@ -52,17 +52,6 @@ def test_different_metrics(hnsw_blocker, small_sparse_data, hnsw_controls, dista
     assert result['dist'].notna().all()
 
 
-def test_invalid_metric(hnsw_blocker, small_sparse_data, hnsw_controls):
-    """Test error handling for invalid distance metric."""
-    x, y = small_sparse_data
-    
-    controls = hnsw_controls.copy()
-    controls['hnsw']['distance'] = 'invalid_metric'
-    
-    with pytest.raises(ValueError, match="Invalid distance metric"):
-        hnsw_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
-
-
 def test_result_reproducibility(hnsw_blocker, small_sparse_data, hnsw_controls):
     """Test result reproducibility with same parameters."""
     x, y = small_sparse_data

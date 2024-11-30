@@ -6,7 +6,6 @@ and deduplication blocking.
 from collections import OrderedDict
 import itertools
 import logging
-import sys
 from typing import Optional, Union, List, Dict, Any
 
 import networkx as nx
@@ -19,9 +18,9 @@ from .blocking_result import BlockingResult
 from .controls import controls_ann, controls_txt
 from .faiss_blocker import FaissBlocker
 from .helper_functions import (
-    validate_input,
-    validate_true_blocks,
-    create_sparse_dtm
+    create_sparse_dtm,
+    DistanceMetricValidator,
+    InputValidator,
 )
 from .hnsw_blocker import HNSWBlocker
 from .mlpack_blocker import MLPackBlocker
@@ -57,6 +56,8 @@ class Blocker:
         Control parameters for ANN algorithms
     control_txt : dict
         Control parameters for text processing
+    BLOCKER_MAP : dict
+        Mapping of blocking algorithm names to their implementations
 
     Notes
     -----
@@ -81,6 +82,15 @@ class Blocker:
         self.y_colnames = None
         self.control_ann = {}
         self.control_txt = {}
+        self.BLOCKER_MAP = {
+            "annoy": AnnoyBlocker,
+            "hnsw": HNSWBlocker,
+            "lsh": MLPackBlocker,
+            "kd": MLPackBlocker,
+            "nnd": NNDBlocker,
+            "voyager": VoyagerBlocker,
+            "faiss": FaissBlocker,
+    }
 
     def block(self, 
               x: Union[pd.Series, sparse.csr_matrix, np.ndarray],
@@ -174,7 +184,8 @@ class Blocker:
                 "kd": None
             }.get(ann)
 
-        validate_input(x, ann, distance)
+        InputValidator.validate_data(x)
+        DistanceMetricValidator.validate_metric(ann, distance)
 
         if y is not None:
             deduplication = False
@@ -185,7 +196,7 @@ class Blocker:
             y = x
             k = 2
         
-        validate_true_blocks(true_blocks, deduplication)
+        InputValidator.validate_true_blocks(true_blocks, deduplication)
 
         #TOKENIZATION
         if sparse.issparse(x):
@@ -217,21 +228,9 @@ class Blocker:
         colnames_xy = np.intersect1d(x_dtm.columns, y_dtm.columns)
         
         logger.info(f"===== starting search ({ann}, x, y: {x_dtm.shape[0]}, {y_dtm.shape[0]}, t: {len(colnames_xy)}) =====")
-    
-        if ann == 'nnd':
-            blocker = NNDBlocker()
-        elif ann == 'hnsw':
-            blocker = HNSWBlocker()
-        elif ann in ['lsh', 'kd']:
-            blocker = MLPackBlocker()
-        elif ann == 'annoy':
-            blocker = AnnoyBlocker()
-        elif ann == 'voyager':
-            blocker = VoyagerBlocker()
-        elif ann == 'faiss':
-            blocker = FaissBlocker()
 
-        x_df = blocker.block(
+        blocker = self.BLOCKER_MAP[ann]
+        x_df = blocker().block(
             x=x_dtm[colnames_xy],
             y=y_dtm[colnames_xy],
             k=k,
@@ -243,6 +242,9 @@ class Blocker:
         
         if deduplication:
             x_df = x_df[x_df['y'] > x_df['x']]
+            # x_df['pair'] = x_df.apply(lambda row: tuple(sorted([row['y'], row['x']])), axis=1)
+            # x_df = x_df.loc[x_df.groupby('pair')['dist'].idxmin()]
+            # x_df = x_df.drop('pair', axis=1)
 
             x_df['query_g'] = 'q' + x_df['y'].astype(str)
             x_df['index_g'] = 'q' + x_df['x'].astype(str)
@@ -321,7 +323,7 @@ class Blocker:
                       .rename(columns={'block': 'block_id', 'value': 'x'})
                       .merge(true_blocks[['x', 'block']], on='x', how='left')
                       .rename(columns={'block': 'true_id'}))
-            
+
             candidate_pairs = np.array(list(itertools.combinations(range(pairs_to_eval_long.shape[0]), 2)))
             block_id_array = pairs_to_eval_long['block_id'].values
             true_id_array = pairs_to_eval_long['true_id'].values
@@ -354,7 +356,7 @@ class Blocker:
             }
             self.eval_metrics = pd.Series(self.eval_metrics)
         
-        x_df = x_df.sort_values(['x', 'y', 'block']).reset_index(drop=True)
+        x_df = x_df.sort_values(['y', 'x', 'block']).reset_index(drop=True)
 
         return BlockingResult(x_df=x_df,
                               ann=ann,

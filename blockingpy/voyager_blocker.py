@@ -40,6 +40,11 @@ class VoyagerBlocker(BlockingMethod):
     BlockingMethod : Abstract base class defining the blocking interface
     voyager.Index : The underlying Voyager index implementation
 
+    Raises
+    ------
+    ValueError
+        If path is provided but incorrect
+
     Notes
     -----
     For more details about the Voyager algorithm and implementation, see:
@@ -102,11 +107,6 @@ class VoyagerBlocker(BlockingMethod):
             - 'x': indices of matched items from reference dataset
             - 'dist': distances to matched items
 
-        Raises
-        ------
-        ValueError
-            If an invalid distance metric is provided or if path is provided but incorrect
-
         Notes
         -----
         The algorithm uses a graph-based approach for approximate 
@@ -118,7 +118,6 @@ class VoyagerBlocker(BlockingMethod):
         self.x_columns = x.columns
 
         distance = controls['voyager'].get('distance')
-        self._check_distance(distance)
         space = self.METRIC_MAP[distance]
         k_search = controls['voyager'].get('k_search')
         path = controls['voyager'].get('path')      
@@ -171,29 +170,6 @@ class VoyagerBlocker(BlockingMethod):
         logger.info("Process completed successfully.")
 
         return result
-
-    def _check_distance(self, distance: str) -> None:
-        """
-        Validate the provided distance metric.
-
-        Parameters
-        ----------
-        distance : str
-            The distance metric to validate
-
-        Raises
-        ------
-        ValueError
-            If the provided distance is not in the METRIC_MAP
-
-        Notes
-        -----
-        Valid metrics are defined in the METRIC_MAP class attribute.
-        Available metrics are: euclidean, cosine, and inner_product.
-        """
-        if distance not in self.METRIC_MAP:
-            valid_metrics = ", ".join(self.METRIC_MAP.keys())
-            raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.")
              
     def _save_index(self, path: str) -> None:
         """

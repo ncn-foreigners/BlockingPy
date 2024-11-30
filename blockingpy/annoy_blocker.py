@@ -50,7 +50,8 @@ class AnnoyBlocker(BlockingMethod):
         "euclidean": "euclidean",
         "manhattan": "manhattan",
         "hamming": "hamming",
-        "angular": "angular"
+        "angular": "angular",
+        "dot": "dot",
     }
 
     def __init__(self) -> None:
@@ -104,7 +105,7 @@ class AnnoyBlocker(BlockingMethod):
         Raises
         ------
         ValueError
-            If an invalid distance metric is provided in controls or if path is provided but incorrect
+            If path is provided but incorrect
 
         Notes
         -----
@@ -123,8 +124,6 @@ class AnnoyBlocker(BlockingMethod):
         n_trees = controls['annoy'].get('n_trees')
         build_on_disk = controls['annoy'].get('build_on_disk')
         k_search = controls['annoy'].get('k_search')
-
-        self._check_distance(distance)
 
         ncols = x.shape[1]
         metric = self.METRIC_MAP[distance]
@@ -172,29 +171,10 @@ class AnnoyBlocker(BlockingMethod):
             'x': l_ind_nns,
             'dist': l_ind_dist,
         }
-
         result = pd.DataFrame(result)
         logger.info("Process completed successfully.")
 
         return result
-
-    def _check_distance(self, distance: str) -> None:
-        """
-        Validate the provided distance metric.
-
-        Parameters
-        ----------
-        distance : str
-            The distance metric to validate
-
-        Raises
-        ------
-        ValueError
-            If the provided distance is not in the METRIC_MAP
-        """
-        if distance not in self.METRIC_MAP:
-            valid_metrics = ", ".join(self.METRIC_MAP.keys())
-            raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.")
              
     def _save_index(self, path: str) -> None:
         """

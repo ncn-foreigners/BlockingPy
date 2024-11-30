@@ -51,17 +51,6 @@ def test_different_metrics(annoy_blocker, small_sparse_data, annoy_controls, dis
     assert result['dist'].notna().all()
 
 
-def test_invalid_metric(annoy_blocker, small_sparse_data, annoy_controls):
-    """Test error handling for invalid distance metric."""
-    x, y = small_sparse_data
-    
-    controls = annoy_controls.copy()
-    controls['annoy']['distance'] = 'invalid_metric'
-    
-    with pytest.raises(ValueError, match="Invalid distance metric"):
-        annoy_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
-
-
 def test_result_reproducibility(annoy_blocker, small_sparse_data, annoy_controls):
     """Test result reproducibility with same seed."""
     x, y = small_sparse_data

@@ -1,8 +1,8 @@
-"""Contains helper functions for blocking operations such as input validation and Document Term Matrix (DTM) creation."""
+"""Contains helper functions for blocking operations such as input validation, metrics validation,
+algorithm validation and Document Term Matrix (DTM) creation."""
 
-import os
 import re
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Set
 
 from nltk.util import ngrams
 import numpy as np
@@ -11,85 +11,124 @@ from scipy import sparse
 from sklearn.feature_extraction.text import CountVectorizer
 
 
-def validate_input(x: Union[pd.Series, sparse.csr_matrix, np.ndarray],
-                   ann: str,
-                   distance: str,
-                   ) -> None:
-    """
-    Validate input parameters for the block method in the Blocker class.
-
-    Parameters
-    ----------
-    x : pandas.Series or scipy.sparse.csr_matrix or numpy.ndarray
-        Reference data for blocking
-    ann : str
-        Approximate Nearest Neighbor algorithm name
-    distance : str
-        Distance metric name
-
-    Raises
-    ------
-    ValueError
-        If any of the following conditions are met:
-        - Input x is not a supported type
-        - Distance metric is not supported for the chosen algorithm
-
-    Notes
-    -----
-    Supported distance metrics per algorithm:
-    - HNSW: l2, euclidean, cosine, ip
-    - Annoy: euclidean, manhattan, hamming, angular
-    - Voyager: euclidean, cosine, inner_product
-    - FAISS: euclidean, l2, inner_product, cosine, l1, manhattan, linf, 
-             canberra, bray_curtis, jensen_shannon
-    """
-    if not (isinstance(x, np.ndarray) or sparse.issparse(x) or isinstance(x, pd.Series)):
-        raise ValueError("Only dense (np.ndarray) or sparse (csr_matrix) matrix or pd.Series with str data is supported")
+class DistanceMetricValidator:
+    """Centralized validation for distance metrics across different algorithms."""
     
-    if ann == "hnsw" and distance not in ["l2", "euclidean", "cosine", "ip"]:
-        raise ValueError("Distance for HNSW should be `l2, euclidean, cosine, ip`")
-    
-    if ann == "annoy" and distance not in ["euclidean", "manhattan", "hamming", "angular"]:
-        raise ValueError("Distance for Annoy should be `euclidean, manhattan, hamming, angular`")
-    
-    if ann == "voyager" and distance not in ["euclidean", "cosine", "inner_product"]:
-        raise ValueError("Distance for Voyager should be `euclidean, cosine, inner_product`")
-    
-    if ann == "faiss" and distance not in ["euclidean", "l2", "inner_product", "cosine", "l1", "manhattan", "linf", "canberra", "bray_curtis", "jensen_shannon"]:
-        raise ValueError("Distance for Faiss should be `euclidean, l2, inner_product, cosine, l1, manhattan, linf, canberra, bray_curtis, jensen_shannon`")
-    
-def validate_true_blocks(true_blocks: Optional[pd.DataFrame],
-                         deduplication: bool) -> None:
-    """
-    Validate true_blocks input parameter for the block method in the Blocker class.
+    SUPPORTED_METRICS: Dict[str, Set[str]] = {
+        "hnsw": {"l2", "euclidean", "cosine", "ip", },
+        "annoy": {"euclidean", "manhattan", "hamming", "angular", "dot"},
+        "voyager": {"euclidean", "cosine", "inner_product"},
+        "faiss": {
+            "euclidean", "l2", "inner_product", "cosine", "l1", 
+            "manhattan", "linf", "canberra", "bray_curtis", "jensen_shannon"
+        }
+    }
 
-    Parameters
-    ----------
-    true_blocks : pandas.DataFrame, optional
-        True blocking information for evaluation
-    deduplication : bool
-        Whether deduplication is being performed
+    NO_METRIC_ALGORITHMS = {"lsh", "kd", "nnd"} #too many options for nnd to validate
+    
+    @classmethod
+    def validate_metric(cls, algorithm: str, metric: str) -> None:
+        """
+        Validate if a metric is supported for given algorithm.
+        
+        Parameters
+        ----------
+        algorithm : str
+            Name of the algorithm
+        metric : str
+            Name of the distance metric
+            
+        Raises
+        ------
+        ValueError
+            If metric is not supported for the algorithm
+        
+        Notes
+        -----
+        Supported distance metrics per algorithm:
+        - HNSW: l2, euclidean, cosine, ip
+        - Annoy: euclidean, manhattan, hamming, angular, dot
+        - Voyager: euclidean, cosine, inner_product
+        - FAISS: euclidean, l2, inner_product, cosine, l1, manhattan, linf, 
+                canberra, bray_curtis, jensen_shannon
+        - NND: look: https://pynndescent.readthedocs.io/en/latest/api.html
+        """
+        
+        if algorithm in cls.NO_METRIC_ALGORITHMS:
+            return
 
-    Raises
-    ------
-    ValueError
-        If true_blocks validation fails due to:
-        - Missing required columns for regular blocking (x, y, block)
-        - Missing required columns for deduplication (x, block)
+        if algorithm not in cls.SUPPORTED_METRICS:
+            raise ValueError(f"Unsupported algorithm: {algorithm}")
+            
+        if metric not in cls.SUPPORTED_METRICS[algorithm]:
+            valid_metrics = ", ".join(sorted(cls.SUPPORTED_METRICS[algorithm]))
+            raise ValueError(
+                f"Distance metric '{metric}' not supported for {algorithm}. "
+                f"Supported metrics are: {valid_metrics}"
+            )
+    
+    @classmethod
+    def get_supported_metrics(cls, algorithm: str) -> Set[str]:
+        """Get set of supported metrics for an algorithm."""
+        return cls.SUPPORTED_METRICS.get(algorithm, set())
+    
+class InputValidator:
+    """Validates input data and parameters for blocking operations."""
+    
+    @staticmethod
+    def validate_data(x: Union[pd.Series, sparse.csr_matrix, np.ndarray]) -> None:
+        """
+        Validate input data type.
+        
+        Parameters
+        ----------
+        x : Union[pd.Series, sparse.csr_matrix, np.ndarray]
+            Input data to validate
+            
+        Raises
+        ------
+        ValueError
+            If input type is not supported
+        """
+        if not (isinstance(x, np.ndarray) or 
+                sparse.issparse(x) or 
+                isinstance(x, pd.Series)):
+            raise ValueError(
+                "Only dense (np.ndarray) or sparse (csr_matrix) matrix "
+                "or pd.Series with str data is supported"
+            )
 
-    Notes
-    -----
-    Required columns:
-    - For regular blocking: 'x', 'y', 'block'
-    - For deduplication: 'x', 'block'
-    """
-    if true_blocks is not None:
-        if not deduplication:
-            if len(true_blocks.columns) != 3 or not all(col in true_blocks.columns for col in ["x", "y", "block"]):
-                raise ValueError("`true blocks` should be a DataFrame with columns: x, y, block")
-        else:
-            if len(true_blocks.columns) != 2 or not all(col in true_blocks.columns for col in ["x", "block"]):
-                raise ValueError("`true blocks` should be a DataFrame with columns: x, block")
+    @staticmethod
+    def validate_true_blocks(true_blocks: Optional[pd.DataFrame],
+                           deduplication: bool) -> None:
+        """
+        Validate true blocks data structure.
+        
+        Parameters
+        ----------
+        true_blocks : Optional[pd.DataFrame]
+            True blocks information for evaluation
+        deduplication : bool
+            Whether deduplication is being performed
+            
+        Raises
+        ------
+        ValueError
+            If true_blocks structure is invalid
+        """
+        if true_blocks is not None:
+            if not deduplication:
+                if len(true_blocks.columns) != 3 or not all(col in true_blocks.columns for col in ["x", "y", "block"]):
+                    raise ValueError(
+                        "`true blocks` should be a DataFrame with columns: "
+                        "x, y, block"
+                    )
+            else:
+                if len(true_blocks.columns) != 2 or not all(col in true_blocks.columns for col in ["x", "block"]):
+                    raise ValueError(
+                        "`true blocks` should be a DataFrame with columns: "
+                        "x, block"
+                    )
     
 def tokenize_character_shingles(text: List[str], n: int = 2, lowercase: bool = True, strip_non_alphanum:bool = True) -> List[str]:
     """

@@ -102,7 +102,7 @@ class HNSWBlocker(BlockingMethod):
         Raises
         ------
         ValueError
-            If an invalid distance metric is provided in controls or if path is provided but incorrect
+            If path is provided but incorrect
 
         Notes
         -----
@@ -120,8 +120,6 @@ class HNSWBlocker(BlockingMethod):
         n_threads = controls['hnsw'].get('n_threads')
         path = controls['hnsw'].get('path')
         k_search = controls['hnsw'].get('k_search')
-
-        self._check_distance(distance)
         space = self.SPACE_MAP[distance]
 
         logger.info("Initializing HNSW index...")
@@ -160,28 +158,6 @@ class HNSWBlocker(BlockingMethod):
         logger.info("Process completed successfully.")
 
         return result
-    
-    def _check_distance(self, distance: str) -> None:
-        """
-        Validate the provided distance metric.
-
-        Parameters
-        ----------
-        distance : str
-            The distance metric to validate
-
-        Raises
-        ------
-        ValueError
-            If the provided distance is not in the SPACE_MAP
-
-        Notes
-        -----
-        Valid distance metrics are defined in the SPACE_MAP class attribute.
-        """
-        if distance not in self.SPACE_MAP:
-            valid_metrics = ", ".join(self.SPACE_MAP.keys())
-            raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.")
         
     def _save_index(self, path: str) -> None:
         """

@@ -110,7 +110,7 @@ class FaissBlocker(BlockingMethod):
         Raises
         ------
         ValueError
-            If an invalid distance metric is provided or if path is provided but incorrect
+            If path is provided but incorrect
 
         Notes
         -----
@@ -124,7 +124,6 @@ class FaissBlocker(BlockingMethod):
        self.x_columns = x.columns
 
        distance = controls['faiss'].get('distance')
-       self._check_distance(distance)
        k_search = controls['faiss'].get('k_search')
        path = controls['faiss'].get('path')
 
@@ -151,7 +150,7 @@ class FaissBlocker(BlockingMethod):
             logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
 
        distances, indices = self.index.search(x=y, k=k_search)
-
+    #    indices = self.rearrange_array(indices)
        if path:
            self._save_index(path)
 
@@ -166,31 +165,6 @@ class FaissBlocker(BlockingMethod):
        logger.info("Process completed successfully.")
 
        return result
-    
-
-   def _check_distance(self, distance: str) -> None:
-       """
-        Validate the provided distance metric.
-
-        Parameters
-        ----------
-        distance : str
-            The distance metric to validate
-
-        Raises
-        ------
-        ValueError
-            If the provided distance is not in the METRIC_MAP
-
-        Notes
-        -----
-        Valid metrics are defined in the METRIC_MAP class attribute.
-        Some metrics require special preprocessing (cosine, jensen_shannon, canberra).
-        """
-       if distance not in self.METRIC_MAP:
-           valid_metrics = ", ".join(self.METRIC_MAP.keys())
-           raise ValueError(f"Invalid distance metric '{distance}'. Accepted values are: {valid_metrics}.") 
-
 
    def _save_index(self, path: str) -> None:
        """
@@ -224,3 +198,17 @@ class FaissBlocker(BlockingMethod):
 
        with open(path_faiss_cols, 'w') as f:
            f.write('\n'.join(self.x_columns))    
+
+#    def rearrange_array(self, indices):
+#     n_rows = indices.shape[0]
+#     result = indices.copy()
+    
+#     for i in range(n_rows):
+#         if result[i][0] != i:
+#             position = np.where(result[i] == i)[0][0]
+#             value_to_move = result[i][position]
+
+#             result[i][1:position + 1] = result[i][0:position]
+#             result[i][0] = value_to_move
+    
+#     return result
