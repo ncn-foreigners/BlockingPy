@@ -5,7 +5,7 @@ blocking results.
 
 from collections import Counter
 from math import comb
-from typing import Dict, Optional
+from typing import Optional
 
 import networkx as nx
 import numpy as np
@@ -13,6 +13,7 @@ import pandas as pd
 
 
 class BlockingResult:
+
     """
     A class to represent and analyze the results of a blocking operation.
 
@@ -60,25 +61,30 @@ class BlockingResult:
     -----
     The class provides methods for calculating reduction ratio and formatting
     evaluation metrics for blocking quality assessment.
+
     """
-    def __init__(self, x_df: pd.DataFrame,
-                ann: str,
-                deduplication: bool,
-                true_blocks: Optional[pd.DataFrame],
-                eval_metrics: Optional[pd.Series],
-                confusion: Optional[pd.DataFrame], 
-                colnames_xy: np.ndarray, 
-                graph: Optional[bool] = False) -> None:
-        """
-        Initialize a BlockingResult instance.
-        """   
+
+    def __init__(
+        self,
+        x_df: pd.DataFrame,
+        ann: str,
+        deduplication: bool,
+        true_blocks: Optional[pd.DataFrame],
+        eval_metrics: Optional[pd.Series],
+        confusion: Optional[pd.DataFrame],
+        colnames_xy: np.ndarray,
+        graph: Optional[bool] = False,
+    ) -> None:
+        """Initialize a BlockingResult instance."""
         self.result = x_df[["x", "y", "block", "dist"]]
         self.method = ann
         self.deduplication = deduplication
         self.metrics = eval_metrics if true_blocks is not None else None
         self.confusion = confusion if true_blocks is not None else None
         self.colnames = colnames_xy
-        self.graph = nx.from_pandas_edgelist(x_df[["x", "y"]], source="x", target="y") if graph else None
+        self.graph = (
+            nx.from_pandas_edgelist(x_df[["x", "y"]], source="x", target="y") if graph else None
+        )
 
     def __repr__(self) -> str:
         """
@@ -88,9 +94,9 @@ class BlockingResult:
         -------
         str
             A string representation showing method and deduplication status
+
         """
         return f"BlockingResult(method={self.method}, deduplication={self.deduplication})"
-    
 
     def __str__(self) -> str:
         """
@@ -108,9 +114,9 @@ class BlockingResult:
         -----
         The output includes reduction ratio and detailed block size statistics.
         If evaluation metrics are available, they are included in the output.
+
         """
-        
-        blocks_tab = self.result['block'].value_counts()   
+        blocks_tab = self.result["block"].value_counts()
         block_sizes = Counter(blocks_tab.values)
         reduction_ratio = self._calculate_reduction_ratio()
 
@@ -133,10 +139,9 @@ class BlockingResult:
             metrics = self._format_metrics()
             for name, value in metrics.items():
                 output.append(f"{name} : {value}")
-        
+
         return "\n".join(output)
 
-    
     def _calculate_reduction_ratio(self) -> float:
         """
         Calculate the reduction ratio for the blocking method.
@@ -155,18 +160,19 @@ class BlockingResult:
         -----
         The ratio is calculated as:
         1 - (number of comparisons after blocking / total possible comparisons)
+
         """
-        blocks_tab = self.result['block'].value_counts()
+        blocks_tab = self.result["block"].value_counts()
 
-        block_ids = np.repeat(blocks_tab.index.values, blocks_tab.values + 1)
+        block_ids = np.repeat(blocks_tab.index.values, blocks_tab.to_numpy() + 1)
 
-        block_id_counts = (Counter(block_ids))
+        block_id_counts = Counter(block_ids)
         numerator = sum(comb(count, 2) for count in block_id_counts.values())
         denominator = comb(len(block_ids), 2)
 
         return 1 - (numerator / denominator if denominator > 0 else 0)
-    
-    def _format_metrics(self) -> Dict[str, float]:
+
+    def _format_metrics(self) -> dict[str, float]:
         """
         Format the evaluation metrics for display.
 
@@ -180,8 +186,9 @@ class BlockingResult:
         -----
         Returns an empty dictionary if no metrics are available.
         Values are multiplied by 100 to convert to percentages.
+
         """
         if self.metrics is None:
             return {}
-        
-        return {name: float(f"{value*100:.4f}") for name, value in self.metrics.items()}
+
+        return {name: float(f"{value * 100:.4f}") for name, value in self.metrics.items()}

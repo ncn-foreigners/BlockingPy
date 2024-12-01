@@ -1,24 +1,23 @@
 """Contains the MLPackBlocker class for performing blocking using MLPack algorithms."""
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 
-from mlpack import lsh, knn
-import numpy as np
 import pandas as pd
+from mlpack import knn, lsh
 
 from .base import BlockingMethod
-
 
 logger = logging.getLogger(__name__)
 
 
 class MLPackBlocker(BlockingMethod):
+
     """
     A class for performing blocking using MLPack algorithms (LSH or k-d tree).
 
-    This class implements blocking functionality using either Locality-Sensitive 
-    Hashing (LSH) or k-d tree algorithms from the MLPack library for efficient 
+    This class implements blocking functionality using either Locality-Sensitive
+    Hashing (LSH) or k-d tree algorithms from the MLPack library for efficient
     similarity search and nearest neighbor queries.
 
     Parameters
@@ -40,11 +39,8 @@ class MLPackBlocker(BlockingMethod):
     -----
     For more details about the MLPack library and its algorithms, see:
     https://github.com/mlpack
+
     """
-    ALGO_MAP: Dict[str, str] = {
-        "lsh": "lsh",
-        "kd": "knn"
-    }
 
     def __init__(self) -> None:
         """
@@ -52,13 +48,17 @@ class MLPackBlocker(BlockingMethod):
 
         Creates a new MLPackBlocker with no algorithm selected.
         """
-        self.algo = None
+        self.algo: str
+        self.ALGO_MAP: dict[str, str] = {"lsh": "lsh", "kd": "knn"}
 
-    def block(self, x: pd.DataFrame, 
-              y: pd.DataFrame, 
-              k: int, 
-              verbose: Optional[bool],
-              controls: Dict[str, Any]) -> pd.DataFrame:
+    def block(
+        self,
+        x: pd.DataFrame,
+        y: pd.DataFrame,
+        k: int,
+        verbose: Optional[bool],
+        controls: dict[str, Any],
+    ) -> pd.DataFrame:
         """
         Perform blocking using MLPack algorithm (LSH or k-d tree).
 
@@ -106,78 +106,76 @@ class MLPackBlocker(BlockingMethod):
             - 'x': indices of matched items from reference dataset
             - 'dist': distances to matched items
 
-        Raises
-        ------
-        ValueError
-            If an invalid algorithm is specified in the controls
-
         Notes
         -----
         The function supports two different algorithms:
         - LSH (Locality-Sensitive Hashing): Better for high-dimensional data
         - k-d tree: Better for low-dimensional data
+
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
-        self.algo = controls.get('algo')
+        self.algo = controls.get("algo", "lsh")
         self._check_algo(self.algo)
-        if self.algo == 'lsh':
-            verbose = verbose
-            seed = controls['lsh'].get('seed')
-            k_search = controls['lsh'].get('k_search')
+        if self.algo == "lsh":
+            seed = controls["lsh"].get("seed")
+            k_search = controls["lsh"].get("k_search")
         else:
-            verbose = verbose
-            seed = controls['kd'].get('seed')
-            k_search = controls['kd'].get('k_search')
+            seed = controls["kd"].get("seed")
+            k_search = controls["kd"].get("k_search")
 
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+            logger.warning(
+                f"k_search ({original_k_search}) is larger than the number of reference points "
+                f"({x.shape[0]}). Adjusted k_search to {k_search}."
+            )
 
         logger.info(f"Initializing MLPack {self.algo.upper()} index...")
 
-        if self.algo == 'lsh':
+        if self.algo == "lsh":
             query_result = lsh(
                 k=k_search,
                 query=y,
                 reference=x,
                 verbose=verbose,
                 seed=seed,
-                bucket_size=controls['lsh'].get('bucket_size'),
-                hash_width=controls['lsh'].get('hash_width'),
-                num_probes=controls['lsh'].get('num_probes'),
-                projections=controls['lsh'].get('projections'),
-                tables=controls['lsh'].get('tables')
+                bucket_size=controls["lsh"].get("bucket_size"),
+                hash_width=controls["lsh"].get("hash_width"),
+                num_probes=controls["lsh"].get("num_probes"),
+                projections=controls["lsh"].get("projections"),
+                tables=controls["lsh"].get("tables"),
             )
-        else:  
+        else:
             query_result = knn(
                 k=k_search,
                 query=y,
                 reference=x,
                 verbose=verbose,
                 seed=seed,
-                algorithm=controls['kd'].get('algorithm'),
-                leaf_size=controls['kd'].get('leaf_size'),
-                tree_type=controls['kd'].get('tree_type'),
-                epsilon=controls['kd'].get('epsilon'),
-                rho=controls['kd'].get('rho'),
-                tau=controls['kd'].get('tau'),
-                random_basis=controls['kd'].get('random_basis')
+                algorithm=controls["kd"].get("algorithm"),
+                leaf_size=controls["kd"].get("leaf_size"),
+                tree_type=controls["kd"].get("tree_type"),
+                epsilon=controls["kd"].get("epsilon"),
+                rho=controls["kd"].get("rho"),
+                tau=controls["kd"].get("tau"),
+                random_basis=controls["kd"].get("random_basis"),
             )
-        
+
         logger.info("MLPack index query completed.")
 
-        result = pd.DataFrame({
-            'y': range(y.shape[0]),
-            'x': query_result['neighbors'][:, k-1],
-            'dist': query_result['distances'][:, k-1]
-        })
+        result = pd.DataFrame(
+            {
+                "y": range(y.shape[0]),
+                "x": query_result["neighbors"][:, k - 1],
+                "dist": query_result["distances"][:, k - 1],
+            }
+        )
 
         logger.info("Blocking process completed successfully.")
 
         return result
-
 
     def _check_algo(self, algo: str) -> None:
         """
@@ -198,8 +196,8 @@ class MLPackBlocker(BlockingMethod):
         Valid algorithms are defined in the ALGO_MAP class attribute.
         Currently supports 'lsh' for Locality-Sensitive Hashing and
         'kd' for k-d tree based search.
+
         """
         if algo not in self.ALGO_MAP:
             valid_algos = ", ".join(self.ALGO_MAP.keys())
             raise ValueError(f"Invalid algorithm '{algo}'. Accepted values are: {valid_algos}.")
-        

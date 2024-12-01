@@ -1,10 +1,10 @@
 """Contains controls for ANN algorithms and text processing operations."""
 
 from copy import deepcopy
-from typing import Dict, Any
+from typing import Any
 
 
-def deep_update(base_dict: Dict, update_dict: Dict) -> Dict:
+def deep_update(base_dict: dict, update_dict: dict) -> dict:
     """
     Update nested dictionaries while preserving default values.
 
@@ -24,6 +24,7 @@ def deep_update(base_dict: Dict, update_dict: Dict) -> Dict:
     -----
     This function performs a deep copy and recursive update of nested dictionaries,
     ensuring that default values are preserved when not explicitly overridden.
+
     """
     result = deepcopy(base_dict)
 
@@ -36,7 +37,7 @@ def deep_update(base_dict: Dict, update_dict: Dict) -> Dict:
     return result
 
 
-def controls_ann(controls: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
+def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
     """
     Create configuration dictionary for Approximate Nearest Neighbor algorithms.
 
@@ -89,99 +90,99 @@ def controls_ann(controls: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
     Examples
     --------
     >>> config = controls_ann(hnsw={'M': 30, 'ef_c': 300})
+
     """
     defaults = {
-        'nnd': {
-            'metric': 'euclidean',
-            'k_search': 30,
-            'metric_kwds': None,
-            'n_threads': None,
-            'tree_init': True,
-            'n_trees': None,
-            'leaf_size': None,
-            'pruning_degree_multiplier': 1.5,
-            'diversify_prob': 1.0,
-            'init_graph': None,
-            'init_dist': None,
-            'low_memory': True,
-            'max_candidates': None,
-            'max_rptree_depth': 100,
-            'n_iters': None,
-            'delta': 0.001,
-            'compressed': False,
-            'parallel_batch_queries': False,
-
-            'epsilon': 0.1
+        "nnd": {
+            "metric": "euclidean",
+            "k_search": 30,
+            "metric_kwds": None,
+            "n_threads": None,
+            "tree_init": True,
+            "n_trees": None,
+            "leaf_size": None,
+            "pruning_degree_multiplier": 1.5,
+            "diversify_prob": 1.0,
+            "init_graph": None,
+            "init_dist": None,
+            "low_memory": True,
+            "max_candidates": None,
+            "max_rptree_depth": 100,
+            "n_iters": None,
+            "delta": 0.001,
+            "compressed": False,
+            "parallel_batch_queries": False,
+            "epsilon": 0.1,
         },
-        'hnsw': {
-            'k_search': 30,
-            'distance': 'cosine',
-            'n_threads': 1,
-            'path': None,
-            'M': 25,
-            'ef_c': 200,
-            'ef_s': 200,
+        "hnsw": {
+            "k_search": 30,
+            "distance": "cosine",
+            "n_threads": 1,
+            "path": None,
+            "M": 25,
+            "ef_c": 200,
+            "ef_s": 200,
         },
-        'lsh': {
-            'k_search': 30,
-            'seed': None,
-            'bucket_size': 500,
-            'hash_width': 10.0,
-            'num_probes': 0,
-            'projections': 10,
-            'tables': 30
+        "lsh": {
+            "k_search": 30,
+            "seed": None,
+            "bucket_size": 500,
+            "hash_width": 10.0,
+            "num_probes": 0,
+            "projections": 10,
+            "tables": 30,
         },
-        'kd': {
-            'k_search': 30,
-            'seed': None,
-            'algorithm': "dual_tree",
-            'epsilon': 0.0,
-            'leaf_size': 20,
-            'random_basis': False,
-            'rho': 0.7,
-            'tau': 0.0,
-            'tree_type': "kd"
+        "kd": {
+            "k_search": 30,
+            "seed": None,
+            "algorithm": "dual_tree",
+            "epsilon": 0.0,
+            "leaf_size": 20,
+            "random_basis": False,
+            "rho": 0.7,
+            "tau": 0.0,
+            "tree_type": "kd",
         },
-        'annoy': {
-            'k_search': 30,
-            'path': None,
-            'seed': None,
-            'distance': 'angular',
-            'n_trees': 250,
-            'build_on_disk': False
+        "annoy": {
+            "k_search": 30,
+            "path": None,
+            "seed": None,
+            "distance": "angular",
+            "n_trees": 250,
+            "build_on_disk": False,
         },
-        'voyager': {
-            'k_search': 30,
-            'path': None,
-            'random_seed': 1,
-            'distance': 'cosine',
-            'M': 12,
-            'ef_construction': 200,
-            'max_elements': 1,
-            'num_threads': -1,
-            'query_ef': -1
-
+        "voyager": {
+            "k_search": 30,
+            "path": None,
+            "random_seed": 1,
+            "distance": "cosine",
+            "M": 12,
+            "ef_construction": 200,
+            "max_elements": 1,
+            "num_threads": -1,
+            "query_ef": -1,
         },
-        'faiss': {
+        "faiss": {
             # to my knowledge, faiss only allows these parameters to be set
-            'k_search': 30,
-            'distance': 'euclidean',
-            #'use_gpu': False, NOT SUPPORTED YET
-            #'use_mutltiple_gpus': False, NOT SUPPORTED YET
-            'path': None
+            "k_search": 30,
+            "distance": "euclidean",
+            # 'use_gpu': False, NOT SUPPORTED YET
+            # 'use_mutltiple_gpus': False, NOT SUPPORTED YET
+            "path": None,
         },
-        'algo': 'lsh',
+        "algo": "lsh",
     }
-    
+
     updates = {}
     if controls is not None:
         updates.update(controls)
     if kwargs:
         updates.update(kwargs)
-    
+
     return deep_update(defaults, updates)
 
-def controls_txt(controls: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
+
+def controls_txt(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
     """
     Create configuration dictionary for text processing operations.
 
@@ -215,12 +216,13 @@ def controls_txt(controls: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
     --------
     >>> config = controls_txt(n_shingles=3, lowercase=False)
     >>> config = controls_txt({'max_features': 10000})
+
     """
     defaults = {
-        'n_shingles': 2,
-        'max_features': 5000,
-        'lowercase': True,
-        'strip_non_alphanum': True
+        "n_shingles": 2,
+        "max_features": 5000,
+        "lowercase": True,
+        "strip_non_alphanum": True,
     }
 
     updates = {}
@@ -230,5 +232,3 @@ def controls_txt(controls: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
         updates.update(kwargs)
 
     return deep_update(defaults, updates)
-
-    

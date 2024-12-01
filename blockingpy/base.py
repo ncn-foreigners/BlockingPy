@@ -1,12 +1,13 @@
 """Contains the abstract base class for blocking methods."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 
 import pandas as pd
 
 
 class BlockingMethod(ABC):
+
     """
     Abstract base class for blocking methods.
 
@@ -29,13 +30,18 @@ class BlockingMethod(ABC):
     MLPackBlocker : Blocking using MLPack algorithms
     NNDBlocker : Blocking using Nearest Neighbor Descent
     VoyagerBlocker : Blocking using Voyager algorithm
+
     """
+
     @abstractmethod
-    def block(self, x: pd.DataFrame,
-              y: pd.DataFrame,
-              k: int,
-              verbose: Optional[bool],
-              controls: Dict[str, Any]) -> pd.DataFrame:
+    def block(
+        self,
+        x: pd.DataFrame,
+        y: pd.DataFrame,
+        k: int,
+        verbose: Optional[bool],
+        controls: dict[str, Any],
+    ) -> pd.DataFrame:
         """
         Perform blocking operation to identify potential matches.
 
@@ -54,7 +60,7 @@ class BlockingMethod(ABC):
         verbose : bool, optional
             If True, print detailed progress information
         controls : dict
-            Algorithm-specific control parameters. The structure varies by 
+            Algorithm-specific control parameters. The structure varies by
             implementation but typically includes:
             - Distance metric
             - Search parameters
@@ -81,5 +87,5 @@ class BlockingMethod(ABC):
         Different implementations may have different performance characteristics
         and trade-offs. Some may be better suited for high-dimensional data,
         others for specific distance metrics or data distributions.
+
         """
-        pass

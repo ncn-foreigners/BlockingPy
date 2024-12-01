@@ -1,3 +1,5 @@
+"""Tests for the NND blocking algorithm."""
+
 import logging
 
 import numpy as np
@@ -9,26 +11,26 @@ import pytest
 def nnd_controls():
     """Default NND control parameters."""
     return {
-        'nnd': {
-            'metric': 'euclidean',
-            'k_search': 5,
-            'metric_kwds': None,
-            'n_threads': 1,
-            'tree_init': True,
-            'n_trees': 5,
-            'leaf_size': 30,
-            'pruning_degree_multiplier': 1.5,
-            'diversify_prob': 1.0,
-            'init_graph': None,
-            'init_dist': None,
-            'low_memory': True,
-            'max_candidates': 50,
-            'max_rptree_depth': 100,
-            'n_iters': 10,
-            'delta': 0.001,
-            'compressed': False,
-            'parallel_batch_queries': False,
-            'epsilon': 0.1
+        "nnd": {
+            "metric": "euclidean",
+            "k_search": 5,
+            "metric_kwds": None,
+            "n_threads": 1,
+            "tree_init": True,
+            "n_trees": 5,
+            "leaf_size": 30,
+            "pruning_degree_multiplier": 1.5,
+            "diversify_prob": 1.0,
+            "init_graph": None,
+            "init_dist": None,
+            "low_memory": True,
+            "max_candidates": 50,
+            "max_rptree_depth": 100,
+            "n_iters": 10,
+            "delta": 0.001,
+            "compressed": False,
+            "parallel_batch_queries": False,
+            "epsilon": 0.1,
         }
     }
 
@@ -36,33 +38,29 @@ def nnd_controls():
 def test_basic_blocking(nnd_blocker, small_sparse_data, nnd_controls):
     """Test basic blocking functionality."""
     x, y = small_sparse_data
-    
+
     result = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)
-    
+
     assert isinstance(result, pd.DataFrame)
-    assert set(result.columns) == {'x', 'y', 'dist'}
+    assert set(result.columns) == {"x", "y", "dist"}
     assert len(result) == len(y)
-    assert result['dist'].notna().all()
+    assert result["dist"].notna().all()
 
 
-@pytest.mark.parametrize("metric", [
-    'euclidean',
-    'manhattan',
-    'cosine',
-    'correlation',
-    'hamming',
-    'minkowski'
-])
+@pytest.mark.parametrize(
+    "metric",
+    ["euclidean", "manhattan", "cosine", "correlation", "hamming", "minkowski"],
+)
 def test_different_metrics(nnd_blocker, small_sparse_data, nnd_controls, metric):
     """Test different distance metrics."""
     x, y = small_sparse_data
-    
+
     controls = nnd_controls.copy()
-    controls['nnd']['metric'] = metric
-    
+    controls["nnd"]["metric"] = metric
+
     result = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
     assert isinstance(result, pd.DataFrame)
-    assert result['dist'].notna().all()
+    assert result["dist"].notna().all()
 
 
 def test_result_reproducibility(nnd_blocker, small_sparse_data, nnd_controls):
@@ -72,7 +70,7 @@ def test_result_reproducibility(nnd_blocker, small_sparse_data, nnd_controls):
     result1 = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)
     result2 = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)
     print(result1)
-    
+
     pd.testing.assert_frame_equal(result1, result2)
 
 
@@ -80,11 +78,13 @@ def test_k_search_warning(nnd_blocker, small_sparse_data, nnd_controls, caplog):
     """Test warning when k_search is larger than reference points."""
     x, y = small_sparse_data
     caplog.set_level(logging.WARNING)
-    
-    nnd_controls['nnd']['k_search'] = len(x) + 10
+
+    nnd_controls["nnd"]["k_search"] = len(x) + 10
     nnd_blocker.block(x=x, y=y, k=1, verbose=True, controls=nnd_controls)
-    
-    warning_message = f"k_search ({len(x) + 10}) is larger than the number of reference points ({len(x)})"
+
+    warning_message = (
+        f"k_search ({len(x) + 10}) is larger than the number of reference points ({len(x)})"
+    )
     assert any(warning_message in record.message for record in caplog.records)
 
 
@@ -92,7 +92,7 @@ def test_verbose_logging(nnd_blocker, small_sparse_data, nnd_controls, caplog):
     """Test verbose logging output."""
     x, y = small_sparse_data
     caplog.set_level(logging.INFO)
-    
+
     nnd_blocker.block(x=x, y=y, k=1, verbose=True, controls=nnd_controls)
 
     assert any("Initializing NND index" in record.message for record in caplog.records)
@@ -103,44 +103,48 @@ def test_verbose_logging(nnd_blocker, small_sparse_data, nnd_controls, caplog):
 def test_identical_points(nnd_blocker, identical_sparse_data, nnd_controls):
     """Test blocking with identical points."""
     x, y = identical_sparse_data
-    
+
     result = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)
-    assert result['dist'].iloc[0] == pytest.approx(0.0, abs=1e-5)
+    assert result["dist"].iloc[0] == pytest.approx(0.0, abs=1e-5)
 
 
 def test_single_point(nnd_blocker, single_sparse_point, nnd_controls):
     """Test blocking with single point."""
     x, y = single_sparse_point
-    
+
     result = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)
     assert len(result) == 1
 
 
 def test_empty_data_handling(nnd_blocker, nnd_controls):
     """Test handling of empty datasets."""
-    x = pd.DataFrame(np.random.rand(0, 3))
-    y = pd.DataFrame(np.random.rand(5, 3))
+    rng = np.random.default_rng()
+    x = pd.DataFrame(columns=['col1', 'col2', 'col3'])
+    y = pd.DataFrame(rng.random((5, 3)))
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)
 
 
-@pytest.mark.parametrize("param_variation", [
-    {'n_trees': 10},
-    {'leaf_size': 20},
-    {'pruning_degree_multiplier': 2.0},
-    {'diversify_prob': 0.8},
-    {'max_candidates': 100},
-    {'n_iters': 15},
-    {'delta': 0.002},
-])
+@pytest.mark.parametrize(
+    "param_variation",
+    [
+        {"n_trees": 10},
+        {"leaf_size": 20},
+        {"pruning_degree_multiplier": 2.0},
+        {"diversify_prob": 0.8},
+        {"max_candidates": 100},
+        {"n_iters": 15},
+        {"delta": 0.002},
+    ],
+)
 def test_parameter_variations(nnd_blocker, small_sparse_data, nnd_controls, param_variation):
     """Test NND with different parameters."""
     x, y = small_sparse_data
-    
+
     controls = nnd_controls.copy()
-    controls['nnd'].update(param_variation)
-    
+    controls["nnd"].update(param_variation)
+
     result = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
     assert isinstance(result, pd.DataFrame)
 
@@ -148,23 +152,23 @@ def test_parameter_variations(nnd_blocker, small_sparse_data, nnd_controls, para
 def test_large_input(nnd_blocker, large_sparse_data, nnd_controls):
     """Test blocking with larger input matrices."""
     x, y = large_sparse_data
-    
+
     result = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)
-    
+
     assert isinstance(result, pd.DataFrame)
-    assert set(result.columns) == {'x', 'y', 'dist'}
+    assert set(result.columns) == {"x", "y", "dist"}
     assert len(result) == len(y)
-    assert result['dist'].notna().all()
+    assert result["dist"].notna().all()
 
 
 @pytest.mark.parametrize("n_threads", [1, 2, -1])
 def test_multithreading(nnd_blocker, large_sparse_data, nnd_controls, n_threads):
     """Test NND blocking with different thread options."""
     x, y = large_sparse_data
-    
+
     controls = nnd_controls.copy()
-    controls['nnd']['n_threads'] = n_threads
-    
+    controls["nnd"]["n_threads"] = n_threads
+
     result = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
     assert isinstance(result, pd.DataFrame)
 
@@ -172,12 +176,9 @@ def test_multithreading(nnd_blocker, large_sparse_data, nnd_controls, n_threads)
 def test_metric_with_params(nnd_blocker, small_sparse_data, nnd_controls):
     """Test metric with additional parameters."""
     x, y = small_sparse_data
-    
+
     controls = nnd_controls.copy()
-    controls['nnd'].update({
-        'metric': 'minkowski',
-        'metric_kwds': {'p': 3}
-    })
-    
+    controls["nnd"].update({"metric": "minkowski", "metric_kwds": {"p": 3}})
+
     result = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
     assert isinstance(result, pd.DataFrame)

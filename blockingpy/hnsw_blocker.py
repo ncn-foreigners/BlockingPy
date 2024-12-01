@@ -2,22 +2,22 @@
 
 import logging
 import os
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 
 import hnswlib
 import pandas as pd
 
 from .base import BlockingMethod
 
-
 logger = logging.getLogger(__name__)
 
 
 class HNSWBlocker(BlockingMethod):
+
     """
     A class for performing blocking using the Hierarchical Navigable Small World (HNSW) algorithm.
 
-    This class implements blocking functionality using the HNSW algorithm for efficient 
+    This class implements blocking functionality using the HNSW algorithm for efficient
     similarity search and nearest neighbor queries.
 
     Parameters
@@ -41,12 +41,14 @@ class HNSWBlocker(BlockingMethod):
     -----
     For more details about the HNSW algorithm, see:
     https://github.com/nmslib/hnswlib
+
     """
-    SPACE_MAP: Dict[str, str] = {
+
+    SPACE_MAP: dict[str, str] = {
         "l2": "l2",
         "euclidean": "l2",
         "cosine": "cosine",
-        "ip": "ip"
+        "ip": "ip",
     }
 
     def __init__(self) -> None:
@@ -55,14 +57,17 @@ class HNSWBlocker(BlockingMethod):
 
         Creates a new HNSWBlocker with empty index.
         """
-        self.index: Optional[hnswlib.Index] = None
-        self.x_columns = None
+        self.index: hnswlib.Index
+        self.x_columns: list[str]
 
-    def block(self, x: pd.DataFrame, 
-            y: pd.DataFrame, 
-            k: int, 
-            verbose: Optional[bool],
-            controls: Dict[str, Any]) -> pd.DataFrame:
+    def block(
+        self,
+        x: pd.DataFrame,
+        y: pd.DataFrame,
+        k: int,
+        verbose: Optional[bool],
+        controls: dict[str, Any],
+    ) -> pd.DataFrame:
         """
         Perform blocking using the HNSW algorithm.
 
@@ -73,7 +78,7 @@ class HNSWBlocker(BlockingMethod):
         y : pandas.DataFrame
             Query dataset to find nearest neighbors for
         k : int
-            Number of nearest neighbors to find. If k is larger than the number 
+            Number of nearest neighbors to find. If k is larger than the number
             of reference points, it will be automatically adjusted
         verbose : bool, optional
             If True, print detailed progress information
@@ -99,66 +104,66 @@ class HNSWBlocker(BlockingMethod):
             - 'x': indices of matched items from reference dataset
             - 'dist': distances to matched items
 
-        Raises
-        ------
-        ValueError
-            If path is provided but incorrect
-
         Notes
         -----
-        The function builds an HNSW index from the reference dataset and finds 
-        the k-nearest neighbors for each point in the query dataset. The index 
-        parameters ef_c (construction) and ef_s (search) control the trade-off 
+        The function builds an HNSW index from the reference dataset and finds
+        the k-nearest neighbors for each point in the query dataset. The index
+        parameters ef_c (construction) and ef_s (search) control the trade-off
         between search accuracy and speed.
+
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
         self.x_columns = x.columns
 
-        distance = controls['hnsw'].get('distance')
-        verbose = verbose
-        n_threads = controls['hnsw'].get('n_threads')
-        path = controls['hnsw'].get('path')
-        k_search = controls['hnsw'].get('k_search')
+        distance = controls["hnsw"].get("distance")
+        n_threads = controls["hnsw"].get("n_threads")
+        path = controls["hnsw"].get("path")
+        k_search = controls["hnsw"].get("k_search")
         space = self.SPACE_MAP[distance]
 
         logger.info("Initializing HNSW index...")
-        
+
         self.index = hnswlib.Index(space=space, dim=x.shape[1])
         self.index.init_index(
-            max_elements=x.shape[0], 
-            ef_construction=controls['hnsw'].get('ef_c'), 
-            M=controls['hnsw'].get('M')
+            max_elements=x.shape[0],
+            ef_construction=controls["hnsw"].get("ef_c"),
+            M=controls["hnsw"].get("M"),
         )
         self.index.set_num_threads(n_threads)
 
         logger.info("Adding items to index...")
-            
+
         self.index.add_items(x)
-        self.index.set_ef(controls['hnsw'].get('ef_s'))
+        self.index.set_ef(controls["hnsw"].get("ef_s"))
 
         logger.info("Querying index...")
 
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+            logger.warning(
+                f"k_search ({original_k_search}) is larger than the number of reference points "
+                f"({x.shape[0]}). Adjusted k_search to {k_search}."
+            )
 
         l_1nn = self.index.knn_query(y, k=k_search)
 
         if path:
             self._save_index(path)
-        
-        result = pd.DataFrame({
-            'y': range(y.shape[0]),
-            'x': l_1nn[0][:, k-1],
-            'dist': l_1nn[1][:, k-1]
-        })
+
+        result = pd.DataFrame(
+            {
+                "y": range(y.shape[0]),
+                "x": l_1nn[0][:, k - 1],
+                "dist": l_1nn[1][:, k - 1],
+            }
+        )
 
         logger.info("Process completed successfully.")
 
         return result
-        
+
     def _save_index(self, path: str) -> None:
         """
         Save the HNSW index and column names to files.
@@ -167,7 +172,7 @@ class HNSWBlocker(BlockingMethod):
         ----------
         path : str
             Directory path where the files will be saved
-        
+
         Raises
         ------
         ValueError
@@ -178,6 +183,7 @@ class HNSWBlocker(BlockingMethod):
         Creates two files:
             - 'index.hnsw': The HNSW index file
             - 'index-colnames.txt': A text file with column names
+
         """
         if not os.path.exists(os.path.dirname(path)):
             raise ValueError("Provided path is incorrect")
@@ -188,5 +194,5 @@ class HNSWBlocker(BlockingMethod):
         logger.info(f"Writing an index to {path_ann}")
 
         self.index.save_index(path_ann)
-        with open(path_ann_cols, 'w') as f:
-            f.write('\n'.join(self.x_columns))
+        with open(path_ann_cols, "w", encoding="utf-8") as f:
+            f.write("\n".join(self.x_columns))

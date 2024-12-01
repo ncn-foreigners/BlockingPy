@@ -1,8 +1,11 @@
-"""Contains the VoyagerBlocker class for performing blocking using the Voyager algorithm from Spotify."""
+"""
+Contains the VoyagerBlocker class for performing blocking using the
+Voyager algorithm from Spotify.
+"""
 
 import logging
 import os
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -10,16 +13,16 @@ from voyager import Index, Space
 
 from .base import BlockingMethod
 
-
 logger = logging.getLogger(__name__)
 
 
 class VoyagerBlocker(BlockingMethod):
+
     """
     A class for performing blocking using the Voyager algorithm from Spotify.
 
-    This class implements blocking functionality using Spotify's Voyager algorithm 
-    for efficient approximate nearest neighbor search. It supports multiple distance 
+    This class implements blocking functionality using Spotify's Voyager algorithm
+    for efficient approximate nearest neighbor search. It supports multiple distance
     metrics and is designed for high-dimensional data.
 
     Parameters
@@ -49,8 +52,10 @@ class VoyagerBlocker(BlockingMethod):
     -----
     For more details about the Voyager algorithm and implementation, see:
     https://github.com/spotify/voyager
+
     """
-    METRIC_MAP: Dict[str, Space] = {
+
+    METRIC_MAP: dict[str, Space] = {
         "euclidean": Space.Euclidean,
         "cosine": Space.Cosine,
         "inner_product": Space.InnerProduct,
@@ -62,14 +67,17 @@ class VoyagerBlocker(BlockingMethod):
 
         Creates a new VoyagerBlocker with empty index.
         """
-        self.index: Optional[Index] = None
-        self.x_columns = None
-    
-    def block(self, x: pd.DataFrame, 
-              y: pd.DataFrame, 
-              k: int,
-              verbose: Optional[bool], 
-              controls: Dict[str, Any]) -> pd.DataFrame:
+        self.index: Index
+        self.x_columns: list[str]
+
+    def block(
+        self,
+        x: pd.DataFrame,
+        y: pd.DataFrame,
+        k: int,
+        verbose: Optional[bool],
+        controls: dict[str, Any],
+    ) -> pd.DataFrame:
         """
         Perform blocking using the Voyager algorithm.
 
@@ -109,33 +117,35 @@ class VoyagerBlocker(BlockingMethod):
 
         Notes
         -----
-        The algorithm uses a graph-based approach for approximate 
-        nearest neighbor search. The quality of approximation can be controlled 
+        The algorithm uses a graph-based approach for approximate
+        nearest neighbor search. The quality of approximation can be controlled
         through parameters like ef_construction and query_ef.
+
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
-        
+
         self.x_columns = x.columns
 
-        distance = controls['voyager'].get('distance')
+        distance = controls["voyager"].get("distance")
         space = self.METRIC_MAP[distance]
-        k_search = controls['voyager'].get('k_search')
-        path = controls['voyager'].get('path')      
-        
+        k_search = controls["voyager"].get("k_search")
+        path = controls["voyager"].get("path")
+
         self.index = Index(
             space=space,
             num_dimensions=x.shape[1],
-            M=controls['voyager'].get('M'),
-            ef_construction=controls['voyager'].get('ef_construction'),
-            random_seed=controls['voyager'].get('random_seed'),
-            max_elements=controls['voyager'].get('max_elements'),
+            M=controls["voyager"].get("M"),
+            ef_construction=controls["voyager"].get("ef_construction"),
+            random_seed=controls["voyager"].get("random_seed"),
+            max_elements=controls["voyager"].get("max_elements"),
         )
 
         logger.info("Building index...")
-        
-        self.index.add_items(x.sparse.to_dense().values.tolist(),
-                             num_threads=controls['voyager'].get('num_threads'),
-                            )
+
+        self.index.add_items(
+            x.sparse.to_dense().values.tolist(),
+            num_threads=controls["voyager"].get("num_threads"),
+        )
 
         logger.info("Querying index...")
 
@@ -145,24 +155,28 @@ class VoyagerBlocker(BlockingMethod):
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
-            logger.warning(f"k_search ({original_k_search}) is larger than the number of reference points ({x.shape[0]}). Adjusted k_search to {k_search}.")
+            logger.warning(
+                f"k_search ({original_k_search}) is larger than the number of reference points "
+                f"({x.shape[0]}). Adjusted k_search to {k_search}."
+            )
 
-        all_neighbor_ids, all_distances = self.index.query(vectors=y.sparse.to_dense().values.tolist(),
-                         k=k_search,
-                         num_threads=controls['voyager'].get('num_threads'),
-                         query_ef=controls['voyager'].get('query_ef'),
-                        )
-    
-        l_ind_nns = all_neighbor_ids[:, k-1]
-        l_ind_dist = all_distances[:, k-1]
+        all_neighbor_ids, all_distances = self.index.query(
+            vectors=y.sparse.to_dense().values.tolist(),
+            k=k_search,
+            num_threads=controls["voyager"].get("num_threads"),
+            query_ef=controls["voyager"].get("query_ef"),
+        )
+
+        l_ind_nns = all_neighbor_ids[:, k - 1]
+        l_ind_dist = all_distances[:, k - 1]
 
         if path:
             self._save_index(path)
 
         result = {
-            'y': np.arange(y.shape[0]),  
-            'x': l_ind_nns, 
-            'dist': l_ind_dist,
+            "y": np.arange(y.shape[0]),
+            "x": l_ind_nns,
+            "dist": l_ind_dist,
         }
 
         result = pd.DataFrame(result)
@@ -170,7 +184,7 @@ class VoyagerBlocker(BlockingMethod):
         logger.info("Process completed successfully.")
 
         return result
-             
+
     def _save_index(self, path: str) -> None:
         """
         Save the Voyager index and column names to files.
@@ -179,7 +193,7 @@ class VoyagerBlocker(BlockingMethod):
         ----------
         path : str
             Directory path where the files will be saved
-        
+
         Raises
         ------
         ValueError
@@ -190,16 +204,17 @@ class VoyagerBlocker(BlockingMethod):
         Creates two files:
             - 'index.voyager': The Voyager index file
             - 'index-colnames.txt': A text file with column names
+
         """
         if not os.path.exists(os.path.dirname(path)):
             raise ValueError("Provided path is incorrect")
-        
+
         path_voy = os.path.join(path, "index.voyager")
         path_voy_cols = os.path.join(path, "index-colnames.txt")
 
         logger.info(f"Writing an index to {path_voy}")
-        
+
         self.index.save(path_voy)
 
-        with open(path_voy_cols, 'w') as f:
-            f.write('\n'.join(self.x_columns))
+        with open(path_voy_cols, "w", encoding="utf-8") as f:
+            f.write("\n".join(self.x_columns))
