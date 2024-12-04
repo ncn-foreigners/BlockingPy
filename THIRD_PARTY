@@ -1,0 +1,16 @@
+### Third Party Licenses
+
+This project uses the following open source packages:
+
+- NumPy: BSD 3-Clause License (https://github.com/numpy/numpy/blob/main/LICENSE.txt)
+- Pandas: BSD 3-Clause License (https://github.com/pandas-dev/pandas/blob/main/LICENSE)
+- Scipy: BSD-3 Clause License (https://github.com/scipy/scipy/blob/main/LICENSE.txt)
+- Scikit-Learn: BSD-3 Clause License (https://github.com/scikit-learn/scikit-learn?tab=BSD-3-Clause-1-ov-file#readme)
+- Annoy: Apache 2.0 License (https://github.com/spotify/annoy/blob/main/LICENSE)
+- HNSWLib: Apache 2.0 License (https://github.com/nmslib/hnswlib/blob/master/LICENSE)
+- MLPack: BSD-3 Clause License (https://github.com/mlpack/mlpack/blob/master/LICENSE.txt)
+- pynndescent: BSD-2 Clause License (https://github.com/lmcinnes/pynndescent/blob/master/LICENSE)
+- Voyager: Apache 2.0 License (https://github.com/spotify/voyager/blob/main/LICENSE)
+- Faiss: MIT License (https://github.com/facebookresearch/faiss/blob/main/LICENSE)
+- NetworkX: BSD-3 Clause License (https://github.com/networkx/networkx/blob/main/LICENSE.txt)
+- nltk: Apache 2.0 License (https://github.com/nltk/nltk/blob/develop/README.md) 
