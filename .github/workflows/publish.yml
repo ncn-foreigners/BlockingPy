@@ -6,28 +6,33 @@ on:
 
 jobs:
   publish:
+    name: Build and Publish Package
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
     
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: "3.10"
     
-    - name: Install and configure Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: 1.7.1
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-    
-    - name: Configure Poetry
+    - name: Install system dependencies
       run: |
-        poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+        sudo apt-get update
+        sudo apt-get install -y libmlpack-dev
     
-    - name: Build and publish
+    - name: Install build dependencies
       run: |
-        poetry build
-        poetry publish
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Build package distributions
+      run: python -m build
+    
+    - name: Upload to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: twine upload dist/*
