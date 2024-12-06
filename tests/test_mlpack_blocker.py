@@ -131,7 +131,7 @@ def test_single_point(mlpack_blocker, single_sparse_point, mlpack_controls):
 def test_empty_data_handling(mlpack_blocker, lsh_controls):
     """Test handling of empty datasets."""
     rng = np.random.default_rng()
-    x = pd.DataFrame(columns=['col1', 'col2', 'col3'])
+    x = pd.DataFrame(columns=["col1", "col2", "col3"])
     y = pd.DataFrame(rng.random((5, 3)))
 
     with pytest.raises(RuntimeError):

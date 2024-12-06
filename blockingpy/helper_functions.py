@@ -4,7 +4,6 @@ algorithm validation and Document Term Matrix (DTM) creation.
 """
 
 import re
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -108,7 +107,7 @@ class InputValidator:
     """Validates input data and parameters for blocking operations."""
 
     @staticmethod
-    def validate_data(x: Union[pd.Series, sparse.csr_matrix, np.ndarray]) -> None:
+    def validate_data(x: pd.Series | sparse.csr_matrix | np.ndarray) -> None:
         """
         Validate input data type.
 
@@ -130,7 +129,7 @@ class InputValidator:
             )
 
     @staticmethod
-    def validate_true_blocks(true_blocks: Optional[pd.DataFrame], deduplication: bool) -> None:
+    def validate_true_blocks(true_blocks: pd.DataFrame | None, deduplication: bool) -> None:
         """
         Validate true blocks data structure.
 

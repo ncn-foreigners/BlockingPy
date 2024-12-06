@@ -2,7 +2,7 @@
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 import faiss
 import numpy as np
@@ -83,7 +83,7 @@ class FaissBlocker(BlockingMethod):
         x: pd.DataFrame,
         y: pd.DataFrame,
         k: int,
-        verbose: Optional[bool],
+        verbose: bool | None,
         controls: dict[str, Any],
     ) -> pd.DataFrame:
         """

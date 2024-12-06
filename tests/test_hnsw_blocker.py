@@ -140,7 +140,7 @@ def test_single_point(hnsw_blocker, single_sparse_point, hnsw_controls):
 def test_empty_data_handling(hnsw_blocker, hnsw_controls):
     """Test handling of empty data."""
     rng = np.random.default_rng()
-    x = pd.DataFrame(columns=['col1', 'col2', 'col3'])
+    x = pd.DataFrame(columns=["col1", "col2", "col3"])
     y = pd.DataFrame(rng.random((5, 3)))
 
     with pytest.raises(IndexError):

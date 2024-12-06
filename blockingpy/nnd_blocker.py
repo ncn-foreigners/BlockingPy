@@ -1,7 +1,7 @@
 """Cotains the NNDBlocker class for blocking using the Nearest Neighbor Descent algorithm."""
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -55,7 +55,7 @@ class NNDBlocker(BlockingMethod):
         x: pd.DataFrame,
         y: pd.DataFrame,
         k: int,
-        verbose: Optional[bool],
+        verbose: bool | None,
         controls: dict[str, Any],
     ) -> pd.DataFrame:
         """

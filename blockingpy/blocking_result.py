@@ -5,7 +5,6 @@ blocking results.
 
 from collections import Counter
 from math import comb
-from typing import Optional
 
 import networkx as nx
 import numpy as np
@@ -69,11 +68,11 @@ class BlockingResult:
         x_df: pd.DataFrame,
         ann: str,
         deduplication: bool,
-        true_blocks: Optional[pd.DataFrame],
-        eval_metrics: Optional[pd.Series],
-        confusion: Optional[pd.DataFrame],
+        true_blocks: pd.DataFrame | None,
+        eval_metrics: pd.Series | None,
+        confusion: pd.DataFrame | None,
         colnames_xy: np.ndarray,
-        graph: Optional[bool] = False,
+        graph: bool | None = False,
     ) -> None:
         """Initialize a BlockingResult instance."""
         self.result = x_df[["x", "y", "block", "dist"]]

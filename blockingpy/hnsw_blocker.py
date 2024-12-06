@@ -2,7 +2,7 @@
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 import hnswlib
 import pandas as pd
@@ -65,7 +65,7 @@ class HNSWBlocker(BlockingMethod):
         x: pd.DataFrame,
         y: pd.DataFrame,
         k: int,
-        verbose: Optional[bool],
+        verbose: bool | None,
         controls: dict[str, Any],
     ) -> pd.DataFrame:
         """

@@ -1,7 +1,7 @@
 """Contains the MLPackBlocker class for performing blocking using MLPack algorithms."""
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 from mlpack import knn, lsh
@@ -56,7 +56,7 @@ class MLPackBlocker(BlockingMethod):
         x: pd.DataFrame,
         y: pd.DataFrame,
         k: int,
-        verbose: Optional[bool],
+        verbose: bool | None,
         controls: dict[str, Any],
     ) -> pd.DataFrame:
         """

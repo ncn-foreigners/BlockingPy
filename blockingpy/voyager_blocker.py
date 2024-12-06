@@ -5,7 +5,7 @@ Voyager algorithm from Spotify.
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -75,7 +75,7 @@ class VoyagerBlocker(BlockingMethod):
         x: pd.DataFrame,
         y: pd.DataFrame,
         k: int,
-        verbose: Optional[bool],
+        verbose: bool | None,
         controls: dict[str, Any],
     ) -> pd.DataFrame:
         """

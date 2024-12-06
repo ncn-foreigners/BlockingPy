@@ -6,7 +6,7 @@ and deduplication blocking.
 import itertools
 import logging
 from collections import OrderedDict
-from typing import Any, Optional, Union
+from typing import Any
 
 import networkx as nx
 import numpy as np
@@ -96,17 +96,17 @@ class Blocker:
 
     def block(
         self,
-        x: Union[pd.Series, sparse.csr_matrix, np.ndarray],
-        y: Optional[Union[np.ndarray, pd.Series, sparse.csr_matrix]] = None,
+        x: pd.Series | sparse.csr_matrix | np.ndarray,
+        y: np.ndarray | pd.Series | sparse.csr_matrix | None = None,
         deduplication: bool = True,
         ann: str = "faiss",
-        true_blocks: Optional[pd.DataFrame] = None,
+        true_blocks: pd.DataFrame | None = None,
         verbose: int = 0,
         graph: bool = False,
         control_txt: dict[str, Any] = {},
         control_ann: dict[str, Any] = {},
-        x_colnames: Optional[list[str]] = None,
-        y_colnames: Optional[list[str]] = None,
+        x_colnames: list[str] | None = None,
+        y_colnames: list[str] | None = None,
     ) -> BlockingResult:
         """
         Perform blocking using the specified algorithm.
