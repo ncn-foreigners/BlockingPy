@@ -1,10 +1,27 @@
 [tool.poetry]
 name = "blockingpy"
-version = "0.1.0"
-description = "Python port of R's blocking package  for blocking records for record linkage and data deduplication based on ANN algorithms."
+version = "0.1.1"
+description = "Blocking records for record linkage and data deduplication based on ANN algorithms."
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>"]
 readme = "README.md"
+license = "MIT"
+repository = "https://github.com/T-Strojny/BlockingPy"
+keywords = ["record-linkage", "deduplication", "ANN", "blocking", "data-matching"]
 packages = [{include = "blockingpy"}]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/T-Strojny/BlockingPy/issues"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -32,10 +49,10 @@ mypy = "^1.13.0"
 
 [tool.black]
 line-length = 100
-target-version = ['py39']
+target-version = ['py310']
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
@@ -50,14 +67,14 @@ ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
     "E",
     "F",
     "I", 
-    "B",
+    "B",    
     "C90",  
     "D", 
     "UP", 
