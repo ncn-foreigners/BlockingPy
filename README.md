@@ -139,6 +139,7 @@ print(dedup_result.result)
     
     and more...
 - Comprehensive algorithm parameters customization with `controls_ann` and `controls_txt`
+- Support for already created Document-Term-Matrices (as `np.ndarray` or `csr_matrix`)
 - Support for both record linkage and deduplication
 - Evaluation metrics when true blocks are known
 
