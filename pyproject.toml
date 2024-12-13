@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "blockingpy"
-version = "0.1.2"
+version = "0.1.3"
 description = "Blocking records for record linkage and data deduplication based on ANN algorithms."
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>"]
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/T-Strojny/BlockingPy"
+documentation = "https://blockingpy.readthedocs.io"
 keywords = ["record-linkage", "deduplication", "ANN", "blocking", "data-matching"]
 packages = [{include = "blockingpy"}]
 classifiers = [
@@ -46,6 +47,11 @@ pytest-cov = "^6.0.0"
 ruff = "^0.8.0"
 black = "^24.10.0"
 mypy = "^1.13.0"
+sphinx = "^8.1.3"
+sphinxcontrib-napoleon = "^0.7"
+myst-parser = "^4.0.0"
+sphinx-rtd-theme = "^3.0.2"
+sphinx-autobuild = "^2024.10.3"
 
 [tool.black]
 line-length = 100
