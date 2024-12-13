@@ -144,7 +144,7 @@ print(dedup_result.result)
 - Support for both record linkage and deduplication
 - Evaluation metrics when true blocks are known
 
-You can find detailed information about BlockingPy in [documentation]() (not available yet).
+You can find detailed information about BlockingPy in [documentation](https://blockingpy.readthedocs.io).
 
 ## Disclaimer
 BlockingPy is still under development, API and features may change. Also bugs or errors can occur. 
