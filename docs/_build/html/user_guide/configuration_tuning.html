@@ -1,0 +1,360 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration and Tuning &mdash; BlockingPy 0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=92734c54"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Examples" href="../examples/index.html" />
+    <link rel="prev" title="Input Data Handling" href="input_data_handling.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core_concepts.html">Core Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_operations.html">Basic Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_data_handling.html">Input Data Handling</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Configuration and Tuning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#text-processing-configuration-control-txt">Text Processing Configuration (<code class="docutils literal notranslate"><span class="pre">control_txt</span></code>)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parameter-details">Parameter Details</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ann-algorithm-configuration-control-ann">ANN Algorithm Configuration (<code class="docutils literal notranslate"><span class="pre">control_ann</span></code>)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#faiss-configuration">FAISS Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#voyager-configuration">Voyager Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hnsw-configuration">HNSW Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#annoy-configuration">Annoy Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lsh-configuration">LSH Configuration</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#k-d-tree-configuration">K-d Tree Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nnd-configuration">NND Configuration</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Configuration and Tuning</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/user_guide/configuration_tuning.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="configuration-and-tuning">
+<span id="configuration-tuning"></span><h1>Configuration and Tuning<a class="headerlink" href="#configuration-and-tuning" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>BlockingPy provides two main configuration interfaces:</p>
+<ul class="simple">
+<li><p>control_txt: Text processing parameters</p></li>
+<li><p>control_ann: ANN algorithm parameters</p></li>
+</ul>
+</section>
+<section id="text-processing-configuration-control-txt">
+<h2>Text Processing Configuration (<code class="docutils literal notranslate"><span class="pre">control_txt</span></code>)<a class="headerlink" href="#text-processing-configuration-control-txt" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">control_txt</span></code> dictionary controls how text data is processed before blocking:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_txt</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;n_shingles&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>           <span class="c1"># Size of character n-grams</span>
+    <span class="s1">&#39;max_features&#39;</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span>      <span class="c1"># Maximum number of features to keep</span>
+    <span class="s1">&#39;lowercase&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>         <span class="c1"># Convert text to lowercase</span>
+    <span class="s1">&#39;strip_non_alphanum&#39;</span><span class="p">:</span> <span class="kc">True</span> <span class="c1"># Remove non-alphanumeric characters</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="parameter-details">
+<h3>Parameter Details<a class="headerlink" href="#parameter-details" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">n_shingles</span></code> (default: <code class="docutils literal notranslate"><span class="pre">2</span></code>)</p>
+<ul class="simple">
+<li><p>Controls the size of character n-grams</p></li>
+<li><p>Larger values capture more context but increase dimensionality</p></li>
+<li><p>Common values: 2-4</p></li>
+<li><p>Impact: Higher values more precise but slower</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">max_features</span></code> (default: <code class="docutils literal notranslate"><span class="pre">5000</span></code>)</p>
+<ul class="simple">
+<li><p>Maximum number of features in the document-term matrix</p></li>
+<li><p>Controls memory usage and processing speed</p></li>
+<li><p>Higher values may improve accuracy but increase memory usage</p></li>
+<li><p>Adjust based on your dataset size and available memory</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">lowercase</span></code> (default: <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p>
+<ul class="simple">
+<li><p>Whether to convert text to lowercase</p></li>
+<li><p>Usually keep True for better matching</p></li>
+<li><p>Set to False if case is meaningful for your data</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">strip_non_alphanum</span></code> (default: <code class="docutils literal notranslate"><span class="pre">True</span></code>)</p>
+<ul class="simple">
+<li><p>Remove non-alphanumeric characters</p></li>
+<li><p>Usually keep True for cleaner matching</p></li>
+<li><p>Set to False if special characters are important</p></li>
+</ul>
+<p>NOTE: <code class="docutils literal notranslate"><span class="pre">control_txt</span></code> is used only if the input is <code class="docutils literal notranslate"><span class="pre">pd.Series</span></code> as the other options were already processed.</p>
+</section>
+</section>
+<section id="ann-algorithm-configuration-control-ann">
+<h2>ANN Algorithm Configuration (<code class="docutils literal notranslate"><span class="pre">control_ann</span></code>)<a class="headerlink" href="#ann-algorithm-configuration-control-ann" title="Link to this heading"></a></h2>
+<p>Each algorithm has its own set of parameters in the <code class="docutils literal notranslate"><span class="pre">control_ann</span></code> dictionary. Overall <code class="docutils literal notranslate"><span class="pre">control_ann</span></code> should be in the following structure:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;faiss&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># parameters here</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;voyager&quot;</span> <span class="p">:</span> <span class="p">{},</span>
+    <span class="s2">&quot;annoy&quot;</span> <span class="p">:</span> <span class="p">{},</span>
+    <span class="s2">&quot;lsh&quot;</span> <span class="p">:</span> <span class="p">{},</span>
+    <span class="s2">&quot;kd&quot;</span> <span class="p">:</span> <span class="p">{},</span>
+    <span class="s2">&quot;hnsw&quot;</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="c1"># you can specify only the dict of the algorithm you are using</span>
+
+    <span class="s2">&quot;algo&quot;</span> <span class="p">:</span> <span class="s2">&quot;lsh&quot;</span> <span class="ow">or</span> <span class="s2">&quot;kd&quot;</span> <span class="c1"># specify if using lsh or kd</span>
+
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="faiss-configuration">
+<h3>FAISS Configuration<a class="headerlink" href="#faiss-configuration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;faiss&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="s1">&#39;euclidean&#39;</span><span class="p">,</span> <span class="c1"># Distance metric</span>
+        <span class="s1">&#39;k_search&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>          <span class="c1"># Number of neighbors to search</span>
+        <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="kc">None</span>             <span class="c1"># Optional path to save index</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Supported distance metrics</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">euclidean</span></code> (default)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cosine</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inner_product</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">l1</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">manhattan</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">linf</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">canberra</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bray_curtis</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">jensen_shannon</span></code></p></li>
+</ul>
+<p>For more information about <code class="docutils literal notranslate"><span class="pre">faiss</span></code> see <a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances">here</a>.</p>
+</section>
+</section>
+<section id="voyager-configuration">
+<h2>Voyager Configuration<a class="headerlink" href="#voyager-configuration" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;voyager&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="s1">&#39;cosine&#39;</span><span class="p">,</span>   <span class="c1"># Distance metric</span>
+        <span class="s1">&#39;k_search&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>         <span class="c1"># Number of neighbors to search</span>
+        <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>           <span class="c1"># Optional path to save index</span>
+        <span class="s1">&#39;random_seed&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>       <span class="c1"># Random seed</span>
+        <span class="s1">&#39;M&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>                <span class="c1"># Number of connections per element</span>
+        <span class="s1">&#39;ef_construction&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span> <span class="c1"># Size of dynamic candidate list (construction)</span>
+        <span class="s1">&#39;max_elements&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>      <span class="c1"># Maximum number of elements</span>
+        <span class="s1">&#39;num_threads&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>      <span class="c1"># Number of threads (-1 for auto)</span>
+        <span class="s1">&#39;query_ef&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>          <span class="c1"># Query expansion factor (-1 for auto)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Supported distance metrics</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cosine</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inner_product</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">euclidean</span></code> (default)</p></li>
+</ul>
+<p>For more information about <code class="docutils literal notranslate"><span class="pre">voyager</span></code> see <a class="reference external" href="https://github.com/spotify/voyager">here</a>.</p>
+</section>
+<section id="hnsw-configuration">
+<h2>HNSW Configuration<a class="headerlink" href="#hnsw-configuration" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;hnsw&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="s1">&#39;cosine&#39;</span><span class="p">,</span> <span class="c1"># Distance metric</span>
+        <span class="s1">&#39;k_search&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>       <span class="c1"># Number of neighbors to search</span>
+        <span class="s1">&#39;n_threads&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>       <span class="c1"># Number of threads</span>
+        <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>         <span class="c1"># Optional path to save index</span>
+        <span class="s1">&#39;M&#39;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>              <span class="c1"># Number of connections per element</span>
+        <span class="s1">&#39;ef_c&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>          <span class="c1"># Size of dynamic candidate list (construction)</span>
+        <span class="s1">&#39;ef_s&#39;</span><span class="p">:</span> <span class="mi">200</span>           <span class="c1"># Size of dynamic candidate list (search)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Supported distance metrics</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cosine</span></code> (default)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">l2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">euclidean</span></code> (same as l2)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ip</span></code> (Inner Product)</p></li>
+</ul>
+<p>For more information about <code class="docutils literal notranslate"><span class="pre">hnsw</span></code> configuration see <a class="reference external" href="https://github.com/nmslib/hnswlib">here</a>.</p>
+</section>
+<section id="annoy-configuration">
+<h2>Annoy Configuration<a class="headerlink" href="#annoy-configuration" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;annoy&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="s1">&#39;angular&#39;</span><span class="p">,</span> <span class="c1"># Distance metric</span>
+        <span class="s1">&#39;k_search&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>        <span class="c1"># Number of neighbors to search</span>
+        <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>          <span class="c1"># Optional path to save index</span>
+        <span class="s1">&#39;seed&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>          <span class="c1"># Random seed</span>
+        <span class="s1">&#39;n_trees&#39;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>        <span class="c1"># Number of trees</span>
+        <span class="s1">&#39;build_on_disk&#39;</span><span class="p">:</span> <span class="kc">False</span> <span class="c1"># Build index on disk</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Supported distance metrics</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">angular</span></code>(default)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dot</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hamming</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">manhattan</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">euclidean</span></code></p></li>
+</ul>
+<p>For more information about <code class="docutils literal notranslate"><span class="pre">annoy</span></code> configuratino see <a class="reference external" href="https://github.com/spotify/annoy">here</a>.</p>
+</section>
+<section id="lsh-configuration">
+<h2>LSH Configuration<a class="headerlink" href="#lsh-configuration" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;lsh&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;k_search&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>        <span class="c1"># Number of neighbors to search</span>
+        <span class="s1">&#39;seed&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>          <span class="c1"># Random seed</span>
+        <span class="s1">&#39;bucket_size&#39;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>    <span class="c1"># Hash bucket size</span>
+        <span class="s1">&#39;hash_width&#39;</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">,</span>    <span class="c1"># Hash function width</span>
+        <span class="s1">&#39;num_probes&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>       <span class="c1"># Number of probes</span>
+        <span class="s1">&#39;projections&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>     <span class="c1"># Number of projections</span>
+        <span class="s1">&#39;tables&#39;</span><span class="p">:</span> <span class="mi">30</span>           <span class="c1"># Number of hash tables</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For more information about <code class="docutils literal notranslate"><span class="pre">lsh</span></code> see <a class="reference external" href="https://github.com/mlpack">here</a>.</p>
+<section id="k-d-tree-configuration">
+<h3>K-d Tree Configuration<a class="headerlink" href="#k-d-tree-configuration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;kd&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;k_search&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>           <span class="c1"># Number of neighbors to search</span>
+        <span class="s1">&#39;seed&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>             <span class="c1"># Random seed</span>
+        <span class="s1">&#39;algorithm&#39;</span><span class="p">:</span> <span class="s1">&#39;dual_tree&#39;</span><span class="p">,</span> <span class="c1"># Algorithm type</span>
+        <span class="s1">&#39;leaf_size&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>          <span class="c1"># Leaf size for tree</span>
+        <span class="s1">&#39;random_basis&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>    <span class="c1"># Use random basis</span>
+        <span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>               <span class="c1"># Overlapping size</span>
+        <span class="s1">&#39;tau&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>               <span class="c1"># Early termination parameter</span>
+        <span class="s1">&#39;tree_type&#39;</span><span class="p">:</span> <span class="s1">&#39;kd&#39;</span><span class="p">,</span>        <span class="c1"># Type of tree to use</span>
+        <span class="s1">&#39;epsilon&#39;</span><span class="p">:</span> <span class="mf">0.0</span>            <span class="c1"># Search approximation parameter</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For more information about <code class="docutils literal notranslate"><span class="pre">kd</span></code> see <a class="reference external" href="https://github.com/mlpack">here</a>.</p>
+</section>
+</section>
+<section id="nnd-configuration">
+<h2>NND Configuration<a class="headerlink" href="#nnd-configuration" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;nnd&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;metric&#39;</span><span class="p">:</span> <span class="s1">&#39;euclidean&#39;</span><span class="p">,</span>  <span class="c1"># Distance metric</span>
+        <span class="s1">&#39;k_search&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>         <span class="c1"># Number of neighbors to search</span>
+        <span class="s1">&#39;n_threads&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>      <span class="c1"># Number of threads</span>
+        <span class="s1">&#39;leaf_size&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>      <span class="c1"># Leaf size for tree building</span>
+        <span class="s1">&#39;n_trees&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>        <span class="c1"># Number of trees</span>
+        <span class="s1">&#39;diversify_prob&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># Probability of including diverse neighbors</span>
+        <span class="s1">&#39;low_memory&#39;</span><span class="p">:</span> <span class="kc">True</span>      <span class="c1"># Use low memory mode</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For more information about <code class="docutils literal notranslate"><span class="pre">nnd</span></code> see <a class="reference external" href="https://pynndescent.readthedocs.io/en/latest/api.html">here</a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="input_data_handling.html" class="btn btn-neutral float-left" title="Input Data Handling" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../examples/index.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tymoteusz Strojny.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
