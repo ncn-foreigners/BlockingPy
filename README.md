@@ -1,11 +1,12 @@
 [![License](https://img.shields.io/github/license/T-Strojny/BlockingPy)](https://github.com/T-Strojny/BlockingPy/blob/main/LICENSE) 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Python version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
- [![Code Coverage](https://img.shields.io/codecov/c/github/T-Strojny/BlockingPy)](https://codecov.io/gh/T-Strojny/BlockingPy)\
- [![PyPI version](https://img.shields.io/pypi/v/blockingpy.svg)](https://pypi.org/project/blockingpy/) 
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Tests](https://github.com/T-Strojny/BlockingPy/actions/workflows/run_tests.yml/badge.svg)](https://github.com/T-Strojny/BlockingPy/actions/workflows/run_tests.yml)
+[![Code Coverage](https://img.shields.io/codecov/c/github/T-Strojny/BlockingPy)](https://codecov.io/gh/T-Strojny/BlockingPy)\
+[![PyPI version](https://img.shields.io/pypi/v/blockingpy.svg)](https://pypi.org/project/blockingpy/) 
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Tests](https://github.com/T-Strojny/BlockingPy/actions/workflows/run_tests.yml/badge.svg)](https://github.com/T-Strojny/BlockingPy/actions/workflows/run_tests.yml)
 [![GitHub last commit](https://img.shields.io/github/last-commit/T-Strojny/BlockingPy)](https://github.com/T-Strojny/BlockingPy/commits/main)
-<!-- [![Documentation Status](https://readthedocs.org/projects/blockingpy/badge/?version=latest)](https://blockingpy.readthedocs.io/en/latest/?badge=latest) -->
+[![Documentation Status](https://readthedocs.org/projects/blockingpy/badge/?version=latest)](https://blockingpy.readthedocs.io/en/latest/?badge=latest)
 
 
 # BlockingPy
@@ -39,7 +40,7 @@ brew install mlpack # on MacOS
 from blockingpy.blocker import Blocker
 import pandas as pd
 
-# Exaple data for record linkage
+# Example data for record linkage
 x = pd.DataFrame({
     "txt": [
             "johnsmith",
@@ -138,7 +139,7 @@ print(dedup_result.result)
     - Inner Product
     
     and more...
-- Comprehensive algorithm parameters customization with `controls_ann` and `controls_txt`
+- Comprehensive algorithm parameters customization with `control_ann` and `control_txt`
 - Support for already created Document-Term-Matrices (as `np.ndarray` or `csr_matrix`)
 - Support for both record linkage and deduplication
 - Evaluation metrics when true blocks are known
@@ -155,7 +156,8 @@ BlockingPy is released under [MIT license](https://github.com/T-Strojny/Blocking
 BlockingPy benefits from many open-source packages such as [Faiss](https://github.com/facebookresearch/faiss) or [Annoy](https://github.com/spotify/annoy). For detailed information see [third party notice](https://github.com/T-Strojny/BlockingPy/blob/main/THIRD_PARTY).
 
 ## Contributing
-TODO
+
+Please see [CONTRIBUTING.md](https://github.com/T-Strojny/BlockingPy/blob/main/CONTRIBUTING.md) for more information.
 
 ## Citation
 TODO ?
