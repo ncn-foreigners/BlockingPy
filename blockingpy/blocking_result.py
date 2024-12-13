@@ -4,7 +4,6 @@ blocking results.
 """
 
 from collections import Counter
-from math import comb
 
 import networkx as nx
 import numpy as np
@@ -68,11 +67,12 @@ class BlockingResult:
         x_df: pd.DataFrame,
         ann: str,
         deduplication: bool,
+        len_x: int,
         true_blocks: pd.DataFrame | None,
         eval_metrics: pd.Series | None,
         confusion: pd.DataFrame | None,
         colnames_xy: np.ndarray,
-        graph: bool | None = False,
+        graph: bool | None = False,  
     ) -> None:
         """Initialize a BlockingResult instance."""
         self.result = x_df[["x", "y", "block", "dist"]]
@@ -84,6 +84,7 @@ class BlockingResult:
         self.graph = (
             nx.from_pandas_edgelist(x_df[["x", "y"]], source="x", target="y") if graph else None
         )
+        self.len_x = len_x
 
     def __repr__(self) -> str:
         """
@@ -161,13 +162,16 @@ class BlockingResult:
         1 - (number of comparisons after blocking / total possible comparisons)
 
         """
-        blocks_tab = self.result["block"].value_counts()
-
-        block_ids = np.repeat(blocks_tab.index.values, blocks_tab.to_numpy() + 1)
-
-        block_id_counts = Counter(block_ids)
-        numerator = sum(comb(count, 2) for count in block_id_counts.values())
-        denominator = comb(len(block_ids), 2)
+        if self.deduplication:
+            denominator = self.len_x * (self.len_x - 1) / 2
+            block_sizes = self.result.groupby("block")[["x", "y"]].apply(
+                lambda x: len(pd.concat([x["x"], x["y"]]).unique())
+            )
+            numerator = (block_sizes * (block_sizes - 1) / 2).sum() if len(block_sizes) > 0 else 0
+        else:
+            denominator = self.len_x * len(self.result)
+            block_comparisons = self.result.groupby("block").agg({"x": "nunique", "y": "nunique"})
+            numerator = (block_comparisons["x"] * block_comparisons["y"]).sum()
 
         return 1 - (numerator / denominator if denominator > 0 else 0)
 

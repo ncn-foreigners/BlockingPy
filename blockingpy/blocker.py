@@ -205,6 +205,7 @@ class Blocker:
 
         InputValidator.validate_true_blocks(true_blocks, deduplication)
 
+        len_x = x.shape[0]
         # TOKENIZATION
         if sparse.issparse(x):
             if self.x_colnames is None:
@@ -414,9 +415,10 @@ class Blocker:
             x_df=x_df,
             ann=ann,
             deduplication=deduplication,
+            len_x=len_x,
             true_blocks=true_blocks,
             eval_metrics=self.eval_metrics,
             confusion=self.confusion,
             colnames_xy=colnames_xy,
-            graph=graph,
+            graph=graph,          
         )

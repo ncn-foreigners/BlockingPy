@@ -71,14 +71,14 @@ Printing `block_result` contains:
 - The method used (`faiss` - refers to Facebook AI Similarity Search)
 - Number of blocks created (`3` in this case)
 - Number of columns (features) used for blocking (intersecting n-grams generated from both datasets, `17` in this example)
-- Reduction ratio, i.e. how large is the reduction of comparison pairs (here `0.8000` which means blocking reduces comparison by over 80%).
+- Reduction ratio, i.e. how large is the reduction of comparison pairs (here `0.8750` which means blocking reduces comparison by over 87.5%).
 ```python
 print(block_result)
 # ========================================================
 # Blocking based on the faiss method.
 # Number of blocks: 3
 # Number of columns used for blocking: 17
-# Reduction ratio: 0.8000
+# Reduction ratio: 0.8750
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks

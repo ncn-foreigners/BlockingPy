@@ -52,7 +52,7 @@ print(blocking_result)
 # Blocking based on the faiss method.
 # Number of blocks: 3
 # Number of columns used for blocking: 17
-# Reduction ratio: 0.8000
+# Reduction ratio: 0.8750
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
@@ -63,7 +63,7 @@ Our output contains:
 - Algorithm used for blocking (default - `faiss`)
 - Number of blocks created
 - Number of columns used for blocking (obtained by creating DTMs from datasets)
-- Reduction ratio i.e. how large is the reduction of comparison pairs (here 0.8000 which means blocking reduces comparison by over 80%).
+- Reduction ratio i.e. how large is the reduction of comparison pairs (here `0.8750` which means blocking reduces comparison by over 87.5%).
 
 We can print `blocking_result.result` to get the detailed matching results:
 
