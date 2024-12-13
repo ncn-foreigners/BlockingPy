@@ -6,7 +6,7 @@ authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>"]
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/T-Strojny/BlockingPy"
-documentation = "https://blockingpy.readthedocs.io"
+documentation = "https://blockingpy.readthedocs.io/en/latest/"
 keywords = ["record-linkage", "deduplication", "ANN", "blocking", "data-matching"]
 packages = [{include = "blockingpy"}]
 classifiers = [
