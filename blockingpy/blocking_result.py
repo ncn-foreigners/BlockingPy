@@ -54,6 +54,8 @@ class BlockingResult:
         Names of columns used in blocking
     graph : networkx.Graph or None
         Network representation of blocking results if requested
+    len_x : int
+        Number of records in the original reference dataset
 
     Notes
     -----
@@ -72,7 +74,7 @@ class BlockingResult:
         eval_metrics: pd.Series | None,
         confusion: pd.DataFrame | None,
         colnames_xy: np.ndarray,
-        graph: bool | None = False,  
+        graph: bool | None = False,
     ) -> None:
         """Initialize a BlockingResult instance."""
         self.result = x_df[["x", "y", "block", "dist"]]

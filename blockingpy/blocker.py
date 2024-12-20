@@ -257,13 +257,13 @@ class Blocker:
         logger.info("===== creating graph =====\n")
 
         if deduplication:
-            x_df = x_df[x_df["y"] > x_df["x"]]
-            # x_df['pair'] = x_df.apply(lambda row: tuple(sorted([row['y'], row['x']])), axis=1)
-            # x_df = x_df.loc[x_df.groupby('pair')['dist'].idxmin()]
-            # x_df = x_df.drop('pair', axis=1)
+            x_df["pair"] = x_df.apply(lambda row: tuple(sorted([row["y"], row["x"]])), axis=1)
+            x_df = x_df.loc[x_df.groupby("pair")["dist"].idxmin()]
+            x_df = x_df.drop("pair", axis=1)
 
             x_df["query_g"] = "q" + x_df["y"].astype(str)
             x_df["index_g"] = "q" + x_df["x"].astype(str)
+            print(f"X shape: {x_df.shape}")
         else:
             x_df["query_g"] = "q" + x_df["y"].astype(str)
             x_df["index_g"] = "i" + x_df["x"].astype(str)
@@ -294,71 +294,36 @@ class Blocker:
 
         if true_blocks is not None:
             if not deduplication:
-                pairs_to_eval = x_df[x_df["y"].isin(true_blocks["y"])][["x", "y", "block"]]
-                pairs_to_eval = pairs_to_eval.merge(
-                    true_blocks[["x", "y"]], on=["x", "y"], how="left", indicator="both"
+                candidate_pairs = list(itertools.product(list(range(len(x_dtm))), true_blocks["y"]))
+                cp_df = pd.DataFrame(candidate_pairs, columns=["x", "y"])
+                cp_df = cp_df.astype(int)
+                comparison_df = (
+                    cp_df.merge(true_blocks, on=["x", "y"], how="left")
+                    .rename(columns={"block": "block_true"})
+                    .merge(x_df, on=["x", "y"], how="left")
+                    .rename(columns={"block": "block_pred"})
                 )
-                pairs_to_eval["both"] = np.where(pairs_to_eval["both"] == "both", 0, -1)
-                true_blocks = true_blocks.merge(
-                    pairs_to_eval[["x", "y"]],
-                    on=["x", "y"],
-                    how="left",
-                    indicator="both",
+                comparison_df["TP"] = (comparison_df["block_true"].notna()) & (
+                    comparison_df["block_pred"].notna()
                 )
-                true_blocks["both"] = np.where(true_blocks["both"] == "both", 0, 1)
-                true_blocks["block"] += pairs_to_eval["block"].max()
-
-                to_concat = true_blocks[true_blocks["both"] == 1][["x", "y", "block", "both"]]
-                pairs_to_eval = pd.concat([pairs_to_eval, to_concat], ignore_index=True)
-                pairs_to_eval["row_id"] = range(len(pairs_to_eval))
-                pairs_to_eval["x2"] = pairs_to_eval["x"] + pairs_to_eval["y"].max()
-
-                pairs_to_eval_long = pd.melt(
-                    pairs_to_eval[["y", "x2", "row_id", "block", "both"]],
-                    id_vars=["row_id", "block", "both"],
+                # CNL -> Correct Non-Links / True Negative
+                comparison_df["CNL"] = (comparison_df["block_true"].isna()) & (
+                    comparison_df["block_pred"].isna()
                 )
-
-                filtered_df = pairs_to_eval_long[pairs_to_eval_long["both"] == 0].copy()
-                filtered_df["group_id"] = filtered_df.groupby("block").ngroup()
-                pairs_to_eval_long.loc[pairs_to_eval_long["both"] == 0, "block_id"] = filtered_df[
-                    "group_id"
-                ]
-                pairs_to_eval_long.loc[pairs_to_eval_long["both"] == 0, "true_id"] = filtered_df[
-                    "group_id"
-                ]
-
-                block_id_max = pairs_to_eval_long["block_id"].max(skipna=True)
-                pairs_to_eval_long.loc[pairs_to_eval_long["both"] == -1, "block_id"] = (
-                    block_id_max + pairs_to_eval_long.groupby("row_id").ngroup() + 1
+                comparison_df["FP"] = (comparison_df["block_true"].isna()) & (
+                    comparison_df["block_pred"].notna()
                 )
-                block_id_max = pairs_to_eval_long["block_id"].max(skipna=True)
-                # recreating R's rleid function
-                pairs_to_eval_long["rleid"] = (
-                    pairs_to_eval_long["row_id"] != pairs_to_eval_long["row_id"].shift(1)
-                ).cumsum()
-                pairs_to_eval_long.loc[
-                    (pairs_to_eval_long["both"] == 1) & (pairs_to_eval_long["block_id"].isna()),
-                    "block_id",
-                ] = (
-                    block_id_max + pairs_to_eval_long["rleid"]
+                comparison_df["FN"] = (comparison_df["block_true"].notna()) & (
+                    comparison_df["block_pred"].isna()
                 )
-
-                true_id_max = pairs_to_eval_long["true_id"].max(skipna=True)
-                pairs_to_eval_long.loc[pairs_to_eval_long["both"] == 1, "true_id"] = (
-                    true_id_max + pairs_to_eval_long.groupby("row_id").ngroup() + 1
+                self.confusion = pd.DataFrame(
+                    [
+                        [comparison_df["CNL"].sum(), comparison_df["FN"].sum()],
+                        [comparison_df["FP"].sum(), comparison_df["TP"].sum()],
+                    ],
+                    index=["Predicted Negative", "Predicted Positive"],
+                    columns=["Actual Negative", "Actual Positive"],
                 )
-                true_id_max = pairs_to_eval_long["true_id"].max(skipna=True)
-                # recreating R's rleid function again
-                pairs_to_eval_long["rleid"] = (
-                    pairs_to_eval_long["row_id"] != pairs_to_eval_long["row_id"].shift(1)
-                ).cumsum()
-                pairs_to_eval_long.loc[
-                    (pairs_to_eval_long["both"] == -1) & (pairs_to_eval_long["true_id"].isna()),
-                    "true_id",
-                ] = (
-                    true_id_max + pairs_to_eval_long["rleid"]
-                )
-                pairs_to_eval_long = pairs_to_eval_long.drop(columns=["rleid"], axis=1)
 
             else:
                 pairs_to_eval_long = (
@@ -369,24 +334,27 @@ class Blocker:
                     .rename(columns={"block": "true_id"})
                 )
 
-            candidate_pairs = np.array(
-                list(itertools.combinations(range(pairs_to_eval_long.shape[0]), 2))
-            )
-            block_id_array = pairs_to_eval_long["block_id"].to_numpy()
-            true_id_array = pairs_to_eval_long["true_id"].to_numpy()
-            same_block = (
-                block_id_array[candidate_pairs[:, 0]] == block_id_array[candidate_pairs[:, 1]]
-            )
-            same_truth = (
-                true_id_array[candidate_pairs[:, 0]] == true_id_array[candidate_pairs[:, 1]]
-            )
+                candidate_pairs = np.array(
+                    list(itertools.combinations(range(pairs_to_eval_long.shape[0]), 2))
+                )
 
-            self.confusion = pd.crosstab(same_block, same_truth)
+                block_id_array = pairs_to_eval_long["block_id"].to_numpy()
+                true_id_array = pairs_to_eval_long["true_id"].to_numpy()
+                same_block = (
+                    block_id_array[candidate_pairs[:, 0]] == block_id_array[candidate_pairs[:, 1]]
+                )
+                same_truth = (
+                    true_id_array[candidate_pairs[:, 0]] == true_id_array[candidate_pairs[:, 1]]
+                )
 
-            fp = self.confusion.loc[True, False]
-            fn = self.confusion.loc[False, True]
-            tp = self.confusion.loc[True, True]
-            tn = self.confusion.loc[False, False]
+                self.confusion = pd.crosstab(same_block, same_truth)
+                self.confusion.index = ["Predicted Negative", "Predicted Positive"]
+                self.confusion.columns = ["Actual Negative", "Actual Positive"]
+
+            fp = self.confusion.iloc[1, 0]
+            fn = self.confusion.iloc[0, 1]
+            tp = self.confusion.iloc[1, 1]
+            tn = self.confusion.iloc[0, 0]
 
             recall = tp / (fn + tp) if (fn + tp) != 0 else 0
             precision = tp / (tp + fp) if (tp + fp) != 0 else 0
@@ -420,5 +388,5 @@ class Blocker:
             eval_metrics=self.eval_metrics,
             confusion=self.confusion,
             colnames_xy=colnames_xy,
-            graph=graph,          
+            graph=graph,
         )
