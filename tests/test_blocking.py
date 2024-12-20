@@ -171,8 +171,8 @@ def test_true_blocks_linkage(small_named_txt_data):
     assert all(metric in result.metrics for metric in expected_metrics)
 
     assert result.confusion.shape == (2, 2)
-    assert set(result.confusion.index) == {True, False}
-    assert set(result.confusion.columns) == {True, False}
+    assert set(result.confusion.index) == {"Predicted Negative", "Predicted Positive"}
+    assert set(result.confusion.columns) == {"Actual Positive", "Actual Negative"}
 
 
 def test_true_blocks_deduplication(small_named_txt_data):
@@ -201,8 +201,8 @@ def test_true_blocks_deduplication(small_named_txt_data):
     assert all(metric in result.metrics for metric in expected_metrics)
 
     assert result.confusion.shape == (2, 2)
-    assert set(result.confusion.index) == {True, False}
-    assert set(result.confusion.columns) == {True, False}
+    assert set(result.confusion.index) == {"Predicted Negative", "Predicted Positive"}
+    assert set(result.confusion.columns) == {"Actual Positive", "Actual Negative"}
 
 
 def test_true_blocks_validation_errors(small_named_txt_data):
