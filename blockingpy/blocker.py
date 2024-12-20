@@ -263,7 +263,6 @@ class Blocker:
 
             x_df["query_g"] = "q" + x_df["y"].astype(str)
             x_df["index_g"] = "q" + x_df["x"].astype(str)
-            print(f"X shape: {x_df.shape}")
         else:
             x_df["query_g"] = "q" + x_df["y"].astype(str)
             x_df["index_g"] = "i" + x_df["x"].astype(str)
