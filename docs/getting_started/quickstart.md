@@ -123,7 +123,7 @@ print(dedup_result.result)
 
 BlockingPy uses character n-grams and approximate nearest neighbor algorithms to group similar records together. By default, it uses the FAISS algorithm with sensible default parameters.
 
-The reduction ratio shows how much the blocking reduces the number of required comparisons. For example, a ratio of 0.8000 means the blocking eliminates 80% of possible comparisons, greatly improving efficiency while maintaining accuracy.
+The reduction ratio shows how much the blocking reduces the number of required comparisons. For example, a ratio of `0.8750` means the blocking eliminates 87.5% of possible comparisons, greatly improving efficiency while maintaining accuracy.
 
 ## Next Steps
 

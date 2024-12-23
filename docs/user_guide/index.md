@@ -8,3 +8,4 @@ core_concepts
 basic_operations
 input_data_handling
 configuration_tuning
+evaluation_metrics

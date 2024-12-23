@@ -268,10 +268,10 @@ and print results with evaluation metrics:
 # Evaluation metrics (standard):
 # recall : 99.691
 # precision : 99.691
-# fpr : 0.0002
+# fpr : 0.0
 # fnr : 0.309
-# accuracy : 99.9997
-# specificity : 99.9998
+# accuracy : 100.0
+# specificity : 100.0
 # f1_score : 99.691
 ```
 The output shows:
@@ -294,7 +294,7 @@ If true matches were provided:
 For this example, using `faiss` we achieve:
 
 - 99.69% recall and precision
-- 99.99% accuracy
+- close to 100% accuracy
 - Near perfect reduction ratio of 1.0
 - Most blocks contain just 1-2 records
 
