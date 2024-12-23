@@ -29,6 +29,8 @@ class BlockingResult:
         Whether the blocking was performed for deduplication
     true_blocks : pandas.DataFrame, optional
         DataFrame with true blocks to calculate evaluation metrics
+    len_x : int
+        Number of records in the original reference dataset
     eval_metrics : pandas.Series, optional
         Evaluation metrics if true blocks were provided
     confusion : pandas.DataFrame, optional
