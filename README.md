@@ -7,6 +7,7 @@
 [![Tests](https://github.com/T-Strojny/BlockingPy/actions/workflows/run_tests.yml/badge.svg)](https://github.com/T-Strojny/BlockingPy/actions/workflows/run_tests.yml)
 [![GitHub last commit](https://img.shields.io/github/last-commit/T-Strojny/BlockingPy)](https://github.com/T-Strojny/BlockingPy/commits/main)
 [![Documentation Status](https://readthedocs.org/projects/blockingpy/badge/?version=latest)](https://blockingpy.readthedocs.io/en/latest/?badge=latest)
+![PyPI Downloads](https://img.shields.io/pypi/dm/blockingpy)
 
 
 # BlockingPy
@@ -37,7 +38,7 @@ brew install mlpack # on MacOS
 ## Basic Usage
 ### Record Linkage
 ```python
-from blockingpy.blocker import Blocker
+from blockingpy import Blocker
 import pandas as pd
 
 # Example data for record linkage
