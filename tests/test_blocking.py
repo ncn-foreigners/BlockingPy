@@ -254,3 +254,111 @@ def test_input_x_validation(bad_input):
     with pytest.raises(ValueError):
         blocker = Blocker()
         blocker.block(bad_input, ann="faiss")
+
+
+# Tests for eval method:
+
+
+def test_eval_basic_functionality(small_named_txt_data):
+    """Test basic functionality of eval method."""
+    blocker = Blocker()
+    x_txt, y_txt = small_named_txt_data
+    true_blocks = pd.DataFrame({"x": [0, 1], "y": [0, 1], "block": [0, 1]})
+
+    result_with_eval = blocker.block(
+        x_txt["txt"], y=y_txt["txt"], true_blocks=true_blocks, deduplication=False
+    )
+
+    result_no_eval = blocker.block(x_txt["txt"], y=y_txt["txt"], deduplication=False)
+    eval_result = blocker.eval(result_no_eval, true_blocks)
+
+    assert result_no_eval.metrics is None
+    assert result_no_eval.confusion is None
+
+    pd.testing.assert_series_equal(eval_result.metrics, result_with_eval.metrics)
+    pd.testing.assert_frame_equal(eval_result.confusion, result_with_eval.confusion)
+
+    assert eval_result.method == result_no_eval.method
+    assert eval_result.deduplication == result_no_eval.deduplication
+    assert eval_result.len_x == result_no_eval.len_x
+    pd.testing.assert_frame_equal(eval_result.result, result_no_eval.result)
+
+
+def test_eval_input_validation(small_named_txt_data):
+    """Test input type validation for eval method."""
+    blocker = Blocker()
+    x_txt, _ = small_named_txt_data
+
+    block_result = blocker.block(x_txt["txt"])
+
+    with pytest.raises(ValueError, match="must be a BlockingResult instance"):
+        blocker.eval(pd.DataFrame(), pd.DataFrame({"x": [0], "block": [0]}))
+
+
+@pytest.mark.parametrize("deduplication", [True, False])
+def test_eval_true_blocks_validation(small_named_txt_data, deduplication):
+    """Test true_blocks format validation for eval method."""
+    blocker = Blocker()
+    x_txt, y_txt = small_named_txt_data
+
+    block_result = blocker.block(
+        x_txt["txt"], y=y_txt["txt"] if not deduplication else None, deduplication=deduplication
+    )
+
+    if deduplication:
+        invalid_true_blocks = pd.DataFrame({"x": [0], "y": [0], "block": [0]})
+    else:
+        invalid_true_blocks = pd.DataFrame({"x": [0], "block": [0]})
+
+    with pytest.raises(ValueError):
+        blocker.eval(block_result, invalid_true_blocks)
+
+
+def test_eval_metrics_structure(small_named_txt_data):
+    """Test structure and content of evaluation metrics."""
+    blocker = Blocker()
+    x_txt, y_txt = small_named_txt_data
+    true_blocks = pd.DataFrame({"x": [0, 1], "y": [0, 1], "block": [0, 1]})
+
+    result = blocker.block(x_txt["txt"], y=y_txt["txt"], deduplication=False)
+    eval_result = blocker.eval(result, true_blocks)
+
+    expected_metrics = {"recall", "precision", "fpr", "fnr", "accuracy", "specificity", "f1_score"}
+    assert set(eval_result.metrics.index) == expected_metrics
+    assert all(0 <= val <= 1 for val in eval_result.metrics.to_numpy())
+
+    assert eval_result.confusion.shape == (2, 2)
+    assert list(eval_result.confusion.index) == ["Predicted Negative", "Predicted Positive"]
+    assert list(eval_result.confusion.columns) == ["Actual Negative", "Actual Positive"]
+    assert (eval_result.confusion >= 0).all().all()
+
+
+@pytest.mark.parametrize("algo", ["faiss", "hnsw", "annoy", "voyager"])
+def test_eval_different_algorithms(small_named_txt_data, algo):
+    """Test eval method works with different blocking algos."""
+    blocker = Blocker()
+    x_txt, y_txt = small_named_txt_data
+    true_blocks = pd.DataFrame({"x": [0, 1], "y": [0, 1], "block": [0, 1]})
+
+    result = blocker.block(x_txt["txt"], y=y_txt["txt"], ann=algo, deduplication=False)
+    eval_result = blocker.eval(result, true_blocks)
+
+    assert isinstance(eval_result, BlockingResult)
+    assert eval_result.method == algo
+    assert isinstance(eval_result.metrics, pd.Series)
+    assert isinstance(eval_result.confusion, pd.DataFrame)
+
+
+def test_eval_empty_blocks(small_named_txt_data):
+    """Test eval method with empty blocking results."""
+    blocker = Blocker()
+    x_txt, y_txt = small_named_txt_data
+
+    true_blocks = pd.DataFrame({"x": [], "y": [], "block": []})
+
+    result = blocker.block(x_txt["txt"], y=y_txt["txt"], deduplication=False)
+    eval_result = blocker.eval(result, true_blocks)
+
+    assert eval_result.metrics is not None
+    assert eval_result.confusion is not None
+    assert eval_result.confusion.shape == (2, 2)

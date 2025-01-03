@@ -6,7 +6,7 @@ import pytest
 from scipy import sparse
 
 from blockingpy.annoy_blocker import AnnoyBlocker
-from blockingpy.blocker import Blocker
+from blockingpy import Blocker
 from blockingpy.faiss_blocker import FaissBlocker
 from blockingpy.hnsw_blocker import HNSWBlocker
 from blockingpy.mlpack_blocker import MLPackBlocker
