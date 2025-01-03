@@ -1,0 +1,294 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evaluation Metrics &mdash; BlockingPy 0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=92734c54"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Examples" href="../examples/index.html" />
+    <link rel="prev" title="Configuration and Tuning" href="configuration_tuning.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core_concepts.html">Core Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_operations.html">Basic Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_data_handling.html">Input Data Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration_tuning.html">Configuration and Tuning</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Evaluation Metrics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#notation-and-terminology">Notation and Terminology</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#basic-counts">Basic Counts</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#block-related-notation">Block-Related Notation</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Evaluation Metrics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#classification-metrics">Classification Metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blocking-efficiency-metrics">Blocking Efficiency Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#important-considerations">Important Considerations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">User Guide</a></li>
+      <li class="breadcrumb-item active">Evaluation Metrics</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/user_guide/evaluation_metrics.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="evaluation-metrics">
+<span id="id1"></span><h1>Evaluation Metrics<a class="headerlink" href="#evaluation-metrics" title="Link to this heading"></a></h1>
+<p>In this section we explain the evaluation metrics used to assess blocking quality in BlockingPy.</p>
+<section id="notation-and-terminology">
+<h2>Notation and Terminology<a class="headerlink" href="#notation-and-terminology" title="Link to this heading"></a></h2>
+<p>In the context of blocking evaluation, we use the following notation:</p>
+<section id="basic-counts">
+<h3>Basic Counts<a class="headerlink" href="#basic-counts" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>TP</strong> (True Positives): Number of record pairs correctly identified as matches - pairs that are both predicted matches and true matches, also known as Correct Links</p></li>
+<li><p><strong>TN</strong> (True Negatives): Number of record pairs correctly identified as non-matches - pairs that are both predicted non-matches and true non-matches, also known as Correct Non-Links</p></li>
+<li><p><strong>FP</strong> (False Positives): Number of record pairs incorrectly identified as matches - pairs that are predicted matches but are true non-matches, also known as False Links</p></li>
+<li><p><strong>FN</strong> (False Negatives): Number of record pairs incorrectly identified as non-matches - pairs that are predicted non-matches but are true matches, also known as False Non-Links</p></li>
+</ul>
+</section>
+<section id="block-related-notation">
+<h3>Block-Related Notation<a class="headerlink" href="#block-related-notation" title="Link to this heading"></a></h3>
+<p>For deduplication:</p>
+<ul class="simple">
+<li><p><strong>n</strong>: Total number of records in the dataset</p></li>
+<li><p><strong><span class="math notranslate nohighlight">\(B_i\)</span></strong>: The i-th block</p></li>
+<li><p><strong>|<span class="math notranslate nohighlight">\(B_i\)</span>|</strong>: Size (number of records) of block i</p></li>
+<li><p><strong><span class="math notranslate nohighlight">\(\binom{n}{2}\)</span></strong>: Total number of possible record pairs in a dataset of size n</p></li>
+</ul>
+<p>For record linkage:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\sum_{i} |B_{i,x}| \cdot |B_{i,y}|\)</span> is the number of comparisons after blocking</p></li>
+<li><p><span class="math notranslate nohighlight">\(|B_{i,x}|\)</span> is the number of unique records from dataset X in i-th block</p></li>
+<li><p><span class="math notranslate nohighlight">\(|B_{i,y}|\)</span> is the number of unique records from dataset Y in i-th block</p></li>
+<li><p><span class="math notranslate nohighlight">\(m\)</span> and <span class="math notranslate nohighlight">\(n\)</span> are the sizes of the two original datasets being linked</p></li>
+</ul>
+<p>The blocking outcome can be represented in a confusion matrix as follows:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>True Match</p></th>
+<th class="head"><p>True Non-Match</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Predicted Match</p></td>
+<td><p>TP</p></td>
+<td><p>FP</p></td>
+</tr>
+<tr class="row-odd"><td><p>Predicted Non-Match</p></td>
+<td><p>FN</p></td>
+<td><p>TN</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="id2">
+<h2>Evaluation Metrics<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<section id="classification-metrics">
+<h3>Classification Metrics<a class="headerlink" href="#classification-metrics" title="Link to this heading"></a></h3>
+<section id="precision">
+<h4>Precision<a class="headerlink" href="#precision" title="Link to this heading"></a></h4>
+<p>Fraction of correctly identified pairs among all pairs predicted to be in the same block:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{Precision} = \frac{TP}{TP + FP}
+\]</div>
+</section>
+<section id="recall">
+<h4>Recall<a class="headerlink" href="#recall" title="Link to this heading"></a></h4>
+<p>Fraction of actual matching pairs that were correctly identified:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{Recall} = \frac{TP}{TP + FN}
+\]</div>
+</section>
+<section id="f1-score">
+<h4>F1 Score<a class="headerlink" href="#f1-score" title="Link to this heading"></a></h4>
+<p>Harmonic mean of precision and recall:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{F1} = 2 \cdot \frac{\text{Precision} \cdot \text{Recall}}{\text{Precision} + \text{Recall}}
+\]</div>
+</section>
+<section id="accuracy">
+<h4>Accuracy<a class="headerlink" href="#accuracy" title="Link to this heading"></a></h4>
+<p>Fraction of all correct predictions:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+\]</div>
+</section>
+<section id="specificity">
+<h4>Specificity<a class="headerlink" href="#specificity" title="Link to this heading"></a></h4>
+<p>Fraction of actual non-matching pairs correctly identified:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{Specificity} = \frac{TN}{TN + FP}
+\]</div>
+</section>
+<section id="false-positive-rate-fpr">
+<h4>False Positive Rate (FPR)<a class="headerlink" href="#false-positive-rate-fpr" title="Link to this heading"></a></h4>
+<p>Fraction of actual non-matching pairs incorrectly predicted as matches:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{FPR} = \frac{FP}{FP + TN} = 1 - \text{Specificity}
+\]</div>
+</section>
+<section id="false-negative-rate-fnr">
+<h4>False Negative Rate (FNR)<a class="headerlink" href="#false-negative-rate-fnr" title="Link to this heading"></a></h4>
+<p>Fraction of actual matching pairs incorrectly predicted as non-matches:</p>
+<div class="math notranslate nohighlight">
+\[
+\text{FNR} = \frac{FN}{FN + TP} = 1 - \text{Recall}
+\]</div>
+</section>
+</section>
+<section id="blocking-efficiency-metrics">
+<h3>Blocking Efficiency Metrics<a class="headerlink" href="#blocking-efficiency-metrics" title="Link to this heading"></a></h3>
+<section id="reduction-ratio-rr">
+<h4>Reduction Ratio (RR)<a class="headerlink" href="#reduction-ratio-rr" title="Link to this heading"></a></h4>
+<p>Measures how effectively the blocking method reduces the number of comparisons needed. The formula differs for deduplication and record linkage scenarios:</p>
+<p>For deduplication (comparing records within one dataset):</p>
+<p><span class="math notranslate nohighlight">\(
+\text{RR}_{\text{dedup}} = 1 - \frac{\sum_{i} \binom{|B_i|}{2}}{\binom{n}{2}}
+\)</span></p>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\sum_{i} \binom{|B_i|}{2}\)</span> is the number of comparisons after blocking</p></li>
+<li><p><span class="math notranslate nohighlight">\(\binom{n}{2}\)</span> is the total possible comparisons without blocking</p></li>
+<li><p><span class="math notranslate nohighlight">\(n\)</span> is the total number of records in the dataset</p></li>
+</ul>
+<p>For record linkage (comparing records between two datasets):</p>
+<p><span class="math notranslate nohighlight">\(
+\text{RR}_{\text{link}} = 1 - \frac{\sum_{i} |B_{i,x}| \cdot |B_{i,y}|}{m \cdot n}
+\)</span></p>
+<p>where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\sum_{i} |B_{i,x}| \cdot |B_{i,y}|\)</span> is the number of comparisons after blocking</p></li>
+<li><p><span class="math notranslate nohighlight">\(|B_{i,x}|\)</span> is the number of unique records from dataset X in i-th block</p></li>
+<li><p><span class="math notranslate nohighlight">\(|B_{i,y}|\)</span> is the number of unique records from dataset Y in i-th block</p></li>
+<li><p><span class="math notranslate nohighlight">\(m\)</span> and <span class="math notranslate nohighlight">\(n\)</span> are the sizes of the two original datasets being linked</p></li>
+</ul>
+<p>A reduction ratio closer to 1 indicates greater reduction in the comparison space, while a value closer to 0 indicates less reduction.</p>
+</section>
+</section>
+</section>
+<section id="important-considerations">
+<h2>Important Considerations<a class="headerlink" href="#important-considerations" title="Link to this heading"></a></h2>
+<p>When evaluating blocking performance, it’s crucial to understand that not all metrics carry equal importance due to the nature of the blocking procedure. Blocking serves as a preliminary step in the record linkage/deduplication pipeline, designed to reduce the computational burden while maintaining the ability to find true matches in subsequent steps.</p>
+<p>Key priorities in blocking evaluation should focus on:</p>
+<ul class="simple">
+<li><p><strong>Recall</strong> : High recall is critical as any true matches missed during blocking cannot be recovered in later stages of the linkage process. A blocking method should prioritize maintaining high recall even if it means lower precision.</p></li>
+<li><p><strong>Reduction Ratio</strong> : This metric is essential as it directly measures how effectively the blocking method reduces the computational complexity of the subsequent matching process.</p></li>
+<li><p><strong>FNR</strong> : Critical as False Negative pairs can not be adressed in the later stages of entity matching procedure.</p></li>
+</ul>
+<p>As for other metrics:</p>
+<ul class="simple">
+<li><p><strong>Accuracy and Specificity</strong> : Those should usually be high since most pairs fall into the <strong>FN</strong> category due to the nature of blocking.</p></li>
+<li><p><strong>Precision</strong> : Low precision scores would be adressed in the later stages of entity matching procedure as most False Positive pairs would be eliminated during one-to-one comparison.</p></li>
+<li><p><strong>F1 score and FPR</strong> : Same reasons as above.</p></li>
+</ul>
+<p>Therefore, when evaluating blocking results, focus on achieving high recall and a good reduction ratio while accepting that other metrics may show values that would be considered poor in a final matching context.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="configuration_tuning.html" class="btn btn-neutral float-left" title="Configuration and Tuning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../examples/index.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tymoteusz Strojny.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -58,6 +58,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.control_txt"><code class="docutils literal notranslate"><span class="pre">Blocker.control_txt</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.BLOCKER_MAP"><code class="docutils literal notranslate"><span class="pre">Blocker.BLOCKER_MAP</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.block"><code class="docutils literal notranslate"><span class="pre">Blocker.block()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.eval"><code class="docutils literal notranslate"><span class="pre">Blocker.eval()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -242,6 +243,49 @@ the parameters in control_txt.</p>
 <dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">controls_ann</span></code></dt><dd><p>Function to create ANN control parameters</p>
 </dd>
 <dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">controls_txt</span></code></dt><dd><p>Function to create text control parameters</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker.eval">
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocking_result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><span class="pre">BlockingResult</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><span class="pre">BlockingResult</span></a></span></span><a class="reference internal" href="../_modules/blockingpy/blocker.html#Blocker.eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.blocker.Blocker.eval" title="Link to this definition"></a></dt>
+<dd><p>Evaluate blocking results against true block assignments and return new BlockingResult.</p>
+<p>This method calculates evaluation metrics and confusion matrix
+by comparing predicted blocks with known true blocks and returns
+a new BlockingResult instance containing the evaluation results
+along with the original blocking results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>blocking_result</strong> (<a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><em>BlockingResult</em></a>) – Original blocking result to evaluate</p></li>
+<li><p><strong>true_blocks</strong> (<em>pandas.DataFrame</em>) – DataFrame with true block assignments
+For deduplication: columns [‘x’, ‘block’]
+For record linkage: columns [‘x’, ‘y’, ‘block’]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new BlockingResult instance with added evaluation results
+and original blocking results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult">BlockingResult</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">blocker</span> <span class="o">=</span> <span class="n">Blocker</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluated</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">evaluated</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#blockingpy.blocker.Blocker.block" title="blockingpy.blocker.Blocker.block"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block</span></code></a></dt><dd><p>Main blocking method that includes evaluation</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockingResult</span></code></dt><dd><p>Class for analyzing blocking results</p>
 </dd>
 </dl>
 </div>

@@ -7,7 +7,7 @@ BlockingPy provides three main operations:
 
 - Record Linkage: Finding matching records between two datasets
 - Deduplication: Finding duplicate records within a single dataset
-- Evaluation: Evaluating blocking when true blocks are known (for both record linkage and deduplication)
+- Evaluation: Evaluating blocking when true blocks are known (for both record linkage and deduplication) either inside the `block` method or separate `eval` method.
 
 This guide covers the basic usage patterns for these operations.
 
@@ -107,7 +107,26 @@ result = blocker.block(
 print(result.metrics)    # Shows precision, recall, F1-score, etc.
 print(result.confusion)  # Confusion matrix
 ```
+or alternatively with the use of `eval` method:
 
+```python
+data = # your data
+
+true_blocks = pd.DataFrame({
+    'x': [0, 1, 2, 3, 4],  
+    'block': [0, 0, 1, 1, 1]   
+})
+
+result = blocker.block(
+    x=data,
+)
+evals = blocker.eval(
+    blocking_result=result,
+    true_blocks=true_blocks
+)
+print(evals.metrics)
+print(evals.confusion) 
+```
 ### Example ground truth for record linkage
 
 ```python
@@ -129,6 +148,29 @@ result = blocker.block(
 # Access evaluation metrics
 print(result.metrics)    # Shows precision, recall, F1-score, etc.
 print(result.confusion)  # Confusion matrix
+```
+and with `eval` method:
+
+```python
+data_1 = # your data
+data_2 = # your data
+
+true_blocks = pd.DataFrame({
+    'x': [0, 1, 2, 3, 4],    
+    'y': [3, 1, 4, 0, 2]     
+    'block': [0, 1, 2, 0, 2]  
+})
+
+result = blocker.block(
+    x=data_1,
+    y=data_2,
+)
+evals = blocker.eval(
+    blocking_result=result,
+    true_blocks=true_blocks
+)
+print(evals.metrics) 
+print(evals.confusion) 
 ```
 
 ## Choosing an ANN Algorithm

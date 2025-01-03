@@ -131,7 +131,7 @@
 <span class="c1"># Blocking based on the faiss method.</span>
 <span class="c1"># Number of blocks: 3</span>
 <span class="c1"># Number of columns used for blocking: 17</span>
-<span class="c1"># Reduction ratio: 0.8000</span>
+<span class="c1"># Reduction ratio: 0.8750</span>
 <span class="c1"># ========================================================</span>
 <span class="c1"># Distribution of the size of the blocks:</span>
 <span class="c1"># Block Size | Number of Blocks</span>
@@ -143,7 +143,7 @@
 <li><p>Algorithm used for blocking (default - <code class="docutils literal notranslate"><span class="pre">faiss</span></code>)</p></li>
 <li><p>Number of blocks created</p></li>
 <li><p>Number of columns used for blocking (obtained by creating DTMs from datasets)</p></li>
-<li><p>Reduction ratio i.e. how large is the reduction of comparison pairs (here 0.8000 which means blocking reduces comparison by over 80%).</p></li>
+<li><p>Reduction ratio i.e. how large is the reduction of comparison pairs (here <code class="docutils literal notranslate"><span class="pre">0.8750</span></code> which means blocking reduces comparison by over 87.5%).</p></li>
 </ul>
 <p>We can print <code class="docutils literal notranslate"><span class="pre">blocking_result.result</span></code> to get the detailed matching results:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="p">)</span>
@@ -200,7 +200,7 @@
 <section id="understanding-the-results">
 <h2>Understanding the Results<a class="headerlink" href="#understanding-the-results" title="Link to this heading"></a></h2>
 <p>BlockingPy uses character n-grams and approximate nearest neighbor algorithms to group similar records together. By default, it uses the FAISS algorithm with sensible default parameters.</p>
-<p>The reduction ratio shows how much the blocking reduces the number of required comparisons. For example, a ratio of 0.8000 means the blocking eliminates 80% of possible comparisons, greatly improving efficiency while maintaining accuracy.</p>
+<p>The reduction ratio shows how much the blocking reduces the number of required comparisons. For example, a ratio of <code class="docutils literal notranslate"><span class="pre">0.8750</span></code> means the blocking eliminates 87.5% of possible comparisons, greatly improving efficiency while maintaining accuracy.</p>
 </section>
 <section id="next-steps">
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.5
+- added separate `eval` method strictly for evaluation.
+- allowed for `from blockingpy import Blocker` instead of `from blockingpy.blocker import Blocker`
+
 ## v0.1.4
 - fixed reduction ratio calculation
 - new evaluation system for record linkage

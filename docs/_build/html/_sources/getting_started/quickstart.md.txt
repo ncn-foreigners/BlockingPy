@@ -10,7 +10,7 @@ Let's start with a simple example of matching records between two datasets. We'l
 Firstly, we will import our main blocker class `Blocker` used for blocking from BlockingPy and Pandas:
 
 ```python
-from blockingpy.blocker import Blocker
+from blockingpy import Blocker
 import pandas as pd
 ```
 
@@ -52,7 +52,7 @@ print(blocking_result)
 # Blocking based on the faiss method.
 # Number of blocks: 3
 # Number of columns used for blocking: 17
-# Reduction ratio: 0.8000
+# Reduction ratio: 0.8750
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
@@ -63,7 +63,7 @@ Our output contains:
 - Algorithm used for blocking (default - `faiss`)
 - Number of blocks created
 - Number of columns used for blocking (obtained by creating DTMs from datasets)
-- Reduction ratio i.e. how large is the reduction of comparison pairs (here 0.8000 which means blocking reduces comparison by over 80%).
+- Reduction ratio i.e. how large is the reduction of comparison pairs (here `0.8750` which means blocking reduces comparison by over 87.5%).
 
 We can print `blocking_result.result` to get the detailed matching results:
 
@@ -123,7 +123,7 @@ print(dedup_result.result)
 
 BlockingPy uses character n-grams and approximate nearest neighbor algorithms to group similar records together. By default, it uses the FAISS algorithm with sensible default parameters.
 
-The reduction ratio shows how much the blocking reduces the number of required comparisons. For example, a ratio of 0.8000 means the blocking eliminates 80% of possible comparisons, greatly improving efficiency while maintaining accuracy.
+The reduction ratio shows how much the blocking reduces the number of required comparisons. For example, a ratio of `0.8750` means the blocking eliminates 87.5% of possible comparisons, greatly improving efficiency while maintaining accuracy.
 
 ## Next Steps
 

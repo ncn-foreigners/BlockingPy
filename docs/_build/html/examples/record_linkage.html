@@ -316,10 +316,24 @@
 <span class="c1"># ===== creating tokens =====</span>
 <span class="c1"># ===== starting search (hnsw, x, y: 25343,24613, t: 1072) =====</span>
 <span class="c1"># ===== creating graph =====</span>
+
+<span class="c1"># alternatively we can use the `eval` method for separation:</span>
+<span class="c1"># result = blocker.block(</span>
+<span class="c1">#     x=census[&#39;txt&#39;],</span>
+<span class="c1">#     y=cis[&#39;txt&#39;],</span>
+<span class="c1">#     verbose=1,</span>
+<span class="c1">#     ann=&#39;faiss&#39;</span>
+<span class="c1"># )</span>
+<span class="c1"># eval_result = blocker.eval(</span>
+<span class="c1">#     blocking_result=result,</span>
+<span class="c1">#     true_blocks=matches[[&#39;x&#39;, &#39;y&#39;, &#39;block&#39;]]</span>
+<span class="c1">#)</span>
+<span class="c1"># The procedure in both cases stays the same.</span>
 </pre></div>
 </div>
 <p>and print results with evaluation metrics:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ========================================================</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="p">)</span>
+<span class="c1"># ========================================================</span>
 <span class="c1"># Blocking based on the faiss method.</span>
 <span class="c1"># Number of blocks: 23984</span>
 <span class="c1"># Number of columns used for blocking: 1072</span>
@@ -332,13 +346,14 @@
 <span class="c1">#          3 | 12             </span>
 <span class="c1">#          4 | 1              </span>
 <span class="c1"># ========================================================</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
 <span class="c1"># Evaluation metrics (standard):</span>
 <span class="c1"># recall : 99.691</span>
 <span class="c1"># precision : 99.691</span>
-<span class="c1"># fpr : 0.0002</span>
+<span class="c1"># fpr : 0.0</span>
 <span class="c1"># fnr : 0.309</span>
-<span class="c1"># accuracy : 99.9997</span>
-<span class="c1"># specificity : 99.9998</span>
+<span class="c1"># accuracy : 100.0</span>
+<span class="c1"># specificity : 100.0</span>
 <span class="c1"># f1_score : 99.691</span>
 </pre></div>
 </div>
@@ -360,7 +375,7 @@
 <p>For this example, using <code class="docutils literal notranslate"><span class="pre">faiss</span></code> we achieve:</p>
 <ul class="simple">
 <li><p>99.69% recall and precision</p></li>
-<li><p>99.99% accuracy</p></li>
+<li><p>close to 100% accuracy</p></li>
 <li><p>Near perfect reduction ratio of 1.0</p></li>
 <li><p>Most blocks contain just 1-2 records</p></li>
 </ul>

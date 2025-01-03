@@ -13,7 +13,7 @@ pip install blockingpy
 Import required packages:
 
 ```python
-from blockingpy.blocker import Blocker
+from blockingpy import Blocker
 import pandas as pd
 ```
 
@@ -211,9 +211,21 @@ eval_result = blocker.block(
     verbose=1, 
     control_ann=control_ann
 )
+# We can also evaluate separately with `eval` method:
+# result = blocker.block(
+#     x=df_eval['txt'], 
+#     ann='hnsw', 
+#     verbose=1, 
+#     control_ann=control_ann
+# )
+# eval_result = blocker.eval(
+#     blocking_result=result,
+#     true_blocks=true_blocs_dedup
+# ) 
+# The rest stays the same in both cases
 
 print(eval_result)
-
+print(eval_result.metrics)
 # ========================================================
 # Blocking based on the hnsw method.
 # Number of blocks: 3234
@@ -245,4 +257,4 @@ The results show:
 - High reduction ratio (`0.9999`) indicating significant reduction in comparison space
 - High recall (`97.04%`) showing most true duplicates are found
 
-The block size distribution shows most blocks contain 1-3 records, with a few larger blocks which could occur due to the fact that even records without duplicates will be grouped it to one of the blocks. This is not a problem since those pairs would not be matched when performing one-to-one record linkage afterwards. This demonstrates BlockingPy's effectiveness at identifying potential duplicates while drastically reducing the number of required comparisons.
+The block size distribution shows most blocks contain 1-3 records, with a few larger blocks which could occur due to the fact that even records without duplicates will be grouped it to one of the blocks. This is not a problem since those pairs would not be matched when performing one-to-one comparison afterwards. This demonstrates BlockingPy's effectiveness at identifying potential duplicates while drastically reducing the number of required comparisons.

@@ -9,7 +9,7 @@ Let's start with a simple example of matching records between two datasets. We'l
 Firstly, we will import our main blocker class `Blocker` used for blocking from BlockingPy and Pandas:
 
 ```python
-from blockingpy.blocker import Blocker
+from blockingpy import Blocker
 import pandas as pd
 ```
 

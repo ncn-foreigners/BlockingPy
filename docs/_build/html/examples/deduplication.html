@@ -111,28 +111,28 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">50</span><span class="p">:</span><span class="mi">60</span><span class="p">,</span> <span class="p">:]</span>
 
 <span class="c1">#            rec-id  first_name second_name   last_name              region  \</span>
-<span class="c1"># 50    rec-038-org      ALICJA    ANTONINA         GIL           POMORSKIE   </span>
-<span class="c1"># 51    rec-039-org       ZOFIA       HANNA    PAWLICKA        DOLNOŚLĄSKIE   </span>
-<span class="c1"># 52    rec-040-org      BLANKA       HANNA  WIŚNIEWSKA           LUBELSKIE   </span>
-<span class="c1"># 53  rec-041-dup-0     NATALIA   KOWALCŹYK  ALEKSANDRA         MAZOWIECKIE   </span>
-<span class="c1"># 54  rec-041-dup-1         NaN   KOWALCZYK     NATALIA                 NaN   </span>
-<span class="c1"># 55    rec-041-org  ALEKSANDRA     NATALIA   KOWALCZYK         MAZOWIECKIE   </span>
-<span class="c1"># 56    rec-042-org       LAURA   MAGDALENA     KONOPKA  KUJAWSKO-POMORSKIE   </span>
-<span class="c1"># 57    rec-043-org     LILIANA  STANISŁAWA  GRZYBOWSKA        DOLNOŚLĄSKIE   </span>
-<span class="c1"># 58    rec-044-org     MALWINA       LIDIA    NIEMCZYK           POMORSKIE   </span>
-<span class="c1"># 59  rec-045-dup-0         NaN     BARBARA        ROSA                 NaN   </span>
+<span class="c1"># 40    rec-024-org        MAJA        OLGA     LEWICKA  ZACHODNIOPOMORSKIE   </span>
+<span class="c1"># 41    rec-025-org        POLA    LEOKADIA   RUTKOWSKA  ZACHODNIOPOMORSKIE   </span>
+<span class="c1"># 42  rec-026-dup-0  ALEKSANDRA       RYBAK       ZÓFIA  KUJAWSKO-POMORSKIE   </span>
+<span class="c1"># 43  rec-026-dup-1  ALEKSANDRA       RYBAK       ZÓFIA  KUJAWSKO-POMORSKIE   </span>
+<span class="c1"># 44    rec-026-org       ZOFIA  ALEKSANDRA       RYBAK  KUJAWSKO-POMORSKIE   </span>
+<span class="c1"># 45  rec-027-dup-0       LAÓRA    JAGYEŁŁO      JOANNA       WIELKOPOLSKIE   </span>
+<span class="c1"># 46    rec-027-org       LAURA      JOANNA    JAGIEŁŁO       WIELKOPOLSKIE   </span>
+<span class="c1"># 47  rec-028-dup-0       MARIA        KOZA    WIKTÓRIA        DOLNOŚLĄSKIE   </span>
+<span class="c1"># 48    rec-028-org    WIKTORIA       MARIA        KOZA        DOLNOŚLĄSKIE   </span>
+<span class="c1"># 49    rec-029-org      NIKOLA  BRONISŁAWA  WIĘCKOWSKA             ŚLĄSKIE   </span>
 
 <span class="c1">#     birth_date personal_id  </span>
-<span class="c1"># 50  23/01/1953   ZSG686368  </span>
-<span class="c1"># 51  09/12/1983   MPH633118  </span>
-<span class="c1"># 52  15/07/1981   SNK483587  </span>
-<span class="c1"># 53  01/07/1928   MSJ396727  </span>
-<span class="c1"># 54  01/07/1982   MSJ39682y  </span>
-<span class="c1"># 55  01/07/1982   MSJ396827  </span>
-<span class="c1"># 56  03/12/1967   LMH992428  </span>
-<span class="c1"># 57  16/03/2011   RKG771093  </span>
-<span class="c1"># 58  24/11/1998   ECJ973778  </span>
-<span class="c1"># 59  15/07/1960         NaN  </span>
+<span class="c1"># 40  22/10/1935   DKK423341  </span>
+<span class="c1"># 41  29/11/1956   LJL907920  </span>
+<span class="c1"># 42         NaN   DAT77p499  </span>
+<span class="c1"># 43         NaN         NaN  </span>
+<span class="c1"># 44  24/03/1982   DAT770499  </span>
+<span class="c1"># 45  10/11/1984   LNRt57399  </span>
+<span class="c1"># 46  10/11/1984   LNR657399  </span>
+<span class="c1"># 47         NaN   HEH671979  </span>
+<span class="c1"># 48  09/09/1982   HEH671989  </span>
+<span class="c1"># 49  09/11/1992   JKR103426  </span>
 </pre></div>
 </div>
 <p>Preprocess data by concatenating all fields into a single text column:</p>
@@ -147,11 +147,11 @@
 
 <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 
-<span class="c1"># 0    JANAMAŁGORZATAPISAREKMAŁOPOLSKIE25/07/2001SGF898483</span>
-<span class="c1"># 1                  DETZALEKSANDRAPODKARPACKIETLS812403</span>
-<span class="c1"># 2    OLIWIAALEKSANDRADECPODKARPACKIE23/04/1944TLS812403</span>
-<span class="c1"># 3    IRYNAELŻBIETAOSSOWSKAWIELKOPOLSKIE05/12/1950TJD893201</span>
-<span class="c1"># 4    MATYLDAALEKSANDRAŻUREKZACHODNIOPOMORSKIE28/05/1982LGF327483</span>
+<span class="c1"># 0	GÓRKAKARÓLINAMELANIIAŚWIĘTOKRZYSKIE25/07/2010S...</span>
+<span class="c1"># 1	MELANIAKAROLINAGÓRKAŚWIĘTOKRZYSKIE25/07/2001SG...</span>
+<span class="c1"># 2	MARTAMARTYNAMUSIAŁPODKARPACKIE23/04/1944TLS812403</span>
+<span class="c1"># 3	KAJAPATRYCJADROZDDOLNOŚLĄSKIE05/12/1950TJH243280</span>
+<span class="c1"># 4	HANNAKLARALIPSKAMAŁOPOLSKIE28/05/1991MTN763673</span>
 </pre></div>
 </div>
 </section>
@@ -176,7 +176,7 @@
 <span class="p">)</span>
 
 <span class="c1"># ===== creating tokens =====</span>
-<span class="c1"># ===== starting search (voyager, x, y: 10000,10000, t: 1166) =====</span>
+<span class="c1"># ===== starting search (voyager, x, y: 10000,10000, t: 1169) =====</span>
 <span class="c1"># ===== creating graph =====</span>
 </pre></div>
 </div>
@@ -185,52 +185,46 @@
 
 <span class="c1"># ========================================================</span>
 <span class="c1"># Blocking based on the voyager method.</span>
-<span class="c1"># Number of blocks: 2833</span>
-<span class="c1"># Number of columns used for blocking: 1166</span>
-<span class="c1"># Reduction ratio: 0.9997</span>
+<span class="c1"># Number of blocks: 3162</span>
+<span class="c1"># Number of columns used for blocking: 1169</span>
+<span class="c1"># Reduction ratio: 0.9999</span>
 <span class="c1"># ========================================================</span>
 <span class="c1"># Distribution of the size of the blocks:</span>
 <span class="c1"># Block Size | Number of Blocks</span>
-<span class="c1">#          1 | 1812           </span>
-<span class="c1">#          2 | 600            </span>
-<span class="c1">#          3 | 210            </span>
-<span class="c1">#          4 | 87             </span>
-<span class="c1">#          5 | 42             </span>
-<span class="c1">#          6 | 30             </span>
-<span class="c1">#          7 | 16             </span>
-<span class="c1">#          8 | 16             </span>
-<span class="c1">#          9 | 9              </span>
-<span class="c1">#         10 | 3              </span>
-<span class="c1">#         11 | 2              </span>
-<span class="c1">#         12 | 2              </span>
-<span class="c1">#         13 | 2              </span>
-<span class="c1">#         14 | 1              </span>
-<span class="c1">#         15 | 1</span>
+<span class="c1">#          1 | 2271           </span>
+<span class="c1">#          2 | 611            </span>
+<span class="c1">#          3 | 168            </span>
+<span class="c1">#          4 | 58             </span>
+<span class="c1">#          5 | 29             </span>
+<span class="c1">#          6 | 11             </span>
+<span class="c1">#          7 | 8              </span>
+<span class="c1">#          8 | 3              </span>
+<span class="c1">#          9 | 3 </span>
 </pre></div>
 </div>
 <p>and:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dedup_result</span><span class="o">.</span><span class="n">result</span><span class="p">)</span>
 
 <span class="c1">#          x     y  block      dist</span>
-<span class="c1"># 0        1     2      0  0.294986</span>
-<span class="c1"># 1        9    11      1  0.118932</span>
-<span class="c1"># 2       15    16      2  0.218879</span>
-<span class="c1"># 3       18    19      3  0.208658</span>
-<span class="c1"># 4       31    32      4  0.173967</span>
+<span class="c1"># 0        0     1      0  0.102041</span>
+<span class="c1"># 1        7     8      1  0.273184</span>
+<span class="c1"># 2       10    11      2  0.188559</span>
+<span class="c1"># 3       12    13      3  0.194177</span>
+<span class="c1"># 4       16    17      4  0.186875</span>
 <span class="c1"># ...    ...   ...    ...       ...</span>
-<span class="c1"># 4827  9992  9993   2828  0.222235</span>
-<span class="c1"># 4828   643  9994   2829  0.382535</span>
-<span class="c1"># 4829  8255  9995   2830  0.454295</span>
-<span class="c1"># 4830  1388  9996   2831  0.384447</span>
-<span class="c1"># 4831  9998  9999   2832  0.119549</span>
+<span class="c1"># 4542  7348  9990   2278  0.394917</span>
+<span class="c1"># 4543  9991  9992   3159  0.111111</span>
+<span class="c1"># 4544  9994  9995   3160  0.135667</span>
+<span class="c1"># 4545  4029  9996   1189  0.386845</span>
+<span class="c1"># 4546  9997  9999   3161  0.128579</span>
 </pre></div>
 </div>
 <p>Let’s take a look at the pair in block <code class="docutils literal notranslate"><span class="pre">1</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">:</span> <span class="p">])</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[[</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span> <span class="p">:</span> <span class="p">])</span>
 
-<span class="c1">#           rec-id first_name second_name   last_name        region  birth_date  personal_id  </span>
-<span class="c1"># 1  rec-001-dup-0        NaN        DETZ  ALEKSANDRA  PODKARPACKIE         NaN    TLS812403</span>
-<span class="c1"># 2    rec-001-org     OLIWIA  ALEKSANDRA         DEC  PODKARPACKIE  23/04/1944    TLS812403</span>
+<span class="c1">#           rec-id first_name second_name last_name   region  birth_date  personal_id                                         txt</span>
+<span class="c1"># 7  rec-006-dup-0       RUŻA    KASPRZAK     DARYA  ŚLĄSKIE  10/02/1957  NaN                  RUŻAKASPRZAKDARYAŚLĄSKIE10/02/1957 </span>
+<span class="c1"># 8  rec-006-org      DARIA        RÓŻA  KASPRZAK  ŚLĄSKIE  10/02/1957  HDR212138     DARIARÓŻAKASPRZAKŚLĄSKIE10/02/1957HDR212138 </span>
 </pre></div>
 </div>
 <p>Even though records differ a lot, our package managed to get this pair right.</p>
@@ -257,15 +251,15 @@
 
 <span class="c1">#    x  block</span>
 <span class="c1"># 0  0      0</span>
-<span class="c1"># 1  1      1</span>
+<span class="c1"># 1  1      0</span>
 <span class="c1"># 2  2      1</span>
 <span class="c1"># 3  3      2</span>
 <span class="c1"># 4  4      3</span>
 <span class="c1"># 5  5      4</span>
 <span class="c1"># 6  6      5</span>
 <span class="c1"># 7  7      6</span>
-<span class="c1"># 8  8      7</span>
-<span class="c1"># 9  9      8</span>
+<span class="c1"># 8  8      6</span>
+<span class="c1"># 9  9      7</span>
 </pre></div>
 </div>
 <p>Now we can perform blocking with evaluation using the HNSW algorithm:</p>
@@ -286,49 +280,54 @@
     <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
     <span class="n">control_ann</span><span class="o">=</span><span class="n">control_ann</span>
 <span class="p">)</span>
+<span class="c1"># We can also evaluate separately with `eval` method:</span>
+<span class="c1"># result = blocker.block(</span>
+<span class="c1">#     x=df_eval[&#39;txt&#39;], </span>
+<span class="c1">#     ann=&#39;hnsw&#39;, </span>
+<span class="c1">#     verbose=1, </span>
+<span class="c1">#     control_ann=control_ann</span>
+<span class="c1"># )</span>
+<span class="c1"># eval_result = blocker.eval(</span>
+<span class="c1">#     blocking_result=result,</span>
+<span class="c1">#     true_blocks=true_blocs_dedup</span>
+<span class="c1"># ) </span>
+<span class="c1"># The rest stays the same in both cases</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="p">)</span>
-
+<span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
 <span class="c1"># ========================================================</span>
 <span class="c1"># Blocking based on the hnsw method.</span>
-<span class="c1"># Number of blocks: 2850</span>
-<span class="c1"># Number of columns used for blocking: 1166</span>
-<span class="c1"># Reduction ratio: 0.9997</span>
+<span class="c1"># Number of blocks: 3234</span>
+<span class="c1"># Number of columns used for blocking: 1169</span>
+<span class="c1"># Reduction ratio: 0.9999</span>
 <span class="c1"># ========================================================</span>
 <span class="c1"># Distribution of the size of the blocks:</span>
 <span class="c1"># Block Size | Number of Blocks</span>
-<span class="c1">#          1 | 1707           </span>
-<span class="c1">#          2 | 681            </span>
-<span class="c1">#          3 | 233            </span>
-<span class="c1">#          4 | 96             </span>
-<span class="c1">#          5 | 55             </span>
-<span class="c1">#          6 | 32             </span>
-<span class="c1">#          7 | 16             </span>
-<span class="c1">#          8 | 11             </span>
-<span class="c1">#          9 | 9              </span>
-<span class="c1">#         10 | 3              </span>
-<span class="c1">#         11 | 3              </span>
-<span class="c1">#         12 | 1              </span>
-<span class="c1">#         13 | 1              </span>
-<span class="c1">#         14 | 1              </span>
-<span class="c1">#         15 | 1              </span>
+<span class="c1">#          1 | 2144           </span>
+<span class="c1">#          2 | 754            </span>
+<span class="c1">#          3 | 213            </span>
+<span class="c1">#          4 | 62             </span>
+<span class="c1">#          5 | 25             </span>
+<span class="c1">#          6 | 16             </span>
+<span class="c1">#          7 | 11             </span>
+<span class="c1">#          8 | 9              </span>
 <span class="c1"># ========================================================</span>
 <span class="c1"># Evaluation metrics (standard):</span>
-<span class="c1"># recall : 94.7972</span>
-<span class="c1"># precision : 24.0766</span>
-<span class="c1"># fpr : 0.0236</span>
-<span class="c1"># fnr : 5.2028</span>
-<span class="c1"># accuracy : 99.976</span>
-<span class="c1"># specificity : 99.9764</span>
-<span class="c1"># f1_score : 38.4003</span>
+<span class="c1"># recall : 97.039</span>
+<span class="c1"># precision : 48.8558</span>
+<span class="c1"># fpr : 0.0118</span>
+<span class="c1"># fnr : 2.961</span>
+<span class="c1"># accuracy : 99.9879</span>
+<span class="c1"># specificity : 99.9882</span>
+<span class="c1"># f1_score : 64.9909</span>
 </pre></div>
 </div>
 <p>The results show:</p>
 <ul class="simple">
-<li><p>High reduction ratio (0.9997) indicating significant reduction in comparison space</p></li>
-<li><p>High recall (94.8%) showing most true duplicates are found</p></li>
+<li><p>High reduction ratio (<code class="docutils literal notranslate"><span class="pre">0.9999</span></code>) indicating significant reduction in comparison space</p></li>
+<li><p>High recall (<code class="docutils literal notranslate"><span class="pre">97.04%</span></code>) showing most true duplicates are found</p></li>
 </ul>
-<p>The block size distribution shows most blocks contain 1-3 records, with a few larger blocks which could occur due to the fact that even records without duplicates will be grouped it to one of the blocks. This is not a problem since those pairs would not be matched when performing one-to-one record linkage afterwards. This demonstrates BlockingPy’s effectiveness at identifying potential duplicates while drastically reducing the number of required comparisons.</p>
+<p>The block size distribution shows most blocks contain 1-3 records, with a few larger blocks which could occur due to the fact that even records without duplicates will be grouped it to one of the blocks. This is not a problem since those pairs would not be matched when performing one-to-one comparison afterwards. This demonstrates BlockingPy’s effectiveness at identifying potential duplicates while drastically reducing the number of required comparisons.</p>
 </section>
 </section>
 

@@ -69,6 +69,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="input_data_handling.html">Input Data Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="configuration_tuning.html">Configuration and Tuning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluation_metrics.html">Evaluation Metrics</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
@@ -109,7 +110,7 @@
 <ul class="simple">
 <li><p>Record Linkage: Finding matching records between two datasets</p></li>
 <li><p>Deduplication: Finding duplicate records within a single dataset</p></li>
-<li><p>Evaluation: Evaluating blocking when true blocks are known (for both record linkage and deduplication)</p></li>
+<li><p>Evaluation: Evaluating blocking when true blocks are known (for both record linkage and deduplication) either inside the <code class="docutils literal notranslate"><span class="pre">block</span></code> method or separate <code class="docutils literal notranslate"><span class="pre">eval</span></code> method.</p></li>
 </ul>
 <p>This guide covers the basic usage patterns for these operations.</p>
 </section>
@@ -208,6 +209,25 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">confusion</span><span class="p">)</span>  <span class="c1"># Confusion matrix</span>
 </pre></div>
 </div>
+<p>or alternatively with the use of <code class="docutils literal notranslate"><span class="pre">eval</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="c1"># your data</span>
+
+<span class="n">true_blocks</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+    <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>  
+    <span class="s1">&#39;block&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>   
+<span class="p">})</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">evals</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span>
+    <span class="n">blocking_result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>
+    <span class="n">true_blocks</span><span class="o">=</span><span class="n">true_blocks</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">evals</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">evals</span><span class="o">.</span><span class="n">confusion</span><span class="p">)</span> 
+</pre></div>
+</div>
 </section>
 <section id="example-ground-truth-for-record-linkage">
 <h3>Example ground truth for record linkage<a class="headerlink" href="#example-ground-truth-for-record-linkage" title="Link to this heading"></a></h3>
@@ -229,6 +249,28 @@
 <span class="c1"># Access evaluation metrics</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>    <span class="c1"># Shows precision, recall, F1-score, etc.</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">confusion</span><span class="p">)</span>  <span class="c1"># Confusion matrix</span>
+</pre></div>
+</div>
+<p>and with <code class="docutils literal notranslate"><span class="pre">eval</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data_1</span> <span class="o">=</span> <span class="c1"># your data</span>
+<span class="n">data_2</span> <span class="o">=</span> <span class="c1"># your data</span>
+
+<span class="n">true_blocks</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+    <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>    
+    <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>     
+    <span class="s1">&#39;block&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>  
+<span class="p">})</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">data_1</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">data_2</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">evals</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span>
+    <span class="n">blocking_result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>
+    <span class="n">true_blocks</span><span class="o">=</span><span class="n">true_blocks</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">evals</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span> 
+<span class="nb">print</span><span class="p">(</span><span class="n">evals</span><span class="o">.</span><span class="n">confusion</span><span class="p">)</span> 
 </pre></div>
 </div>
 </section>

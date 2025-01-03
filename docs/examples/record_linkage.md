@@ -19,7 +19,7 @@ pip install blockingpy
 Import required packages:
 
 ```python
-from blockingpy.blocker import Blocker
+from blockingpy import Blocker
 import pandas as pd
 ```
 
@@ -247,11 +247,25 @@ eval_result = blocker.block(
 # ===== creating tokens =====
 # ===== starting search (hnsw, x, y: 25343,24613, t: 1072) =====
 # ===== creating graph =====
+
+# alternatively we can use the `eval` method for separation:
+# result = blocker.block(
+#     x=census['txt'],
+#     y=cis['txt'],
+#     verbose=1,
+#     ann='faiss'
+# )
+# eval_result = blocker.eval(
+#     blocking_result=result,
+#     true_blocks=matches[['x', 'y', 'block']]
+#)
+# The procedure in both cases stays the same.
 ```
 
 and print results with evaluation metrics:
 
 ```python
+print(eval_result)
 # ========================================================
 # Blocking based on the faiss method.
 # Number of blocks: 23984
@@ -265,6 +279,7 @@ and print results with evaluation metrics:
 #          3 | 12             
 #          4 | 1              
 # ========================================================
+print(eval_result.metrics)
 # Evaluation metrics (standard):
 # recall : 99.691
 # precision : 99.691
