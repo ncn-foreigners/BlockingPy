@@ -389,3 +389,146 @@ class Blocker:
             colnames_xy=colnames_xy,
             graph=graph,
         )
+
+    def eval(self, blocking_result: BlockingResult, true_blocks: pd.DataFrame) -> BlockingResult:
+        """
+        Evaluate blocking results against true block assignments and return new BlockingResult.
+
+        This method calculates evaluation metrics and confusion matrix
+        by comparing predicted blocks with known true blocks and returns
+        a new BlockingResult instance containing the evaluation results
+        along with the original blocking results.
+
+        Parameters
+        ----------
+        blocking_result : BlockingResult
+            Original blocking result to evaluate
+        true_blocks : pandas.DataFrame
+            DataFrame with true block assignments
+            For deduplication: columns ['x', 'block']
+            For record linkage: columns ['x', 'y', 'block']
+
+        Returns
+        -------
+        BlockingResult
+            A new BlockingResult instance with added evaluation results
+            and original blocking results
+
+        Examples
+        --------
+        >>> blocker = Blocker()
+        >>> result = blocker.block(x, y)
+        >>> evaluated = blocker.eval(result, true_blocks)
+        >>> print(evaluated.metrics)
+
+        See Also
+        --------
+        block : Main blocking method that includes evaluation
+        BlockingResult : Class for analyzing blocking results
+
+        """
+        if not isinstance(blocking_result, BlockingResult):
+            raise ValueError(
+                "blocking_result must be a BlockingResult instance obtained from `block` method."
+            )
+        InputValidator.validate_true_blocks(true_blocks, blocking_result.deduplication)
+
+        if not blocking_result.deduplication:
+            candidate_pairs = list(
+                itertools.product(list(range(blocking_result.len_x)), true_blocks["y"])
+            )
+            cp_df = pd.DataFrame(candidate_pairs, columns=["x", "y"])
+            cp_df = cp_df.astype(int)
+            comparison_df = (
+                cp_df.merge(true_blocks, on=["x", "y"], how="left")
+                .rename(columns={"block": "block_true"})
+                .merge(blocking_result.result, on=["x", "y"], how="left")
+                .rename(columns={"block": "block_pred"})
+            )
+            comparison_df["TP"] = (comparison_df["block_true"].notna()) & (
+                comparison_df["block_pred"].notna()
+            )
+            # CNL -> Correct Non-Links / True Negative
+            comparison_df["CNL"] = (comparison_df["block_true"].isna()) & (
+                comparison_df["block_pred"].isna()
+            )
+            comparison_df["FP"] = (comparison_df["block_true"].isna()) & (
+                comparison_df["block_pred"].notna()
+            )
+            comparison_df["FN"] = (comparison_df["block_true"].notna()) & (
+                comparison_df["block_pred"].isna()
+            )
+            confusion = pd.DataFrame(
+                [
+                    [comparison_df["CNL"].sum(), comparison_df["FN"].sum()],
+                    [comparison_df["FP"].sum(), comparison_df["TP"].sum()],
+                ],
+                index=["Predicted Negative", "Predicted Positive"],
+                columns=["Actual Negative", "Actual Positive"],
+            )
+
+        else:
+            pairs_to_eval_long = (
+                pd.melt(blocking_result.result[["x", "y", "block"]], id_vars=["block"])[
+                    ["block", "value"]
+                ]
+                .drop_duplicates()
+                .rename(columns={"block": "block_id", "value": "x"})
+                .merge(true_blocks[["x", "block"]], on="x", how="left")
+                .rename(columns={"block": "true_id"})
+            )
+
+            candidate_pairs = np.array(
+                list(itertools.combinations(range(pairs_to_eval_long.shape[0]), 2))
+            )
+
+            block_id_array = pairs_to_eval_long["block_id"].to_numpy()
+            true_id_array = pairs_to_eval_long["true_id"].to_numpy()
+            same_block = (
+                block_id_array[candidate_pairs[:, 0]] == block_id_array[candidate_pairs[:, 1]]
+            )
+            same_truth = (
+                true_id_array[candidate_pairs[:, 0]] == true_id_array[candidate_pairs[:, 1]]
+            )
+
+            confusion = pd.crosstab(same_block, same_truth)
+            confusion.index = ["Predicted Negative", "Predicted Positive"]
+            confusion.columns = ["Actual Negative", "Actual Positive"]
+
+        fp = confusion.iloc[1, 0]
+        fn = confusion.iloc[0, 1]
+        tp = confusion.iloc[1, 1]
+        tn = confusion.iloc[0, 0]
+
+        recall = tp / (fn + tp) if (fn + tp) != 0 else 0
+        precision = tp / (tp + fp) if (tp + fp) != 0 else 0
+        f1_score = (
+            2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
+        )
+        accuracy = (tp + tn) / (tp + tn + fp + fn)
+        specificity = tn / (tn + fp) if (tn + fp) != 0 else 0
+        fpr = fp / (fp + tn) if (fp + tn) != 0 else 0
+        fnr = fn / (fn + tp) if (fn + tp) != 0 else 0
+
+        eval_metrics = {
+            "recall": recall,
+            "precision": precision,
+            "fpr": fpr,
+            "fnr": fnr,
+            "accuracy": accuracy,
+            "specificity": specificity,
+            "f1_score": f1_score,
+        }
+        eval_metrics = pd.Series(eval_metrics)
+
+        return BlockingResult(
+            x_df=blocking_result.result,
+            ann=blocking_result.method,
+            deduplication=blocking_result.deduplication,
+            len_x=blocking_result.len_x,
+            true_blocks=true_blocks,
+            eval_metrics=eval_metrics,
+            confusion=confusion,
+            colnames_xy=blocking_result.colnames,
+            graph=blocking_result.graph is not None,
+        )
