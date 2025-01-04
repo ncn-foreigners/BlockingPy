@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.1.6
+- revamped block size distribution calculation.
+
 ## v0.1.5
 - added separate `eval` method strictly for evaluation.
 - allowed for `from blockingpy import Blocker` instead of `from blockingpy.blocker import Blocker`
