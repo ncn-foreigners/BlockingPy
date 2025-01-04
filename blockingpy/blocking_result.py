@@ -120,21 +120,28 @@ class BlockingResult:
         If evaluation metrics are available, they are included in the output.
 
         """
-        blocks_tab = self.result["block"].value_counts()
-        block_sizes = Counter(blocks_tab.values)
+        if self.deduplication:
+            block_sizes = self.result.groupby("block").apply(
+                lambda x: len(pd.concat([x["x"], x["y"]]).unique())
+            )
+        else:
+            block_sizes = (
+                self.result.groupby("block").agg({"x": "nunique", "y": "nunique"}).sum(axis=1)
+            )
+        block_size_dist = Counter(block_sizes.values)
         reduction_ratio = self._calculate_reduction_ratio()
 
         output = []
         output.append("=" * 56)
         output.append(f"Blocking based on the {self.method} method.")
-        output.append(f"Number of blocks: {len(blocks_tab)}")
+        output.append(f"Number of blocks: {len(block_sizes)}")
         output.append(f"Number of columns used for blocking: {len(self.colnames)}")
         output.append(f"Reduction ratio: {reduction_ratio:.4f}")
         output.append("=" * 56)
 
         output.append("Distribution of the size of the blocks:")
         output.append(f"{'Block Size':>10} | {'Number of Blocks':<15}")
-        for size, count in sorted(block_sizes.items()):
+        for size, count in sorted(block_size_dist.items()):
             output.append(f"{size:>10} | {count:<15}")
 
         if self.metrics is not None:
