@@ -53,6 +53,9 @@ Feel free to report any issues, bugs, suggestions with github issues [here](http
 
 Please see [CONTRIBUTING.md](https://github.com/T-Strojny/BlockingPy/blob/main/CONTRIBUTING.md) for more information.
 
+## Code of Conduct
+You can find it [here](https://github.com/ncn-foreigners/BlockingPy/blob/main/CODE_OF_CONDUCT.md).
+
 ## Acknowledgements
 
 This package is based on the R [blocking](https://github.com/ncn-foreigners/blocking/tree/main) package developed by [BERENZ](https://github.com/BERENZ). Special thanks to the original author for his foundational work in this area.

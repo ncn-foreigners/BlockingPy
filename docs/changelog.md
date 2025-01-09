@@ -1,6 +1,7 @@
 # Changelog
 
 ## v0.1.7
+- added CODE_OF_CONDUCT.md
 - documentation update
 - fixed issus with inner ANN algorithms when performing deduplication
 
