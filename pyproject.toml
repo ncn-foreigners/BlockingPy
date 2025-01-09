@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blockingpy"
-version = "0.1.6"
+version = "0.1.7"
 description = "Blocking records for record linkage and data deduplication based on ANN algorithms."
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>"]
 readme = "README.md"
@@ -95,7 +95,8 @@ select = [
     "PL",   
     "NPY",  
     "DOC",  
-    "RUF",  
+    "RUF",
+    "PLR2004",  
 ]
 
 ignore = ["D211", "D212", "D205", "RUF012", "PLR0917", "PLR0913", "ANN401", "PLR0912", "C901", "PLR0915"]
