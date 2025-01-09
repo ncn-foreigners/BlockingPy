@@ -155,14 +155,68 @@ class NNDBlocker(BlockingMethod):
         logger.info("Querying index...")
 
         l_1nn = self.index.query(query_data=y, k=k_search, epsilon=controls["nnd"].get("epsilon"))
+        indices = l_1nn[0]
+        distances = l_1nn[1]
+
+        if k == 2:
+            indices, distances = self.rearrange_array(indices, distances)
+
         result = pd.DataFrame(
             {
                 "y": np.arange(y.shape[0]),
-                "x": l_1nn[0][:, k - 1],
-                "dist": l_1nn[1][:, k - 1],
+                "x": indices[:, k - 1],
+                "dist": distances[:, k - 1],
             }
         )
 
         logger.info("Process completed successfully.")
 
         return result
+
+    def rearrange_array(self,
+                        indices : np.ndarray,
+                        distances : np.ndarray
+                        ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Rearrange the array of indices to match the correct order.
+        If the algoritm returns the record "itself" for a given row (in deduplication), but not
+        as the first nearest neighbor, rearrange the array to fix this issue.
+        If the algoritm does not return the record "itself" for a given row (in deduplication),
+        insert a dummy value (-1) at the start and shift other indices and distances values.
+
+        Parameters
+        ----------
+        indices : array-like
+            indices returned by the algorithm
+        distances : array-like
+            distances returned by the algorithm
+
+        Notes
+        -----
+        This method is necessary because if two records are exactly the same,
+        the algorithm will not return itself as the first nearest neighbor in
+        deduplication. This method rearranges the array to fix this issue.
+        Due to the fact that it is an "approximate" algorithm, it may not return
+        the record itself at all.
+
+        """
+        n_rows = indices.shape[0]
+        result = indices.copy()
+        result_dist = distances.copy()
+
+        for i in range(n_rows):
+            if result[i][0] != i:
+                matches = np.where(result[i] == i)[0]
+
+                if len(matches) == 0:
+                    result[i][1:] = result[i][:-1]
+                    result[i][0] = -1
+                    result_dist[i][1:] = result_dist[i][:-1]
+                    result_dist[i][0] = -1
+                else:
+                    position = matches[0]
+                    value_to_move = result[i][position]
+                    result[i][1 : position + 1] = result[i][0:position]
+                    result[i][0] = value_to_move
+
+        return result, result_dist

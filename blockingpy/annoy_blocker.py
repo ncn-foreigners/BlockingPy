@@ -152,9 +152,6 @@ class AnnoyBlocker(BlockingMethod):
 
         logger.info("Querying index...")
 
-        l_ind_nns = np.zeros(y.shape[0], dtype=int)
-        l_ind_dist = np.zeros(y.shape[0])
-
         if k_search > x.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, x.shape[0])
@@ -163,20 +160,26 @@ class AnnoyBlocker(BlockingMethod):
                 f"reference points ({x.shape[0]}). Adjusted k_search to {k_search}."
             )
 
+        l_ind_nns = np.zeros((y.shape[0], k_search), dtype=int)
+        l_ind_dist = np.zeros((y.shape[0], k_search))
+
         for i in range(y.shape[0]):
             annoy_res = self.index.get_nns_by_vector(
                 y.iloc[i].values, k_search, include_distances=True
             )
-            l_ind_nns[i] = annoy_res[0][k - 1]
-            l_ind_dist[i] = annoy_res[1][k - 1]
+            l_ind_nns[i] = annoy_res[0]
+            l_ind_dist[i] = annoy_res[1]
+
+        if k == 2:
+            l_ind_nns, l_ind_dist = self.rearrange_array(l_ind_nns, l_ind_dist)
 
         if path:
             self._save_index(path)
 
         result = {
             "y": np.arange(y.shape[0]),
-            "x": l_ind_nns,
-            "dist": l_ind_dist,
+            "x": l_ind_nns[:, k - 1],
+            "dist": l_ind_dist[:, k - 1],
         }
         result = pd.DataFrame(result)
         logger.info("Process completed successfully.")
@@ -216,3 +219,51 @@ class AnnoyBlocker(BlockingMethod):
 
         with open(path_ann_cols, "w", encoding="utf-8") as f:
             f.write("\n".join(self.x_columns))
+
+    def rearrange_array(self,
+                        indices : np.ndarray,
+                        distances : np.ndarray
+                        ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Rearrange the array of indices to match the correct order.
+        If the algoritm returns the record "itself" for a given row (in deduplication), but not
+        as the first nearest neighbor, rearrange the array to fix this issue.
+        If the algoritm does not return the record "itself" for a given row (in deduplication),
+        insert a dummy value (-1) at the start and shift other indices and distances values.
+
+        Parameters
+        ----------
+        indices : array-like
+            indices returned by the algorithm
+        distances : array-like
+            distances returned by the algorithm
+
+        Notes
+        -----
+        This method is necessary because if two records are exactly the same,
+        the algorithm will not return itself as the first nearest neighbor in
+        deduplication. This method rearranges the array to fix this issue.
+        Due to the fact that it is an "approximate" algorithm, it may not return
+        the record itself at all.
+
+        """
+        n_rows = indices.shape[0]
+        result = indices.copy()
+        result_dist = distances.copy()
+
+        for i in range(n_rows):
+            if result[i][0] != i:
+                matches = np.where(result[i] == i)[0]
+
+                if len(matches) == 0:
+                    result[i][1:] = result[i][:-1]
+                    result[i][0] = -1
+                    result_dist[i][1:] = result_dist[i][:-1]
+                    result_dist[i][0] = -1
+                else:
+                    position = matches[0]
+                    value_to_move = result[i][position]
+                    result[i][1 : position + 1] = result[i][0:position]
+                    result[i][0] = value_to_move
+
+        return result, result_dist

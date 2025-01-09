@@ -253,7 +253,6 @@ class Blocker:
             verbose=True if verbose in {2, 3} else False,
             controls=self.control_ann,
         )
-
         logger.info("===== creating graph =====\n")
 
         if deduplication:

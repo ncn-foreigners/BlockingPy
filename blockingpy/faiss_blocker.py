@@ -160,7 +160,9 @@ class FaissBlocker(BlockingMethod):
             )
 
         distances, indices = self.index.search(x=y, k=k_search)
-        #    indices = self.rearrange_array(indices)
+        if k == 2:
+            indices, distances = self.rearrange_array(indices, distances)
+
         if path:
             self._save_index(path)
 
@@ -210,17 +212,50 @@ class FaissBlocker(BlockingMethod):
         with open(path_faiss_cols, "w", encoding="utf-8") as f:
             f.write("\n".join(self.x_columns))
 
+    def rearrange_array(self,
+                        indices : np.ndarray,
+                        distances : np.ndarray
+                        ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Rearrange the array of indices to match the correct order.
+        If the algoritm returns the record "itself" for a given row (in deduplication), but not
+        as the first nearest neighbor, rearrange the array to fix this issue.
+        If the algoritm does not return the record "itself" for a given row (in deduplication),
+        insert a dummy value (-1) at the start and shift other indices and distances values.
 
-#    def rearrange_array(self, indices):
-#     n_rows = indices.shape[0]
-#     result = indices.copy()
+        Parameters
+        ----------
+        indices : array-like
+            indices returned by the algorithm
+        distances : array-like
+            distances returned by the algorithm
 
-#     for i in range(n_rows):
-#         if result[i][0] != i:
-#             position = np.where(result[i] == i)[0][0]
-#             value_to_move = result[i][position]
+        Notes
+        -----
+        This method is necessary because if two records are exactly the same,
+        the algorithm will not return itself as the first nearest neighbor in
+        deduplication. This method rearranges the array to fix this issue.
+        Due to the fact that it is an "approximate" algorithm, it may not return
+        the record itself at all.
 
-#             result[i][1:position + 1] = result[i][0:position]
-#             result[i][0] = value_to_move
+        """
+        n_rows = indices.shape[0]
+        result = indices.copy()
+        result_dist = distances.copy()
 
-#     return result
+        for i in range(n_rows):
+            if result[i][0] != i:
+                matches = np.where(result[i] == i)[0]
+
+                if len(matches) == 0:
+                    result[i][1:] = result[i][:-1]
+                    result[i][0] = -1
+                    result_dist[i][1:] = result_dist[i][:-1]
+                    result_dist[i][0] = -1
+                else:
+                    position = matches[0]
+                    value_to_move = result[i][position]
+                    result[i][1 : position + 1] = result[i][0:position]
+                    result[i][0] = value_to_move
+
+        return result, result_dist
