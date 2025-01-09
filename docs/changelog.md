@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.7
+- documentation update
+- fixed issus with inner ANN algorithms when performing deduplication
+
 ## v0.1.6
 - revamped block size distribution calculation.
 
