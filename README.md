@@ -83,7 +83,7 @@ print(block_result)
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          1 | 3
+#          2 | 3  
 ```
 By printing `block_result.result` we can take a look at the results table containing:
 
@@ -113,15 +113,15 @@ print(dedup_result)
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          3 | 2
+#          4 | 2 
 ```
 ```python
 print(dedup_result.result)
 #    x  y  block  dist
-# 0  0  1      0   2.0
+# 0  1  0      0   2.0
 # 1  1  2      0   2.0
 # 2  1  3      0   2.0
-# 3  4  5      1   2.0
+# 3  5  4      1   2.0
 # 4  4  6      1   3.0
 # 5  4  7      1   6.0
 ```
