@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blockingpy"
-version = "0.1.7"
+version = "0.1.8"
 description = "Blocking records for record linkage and data deduplication based on ANN algorithms."
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>", "Maciej Beręsewicz <maciej.beresewicz@ue.poznan.pl>"]
 readme = "README.md"
@@ -9,6 +9,10 @@ repository = "https://github.com/ncn-foreigners/BlockingPy"
 documentation = "https://blockingpy.readthedocs.io/en/latest/"
 keywords = ["record-linkage", "deduplication", "ANN", "blocking", "data-matching"]
 packages = [{include = "blockingpy"}]
+include = [
+    "blockingpy/datasets/data/*.csv.gz",
+    "blockingpy/py.typed"
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
