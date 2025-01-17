@@ -19,9 +19,7 @@ Deduplication Data:
     Taken from "RecordLinkage" R package developed by Murat Sariyar
     and Andreas Borg. Package is licensed under GPL-3 license.
     https://cran.r-project.org/package=RecordLinkage
-
-For detailed attribution and citation information, please refer to
-the documentation in datasets/README.md
+    
 """
 
 from .base import load_census_cis_data, load_deduplication_data
