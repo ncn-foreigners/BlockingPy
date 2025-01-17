@@ -28,7 +28,7 @@ data = pd.read_csv('geco_2_dup_per_rec_3_mod.csv')
 Let's take a look at the data:
 
 ```python
-data.iloc[50:60, :]
+data.iloc[40:50, :]
 
 #            rec-id  first_name second_name   last_name              region  \
 # 40    rec-024-org        MAJA        OLGA     LEWICKA  ZACHODNIOPOMORSKIE   
@@ -110,21 +110,34 @@ print(dedup_result)
 
 # ========================================================
 # Blocking based on the voyager method.
-# Number of blocks: 3162
+# Number of blocks: 2711
 # Number of columns used for blocking: 1169
-# Reduction ratio: 0.9999
+# Reduction ratio: 0.9996
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          1 | 2271           
-#          2 | 611            
-#          3 | 168            
-#          4 | 58             
-#          5 | 29             
-#          6 | 11             
-#          7 | 8              
-#          8 | 3              
-#          9 | 3 
+#          2 | 917            
+#          3 | 877            
+#          4 | 367            
+#          5 | 204            
+#          6 | 105            
+#          7 | 77             
+#          8 | 34             
+#          9 | 26             
+#         10 | 30             
+#         11 | 12             
+#         12 | 10             
+#         13 | 13             
+#         14 | 12             
+#         15 | 10             
+#         16 | 4              
+#         17 | 3              
+#         18 | 2              
+#         19 | 2              
+#         21 | 1              
+#         22 | 3              
+#         27 | 1              
+#         30 | 1   
 ```
 and:
 
@@ -132,26 +145,26 @@ and:
 print(dedup_result.result)
 
 #          x     y  block      dist
-# 0        0     1      0  0.102041
-# 1        7     8      1  0.273184
-# 2       10    11      2  0.188559
-# 3       12    13      3  0.194177
-# 4       16    17      4  0.186875
+# 0        1     0      0  0.102041
+# 1     5974     2      1  0.390295
+# 2     7378     3      2  0.425410
+# 3     5562     4      3  0.396494
+# 4     1389     5      4  0.461184
 # ...    ...   ...    ...       ...
-# 4542  7348  9990   2278  0.394917
-# 4543  9991  9992   3159  0.111111
-# 4544  9994  9995   3160  0.135667
-# 4545  4029  9996   1189  0.386845
-# 4546  9997  9999   3161  0.128579
+# 7298  9995  9993   2710  0.241895
+# 7299  9995  9994   2710  0.135667
+# 7300  4029  9996   1549  0.386845
+# 7301  9999  9997     66  0.128579
+# 7302  9999  9998     66  0.140395
 ```
 Let's take a look at the pair in block `1`:
 
 ```python
 print(data.iloc[[7,8], : ])
 
-#           rec-id first_name second_name last_name   region  birth_date  personal_id                                         txt
-# 7  rec-006-dup-0       RUŻA    KASPRZAK     DARYA  ŚLĄSKIE  10/02/1957  NaN                  RUŻAKASPRZAKDARYAŚLĄSKIE10/02/1957 
-# 8  rec-006-org      DARIA        RÓŻA  KASPRZAK  ŚLĄSKIE  10/02/1957  HDR212138     DARIARÓŻAKASPRZAKŚLĄSKIE10/02/1957HDR212138 
+#              rec-id first_name second_name   last_name               region        birth_date personal_id                                                       txt
+# 9998  rec-999-dup-1     RESŻKA    LILIANNA  MAŁGÓRZATA  WARMIŃSKO-MAZURSKIE         12/01/1978        NaN         RESŻKALILIANNAMAŁGÓRZATAWARMIŃSKO-MAZURSKIE12/...
+# 9999    rec-999-org   LILIANNA  MAŁGORZATA      RESZKA  WARMIŃSKO-MAZURSKIE         12/01/1978   TCX847483        LILIANNAMAŁGORZATARESZKAWARMIŃSKO-MAZURSKIE12/...
 ```
 Even though records differ a lot, our package managed to get this pair right.
 
@@ -176,7 +189,7 @@ true_blocks_dedup = df_eval[['x', 'block']]
 Print `true_blocks_dedup`:
 
 ```python
-print(true_blocks_dedup)
+print(true_blocks_dedup.head(10))
 
 #    x  block
 # 0  0      0
@@ -228,33 +241,45 @@ print(eval_result)
 print(eval_result.metrics)
 # ========================================================
 # Blocking based on the hnsw method.
-# Number of blocks: 3234
+# Number of blocks: 2972
 # Number of columns used for blocking: 1169
-# Reduction ratio: 0.9999
+# Reduction ratio: 0.9996
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          1 | 2144           
-#          2 | 754            
-#          3 | 213            
-#          4 | 62             
-#          5 | 25             
-#          6 | 16             
-#          7 | 11             
-#          8 | 9              
+#          2 | 1113           
+#          3 | 997            
+#          4 | 391            
+#          5 | 200            
+#          6 | 88             
+#          7 | 65             
+#          8 | 39             
+#          9 | 19             
+#         10 | 16             
+#         11 | 13             
+#         12 | 9              
+#         13 | 8              
+#         14 | 4              
+#         15 | 1              
+#         16 | 3              
+#         17 | 1              
+#         18 | 2              
+#         19 | 1              
+#         22 | 1              
+#         25 | 1              
 # ========================================================
 # Evaluation metrics (standard):
-# recall : 97.039
-# precision : 48.8558
-# fpr : 0.0118
-# fnr : 2.961
-# accuracy : 99.9879
-# specificity : 99.9882
-# f1_score : 64.9909
+# recall : 99.0151
+# precision : 29.2353
+# fpr : 0.0248
+# fnr : 0.9849
+# accuracy : 99.9751
+# specificity : 99.9752
+# f1_score : 45.142
 ```
 The results show:
 
-- High reduction ratio (`0.9999`) indicating significant reduction in comparison space
-- High recall (`97.04%`) showing most true duplicates are found
+- High reduction ratio (`0.9996`) indicating significant reduction in comparison space
+- High recall (`99.02%`) showing most true duplicates are found
 
 The block size distribution shows most blocks contain 1-3 records, with a few larger blocks which could occur due to the fact that even records without duplicates will be grouped it to one of the blocks. This is not a problem since those pairs would not be matched when performing one-to-one comparison afterwards. This demonstrates BlockingPy's effectiveness at identifying potential duplicates while drastically reducing the number of required comparisons.

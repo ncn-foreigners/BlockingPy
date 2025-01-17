@@ -157,25 +157,25 @@ print(rec_lin_result)
 
 # ========================================================
 # Blocking based on the hnsw method.
-# Number of blocks: 23997
+# Number of blocks: 23996
 # Number of columns used for blocking: 1072
 # Reduction ratio: 1.0000
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          1 | 23394          
-#          2 | 591            
-#          3 | 11             
-#          4 | 1   
+#          2 | 23392          
+#          3 | 592            
+#          4 | 11             
+#          5 | 1   
 
 print(rec_lin_result.result.head())
 
-#        x  y  block      dist
-# 0  17339  0      0  0.273628
-# 1   9567  1      1  0.103388
-# 2  10389  2      2  0.107852
-# 3  24258  3      3  0.211039
-# 4   3714  4      4  0.294986
+#            x      y  block      dist
+# 0      17339      0      0  0.273628
+# 1       9567      1      1  0.103388
+# 2      10389      2      2  0.107852
+# 3      24258      3      3  0.211039
+# 4       3714      4      4  0.294986
 ```
 Let's take a look at the pair in block `0` :
 ```python
@@ -274,10 +274,10 @@ print(eval_result)
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          1 | 23369          
-#          2 | 602            
-#          3 | 12             
-#          4 | 1              
+#          2 | 23369          
+#          3 | 602            
+#          4 | 12             
+#          5 | 1                      
 # ========================================================
 print(eval_result.metrics)
 # Evaluation metrics (standard):
@@ -311,6 +311,6 @@ For this example, using `faiss` we achieve:
 - 99.69% recall and precision
 - close to 100% accuracy
 - Near perfect reduction ratio of 1.0
-- Most blocks contain just 1-2 records
+- Most blocks contain just 2-3 records
 
 This demonstrates BlockingPy's effectiveness at finding matching records while drastically reducing the number of required comparisons.

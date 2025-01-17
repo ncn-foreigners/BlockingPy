@@ -56,7 +56,7 @@ print(blocking_result)
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          1 | 3
+#          2 | 3
 ```
 Our output contains:
 
@@ -98,7 +98,7 @@ print(dedup_result)
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          3 | 2
+#          4 | 2
 ```
 Output contains similar information as the record linkage one:
 

@@ -1,7 +1,16 @@
 # Changelog
 
-## v0.1.5 or 1.0.0
+## v0.1.7
+- added CODE_OF_CONDUCT.md
+- documentation update
+- fixed issus with inner ANN algorithms when performing deduplication
+
+## v0.1.6
+- revamped block size distribution calculation.
+
+## v0.1.5
 - added separate `eval` method strictly for evaluation.
+- allowed for `from blockingpy import Blocker` instead of `from blockingpy.blocker import Blocker`
 
 ## v0.1.4
 - fixed reduction ratio calculation

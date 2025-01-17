@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.8 (unreleased)
+- added author Maciej Beręsewicz
+- added info about funding
+- minor changes
+
 ## v0.1.7
 - added CODE_OF_CONDUCT.md
 - documentation update

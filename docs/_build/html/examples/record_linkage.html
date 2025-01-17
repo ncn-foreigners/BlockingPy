@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Record Linkage &mdash; BlockingPy 0.1.2 documentation</title>
+  <title>Record Linkage &mdash; BlockingPy 0.1.7 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=92734c54"></script>
+      <script src="../_static/documentation_options.js?v=ca7ad2ea"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -101,7 +101,7 @@
 </pre></div>
 </div>
 <p>Import required packages:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">blockingpy.blocker</span> <span class="kn">import</span> <span class="n">Blocker</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">blockingpy</span> <span class="kn">import</span> <span class="n">Blocker</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 </pre></div>
 </div>
@@ -229,25 +229,25 @@
 
 <span class="c1"># ========================================================</span>
 <span class="c1"># Blocking based on the hnsw method.</span>
-<span class="c1"># Number of blocks: 23997</span>
+<span class="c1"># Number of blocks: 23996</span>
 <span class="c1"># Number of columns used for blocking: 1072</span>
 <span class="c1"># Reduction ratio: 1.0000</span>
 <span class="c1"># ========================================================</span>
 <span class="c1"># Distribution of the size of the blocks:</span>
 <span class="c1"># Block Size | Number of Blocks</span>
-<span class="c1">#          1 | 23394          </span>
-<span class="c1">#          2 | 591            </span>
-<span class="c1">#          3 | 11             </span>
-<span class="c1">#          4 | 1   </span>
+<span class="c1">#          2 | 23392          </span>
+<span class="c1">#          3 | 592            </span>
+<span class="c1">#          4 | 11             </span>
+<span class="c1">#          5 | 1   </span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">rec_lin_result</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 
-<span class="c1">#        x  y  block      dist</span>
-<span class="c1"># 0  17339  0      0  0.273628</span>
-<span class="c1"># 1   9567  1      1  0.103388</span>
-<span class="c1"># 2  10389  2      2  0.107852</span>
-<span class="c1"># 3  24258  3      3  0.211039</span>
-<span class="c1"># 4   3714  4      4  0.294986</span>
+<span class="c1">#            x      y  block      dist</span>
+<span class="c1"># 0      17339      0      0  0.273628</span>
+<span class="c1"># 1       9567      1      1  0.103388</span>
+<span class="c1"># 2      10389      2      2  0.107852</span>
+<span class="c1"># 3      24258      3      3  0.211039</span>
+<span class="c1"># 4       3714      4      4  0.294986</span>
 </pre></div>
 </div>
 <p>Let’s take a look at the pair in block <code class="docutils literal notranslate"><span class="pre">0</span></code> :</p>
@@ -341,10 +341,10 @@
 <span class="c1"># ========================================================</span>
 <span class="c1"># Distribution of the size of the blocks:</span>
 <span class="c1"># Block Size | Number of Blocks</span>
-<span class="c1">#          1 | 23369          </span>
-<span class="c1">#          2 | 602            </span>
-<span class="c1">#          3 | 12             </span>
-<span class="c1">#          4 | 1              </span>
+<span class="c1">#          2 | 23369          </span>
+<span class="c1">#          3 | 602            </span>
+<span class="c1">#          4 | 12             </span>
+<span class="c1">#          5 | 1                      </span>
 <span class="c1"># ========================================================</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
 <span class="c1"># Evaluation metrics (standard):</span>
@@ -377,7 +377,7 @@
 <li><p>99.69% recall and precision</p></li>
 <li><p>close to 100% accuracy</p></li>
 <li><p>Near perfect reduction ratio of 1.0</p></li>
-<li><p>Most blocks contain just 1-2 records</p></li>
+<li><p>Most blocks contain just 2-3 records</p></li>
 </ul>
 <p>This demonstrates BlockingPy’s effectiveness at finding matching records while drastically reducing the number of required comparisons.</p>
 </section>
@@ -394,7 +394,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Tymoteusz Strojny.</p>
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

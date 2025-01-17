@@ -10,9 +10,9 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 project = 'BlockingPy'
-copyright = '2024, Tymoteusz Strojny'
-author = 'Tymoteusz Strojny'
-release = '0.1.2'
+copyright = '2025, Tymoteusz Strojny and Maciej Beręsewicz'
+author = 'Tymoteusz Strojny, Maciej Beręsewicz'
+release = '0.1.7'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

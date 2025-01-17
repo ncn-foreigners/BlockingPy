@@ -43,19 +43,23 @@ If you're new to BlockingPy, we recommend following these steps:
 
 ## License
 
-BlockingPy is released under [MIT license](https://github.com/T-Strojny/BlockingPy/blob/main/LICENSE).
+BlockingPy is released under [MIT license](https://github.com/ncn-foreigners/BlockingPy/blob/main/LICENSE).
 
 ## Issues
 
-Feel free to report any issues, bugs, suggestions with github issues [here](https://github.com/T-Strojny/BlockingPy/issues).
+Feel free to report any issues, bugs, suggestions with github issues [here](https://github.com/ncn-foreigners/BlockingPy/issues).
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](https://github.com/T-Strojny/BlockingPy/blob/main/CONTRIBUTING.md) for more information.
+Please see [CONTRIBUTING.md](https://github.com/ncn-foreigners/BlockingPy/blob/main/CONTRIBUTING.md) for more information.
 
 ## Code of Conduct
 You can find it [here](https://github.com/ncn-foreigners/BlockingPy/blob/main/CODE_OF_CONDUCT.md).
 
 ## Acknowledgements
 
-This package is based on the R [blocking](https://github.com/ncn-foreigners/blocking/tree/main) package developed by [BERENZ](https://github.com/BERENZ). Special thanks to the original author for his foundational work in this area.
+This package is based on the R [blocking](https://github.com/ncn-foreigners/blocking/tree/main) package developed by [BERENZ](https://github.com/BERENZ).
+
+## Funding
+
+Work on this package is supported by the National Science Centre, OPUS 20 grant no. 2020/39/B/HS4/00941 (Towards census-like statistics for foreign-born populations -- quality, data integration and estimation)
