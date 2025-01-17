@@ -1,8 +1,10 @@
 # Changelog
 
-## v0.1.8 (unreleased)
+## v0.1.8 
 - added author Maciej Beręsewicz
 - added info about funding
+- added data inside the package
+- added new deduplication example in docs
 - minor changes
 
 ## v0.1.7

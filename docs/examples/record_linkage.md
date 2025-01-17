@@ -1,12 +1,16 @@
 (record_linkage)=
 # Record Linkage
 
-This example demonstrates how to use BlockingPy for record linkage between two datasets. We'll use example data from the URos 2021 Conference tutorial which contains:
+This example demonstrates how to use BlockingPy for record linkage between two datasets. We'll use example data created by Paula McLeod, Dick Heasman and Ian Forbes, ONS,
+    for the ESSnet DI on-the-job training course, Southampton,
+    25-28 January 2011:
 
 - Census: A fictional dataset representing observations from a decennial Census
 - CIS: Fictional observations from Customer Information System (combined administrative data from tax and benefit systems)
 
 Some records in the CIS dataset contain Census person IDs, which we'll use to evaluate our blocking performance.
+
+This datasets come with the `BlockingPy` package and can be accesed via `load_census_cis_data` function from `blockingpy.datasets`.
 
 ## Setup
 
@@ -20,6 +24,7 @@ Import required packages:
 
 ```python
 from blockingpy import Blocker
+from blockingpy.datasets import load_census_cis_data
 import pandas as pd
 ```
 
@@ -28,8 +33,14 @@ import pandas as pd
 Download example data:
 
 ```python
-census = pd.read_csv("https://raw.githubusercontent.com/djvanderlaan/tutorial-reclin-uros2021/main/data/census.csv")
-cis = pd.read_csv("https://raw.githubusercontent.com/djvanderlaan/tutorial-reclin-uros2021/main/data/cis.csv")
+census, cis = load_census_cis_data()
+```
+
+Firstly, we need to filter only those columns which we'll need:
+
+```python
+census = census[["PERSON_ID", "PERNAME1", "PERNAME2", "SEX", "DOB_DAY", "DOB_MON", "DOB_YEAR", "ENUMCAP", "ENUMPC"]]
+cis = cis[["PERSON_ID", "PERNAME1", "PERNAME2", "SEX", "DOB_DAY", "DOB_MON", "DOB_YEAR", "ENUMCAP", "ENUMPC"]]
 ```
 
 Let's take a look at the data:
@@ -37,14 +48,14 @@ Let's take a look at the data:
 ```python
 print(census.head())
 
-#       person_id pername1 pername2 sex  dob_day  dob_mon  dob_year  \
+#       PERSON_ID PERNAME1 PERNAME2 SEX  DOB_DAY  DOB_MON  DOB_YEAR  \
 # 0  DE03US001001    COUIE    PRICE   M      1.0        6    1960.0   
 # 1  DE03US001002    ABBIE    PVICE   F      9.0       11    1961.0   
 # 2  DE03US001003    LACEY    PRICE   F      7.0        2    1999.0   
 # 3  DE03US001004   SAMUEL    PRICE   M     13.0        4    1990.0   
 # 4  DE03US001005   JOSEPH    PRICE   M     20.0        4    1986.0   
 
-#           enumcap  enumpc  
+#           ENUMCAP  ENUMPC  
 # 0  1 WINDSOR ROAD  DE03US  
 # 1  1 WINDSOR ROAD  DE03US  
 # 2  1 WINDSOR ROAD  DE03US  
@@ -53,14 +64,14 @@ print(census.head())
 
 print(cis.head())
 
-#   person_id  pername1  pername2 sex  dob_day  dob_mon  dob_year  \
+#   PERSON_ID  PERNAME1  PERNAME2 SEX  DOB_DAY  DOB_MON  DOB_YEAR  \
 # 0       NaN    HAYDEN      HALL   M      NaN        1       NaN   
 # 1       NaN     SEREN  ANDERSON   F      1.0        1       NaN   
 # 2       NaN     LEWIS     LEWIS   M      1.0        1       NaN   
 # 3       NaN  HARRISON    POSTER   M      5.0        1       NaN   
 # 4       NaN  MUHAMMED    WATSUN   M      7.0        1       NaN   
 
-#               enumcap   enumpc  
+#               ENUMCAP   ENUMPC  
 # 0    91 CLARENCE ROAD  PO827ER  
 # 1      24 CHURCH LANE  LS992DB  
 # 2      53 CHURCH ROAD   M432ZZ  
@@ -78,21 +89,21 @@ Preprocess data and create column `txt` containing concatenated variables:
 
 ```python
 # Convert numeric fields to strings
-census[['dob_day', 'dob_mon', 'dob_year']] = census[['dob_day', 'dob_mon', 'dob_year']].astype(str)
-cis[['dob_day', 'dob_mon', 'dob_year']] = cis[['dob_day', 'dob_mon', 'dob_year']].astype(str)
+census[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']] = census[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']].astype(str)
+cis[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']] = cis[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']].astype(str)
 
 # Fill NAs with empty strings
 census = census.fillna('')
 cis = cis.fillna('')
 
 # Concatenate fields
-census['txt'] = census['pername1'] + census['pername2'] + census['sex'] + \
-                census['dob_day'] + census['dob_mon'] + census['dob_year'] + \
-                census['enumcap'] + census['enumpc']
+census['txt'] = census['PERNAME1'] + census['PERNAME2'] + census['SEX'] + \
+                census['DOB_DAY'] + census['DOB_MON'] + census['DOB_YEAR'] + \
+                census['ENUMCAP'] + census['ENUMPC']
 
-cis['txt'] = cis['pername1'] + cis['pername2'] + cis['sex'] + \
-             cis['dob_day'] + cis['dob_mon'] + cis['dob_year'] + \
-             cis['enumcap'] + cis['enumpc']
+cis['txt'] = cis['PERNAME1'] + cis['PERNAME2'] + cis['SEX'] + \
+             cis['DOB_DAY'] + cis['DOB_MON'] + cis['DOB_YEAR'] + \
+             cis['ENUMCAP'] + cis['ENUMPC']
 ```
 
 Let's see how the new column looks like:
@@ -182,28 +193,28 @@ Let's take a look at the pair in block `0` :
 print(cis.iloc[0, :])
 print(census.iloc[17339, :])
 
-# person_id                                             
-# pername1                                        HAYDEN
-# pername2                                          HALL
-# sex                                                  M
-# dob_day                                            nan
-# dob_mon                                              1
-# dob_year                                           nan
-# enumcap                               91 CLARENCE ROAD
-# enumpc                                         PO827ER
+# PERSON_ID                                             
+# PERNAME1                                        HAYDEN
+# PERNAME2                                          HALL
+# SEX                                                  M
+# DOB_DAY                                            nan
+# DOB_MON                                              1
+# DOB_YEAR                                           nan
+# ENUMCAP                               91 CLARENCE ROAD
+# ENUMPC                                         PO827ER
 # txt          HAYDENHALLMnan1nan91 CLARENCE ROADPO827ER
 # y                                                    0
 # Name: 0, dtype: object
 
-# person_id                                   PO827ER091001
-# pername1                                           HAYDEM
-# pername2                                             HALL
-# sex                                                     M
-# dob_day                                               1.0
-# dob_mon                                                 1
-# dob_year                                           1957.0
-# enumcap                                  91 CLARENCE ROAD
-# enumpc                                            PO827ER
+# PERSON_ID                                   PO827ER091001
+# PERNAME1                                           HAYDEM
+# PERNAME2                                             HALL
+# SEX                                                     M
+# DOB_DAY                                               1.0
+# DOB_MON                                                 1
+# DOB_YEAR                                           1957.0
+# ENUMCAP                                  91 CLARENCE ROAD
+# ENUMPC                                            PO827ER
 # txt          HAYDEMHALLM1.011957.091 CLARENCE ROADPO827ER
 # x                                                   17339
 
@@ -220,9 +231,9 @@ cis['y'] = range(len(cis))
 
 # Find true matches using person_id
 matches = pd.merge(
-    left=census[['person_id', 'x']],
-    right=cis[['person_id', 'y']],
-    on='person_id'
+    left=census[['PERSON_ID', 'x']],
+    right=cis[['PERSON_ID', 'y']],
+    on='PERSON_ID'
 )
 
 # Add block numbers

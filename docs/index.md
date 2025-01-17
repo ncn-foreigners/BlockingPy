@@ -41,6 +41,17 @@ If you're new to BlockingPy, we recommend following these steps:
 4. Explore the {ref}`user-guide` for detailed usage instructions
 5. Obtain more information via {ref}`api`
 
+## Example Datasets
+
+BlockingPy comes with built-in example datasets:
+
+- Census-Cis dataset created by Paula McLeod, Dick Heasman and Ian Forbes, ONS,
+    for the ESSnet DI on-the-job training course, Southampton,
+    25-28 January 2011
+
+- Deduplication dataset taken from [RecordLinkage](https://cran.r-project.org/package=RecordLinkage) R package developed by Murat Sariyar
+    and Andreas Borg. Package is licensed under GPL-3 license. Also known as [RLdata10000](https://www.rdocumentation.org/packages/RecordLinkage/versions/0.4-12.4/topics/RLdata).
+
 ## License
 
 BlockingPy is released under [MIT license](https://github.com/ncn-foreigners/BlockingPy/blob/main/LICENSE).
