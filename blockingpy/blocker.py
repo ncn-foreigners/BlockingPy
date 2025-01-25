@@ -155,6 +155,9 @@ class Blocker:
         2. Sparse matrices (scipy.sparse.csr_matrix) as a Document-Term Matrix (DTM)
         3. Dense matrices (numpy.ndarray) as a Document-Term Matrix (DTM)
 
+        For evaluation of larger datasets, we recommend using the separate eval() method
+            since it allows you to set the batch size for evaluation.
+
         For text data, additional preprocessing is performed using
         the parameters in control_txt.
 
@@ -171,6 +174,7 @@ class Blocker:
         self.y_colnames = y_colnames
         self.control_ann = controls_ann(control_ann)
         self.control_txt = controls_txt(control_txt)
+        self.EVAL_BATCH_SIZE = 10_000
 
         if deduplication:
             self.y_colnames = self.x_colnames
@@ -266,7 +270,6 @@ class Blocker:
             x_df["query_g"] = "q" + x_df["y"].astype(str)
             x_df["index_g"] = "i" + x_df["x"].astype(str)
 
-        # IGRAPH PART IN R
         x_gr = nx.from_pandas_edgelist(
             x_df, source="query_g", target="index_g", create_using=nx.Graph()
         )
@@ -288,37 +291,24 @@ class Blocker:
                 sorted_dict[key] = x_block[key]
 
         x_df["block"] = x_df["query_g"].apply(lambda x: x_block[x] if x in x_block else None)
-        ###
 
         if true_blocks is not None:
             if not deduplication:
-                candidate_pairs = list(itertools.product(list(range(len(x_dtm))), true_blocks["y"]))
-                cp_df = pd.DataFrame(candidate_pairs, columns=["x", "y"])
-                cp_df = cp_df.astype(int)
-                comparison_df = (
-                    cp_df.merge(true_blocks, on=["x", "y"], how="left")
-                    .rename(columns={"block": "block_true"})
-                    .merge(x_df, on=["x", "y"], how="left")
-                    .rename(columns={"block": "block_pred"})
-                )
-                comparison_df["TP"] = (comparison_df["block_true"].notna()) & (
-                    comparison_df["block_pred"].notna()
-                )
-                # CNL -> Correct Non-Links / True Negative
-                comparison_df["CNL"] = (comparison_df["block_true"].isna()) & (
-                    comparison_df["block_pred"].isna()
-                )
-                comparison_df["FP"] = (comparison_df["block_true"].isna()) & (
-                    comparison_df["block_pred"].notna()
-                )
-                comparison_df["FN"] = (comparison_df["block_true"].notna()) & (
-                    comparison_df["block_pred"].isna()
-                )
+                total_tn = total_fp = total_fn = total_tp = 0
+                batch_size = 10_000
+                n_records = len(x_dtm)
+
+                for start_idx in range(0, n_records, batch_size):
+                    tn, fp, fn, tp = self._process_record_linkage_batch(
+                        start_idx, batch_size, n_records, true_blocks, x_df
+                    )
+                    total_tn += tn
+                    total_fp += fp
+                    total_fn += fn
+                    total_tp += tp
+
                 self.confusion = pd.DataFrame(
-                    [
-                        [comparison_df["CNL"].sum(), comparison_df["FN"].sum()],
-                        [comparison_df["FP"].sum(), comparison_df["TP"].sum()],
-                    ],
+                    [[total_tn, total_fn], [total_fp, total_tp]],
                     index=["Predicted Negative", "Predicted Positive"],
                     columns=["Actual Negative", "Actual Positive"],
                 )
@@ -332,37 +322,38 @@ class Blocker:
                     .rename(columns={"block": "true_id"})
                 )
 
-                candidate_pairs = np.array(
-                    list(itertools.combinations(range(pairs_to_eval_long.shape[0]), 2))
+                total_tn = total_fp = total_fn = total_tp = 0
+                batch_size = 10_000
+                n_pairs = pairs_to_eval_long.shape[0]
+
+                for start_idx in range(0, n_pairs, batch_size):
+                    tn, fp, fn, tp = self._process_dedup_batch(
+                        pairs_to_eval_long, start_idx, batch_size
+                    )
+                    total_tn += tn
+                    total_fp += fp
+                    total_fn += fn
+                    total_tp += tp
+
+                self.confusion = pd.DataFrame(
+                    [[total_tn, total_fn], [total_fp, total_tp]],
+                    index=["Predicted Negative", "Predicted Positive"],
+                    columns=["Actual Negative", "Actual Positive"],
                 )
 
-                block_id_array = pairs_to_eval_long["block_id"].to_numpy()
-                true_id_array = pairs_to_eval_long["true_id"].to_numpy()
-                same_block = (
-                    block_id_array[candidate_pairs[:, 0]] == block_id_array[candidate_pairs[:, 1]]
-                )
-                same_truth = (
-                    true_id_array[candidate_pairs[:, 0]] == true_id_array[candidate_pairs[:, 1]]
-                )
-
-                self.confusion = pd.crosstab(same_block, same_truth)
-                self.confusion.index = ["Predicted Negative", "Predicted Positive"]
-                self.confusion.columns = ["Actual Negative", "Actual Positive"]
-
-            fp = self.confusion.iloc[1, 0]
-            fn = self.confusion.iloc[0, 1]
-            tp = self.confusion.iloc[1, 1]
-            tn = self.confusion.iloc[0, 0]
-
-            recall = tp / (fn + tp) if (fn + tp) != 0 else 0
-            precision = tp / (tp + fp) if (tp + fp) != 0 else 0
+            recall = total_tp / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
+            precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) != 0 else 0
             f1_score = (
                 2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
             )
-            accuracy = (tp + tn) / (tp + tn + fp + fn)
-            specificity = tn / (tn + fp) if (tn + fp) != 0 else 0
-            fpr = fp / (fp + tn) if (fp + tn) != 0 else 0
-            fnr = fn / (fn + tp) if (fn + tp) != 0 else 0
+            accuracy = (
+                (total_tp + total_tn) / (total_tp + total_tn + total_fp + total_fn)
+                if (total_tp + total_tn + total_fp + total_fn) != 0
+                else 0
+            )
+            specificity = total_tn / (total_tn + total_fp) if (total_tn + total_fp) != 0 else 0
+            fpr = total_fp / (total_fp + total_tn) if (total_fp + total_tn) != 0 else 0
+            fnr = total_fn / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
 
             self.eval_metrics = {
                 "recall": recall,
@@ -389,14 +380,17 @@ class Blocker:
             graph=graph,
         )
 
-    def eval(self, blocking_result: BlockingResult, true_blocks: pd.DataFrame) -> BlockingResult:
+    def eval(
+        self, blocking_result: BlockingResult, true_blocks: pd.DataFrame, batch_size: int = 10_000
+    ) -> BlockingResult:
         """
         Evaluate blocking results against true block assignments and return new BlockingResult.
 
         This method calculates evaluation metrics and confusion matrix
         by comparing predicted blocks with known true blocks and returns
         a new BlockingResult instance containing the evaluation results
-        along with the original blocking results.
+        along with the original blocking results. It allows you to set
+        the batch size for evaluation of larger datasets.
 
         Parameters
         ----------
@@ -406,6 +400,10 @@ class Blocker:
             DataFrame with true block assignments
             For deduplication: columns ['x', 'block']
             For record linkage: columns ['x', 'y', 'block']
+        batch_size : int
+            Number of records from dataset X to evaluate in each batch.
+            Each batch will be compared with all records from dataset Y.
+            Defaults to 10,000.
 
         Returns
         -------
@@ -433,35 +431,20 @@ class Blocker:
         InputValidator.validate_true_blocks(true_blocks, blocking_result.deduplication)
 
         if not blocking_result.deduplication:
-            candidate_pairs = list(
-                itertools.product(list(range(blocking_result.len_x)), true_blocks["y"])
-            )
-            cp_df = pd.DataFrame(candidate_pairs, columns=["x", "y"])
-            cp_df = cp_df.astype(int)
-            comparison_df = (
-                cp_df.merge(true_blocks, on=["x", "y"], how="left")
-                .rename(columns={"block": "block_true"})
-                .merge(blocking_result.result, on=["x", "y"], how="left")
-                .rename(columns={"block": "block_pred"})
-            )
-            comparison_df["TP"] = (comparison_df["block_true"].notna()) & (
-                comparison_df["block_pred"].notna()
-            )
-            # CNL -> Correct Non-Links / True Negative
-            comparison_df["CNL"] = (comparison_df["block_true"].isna()) & (
-                comparison_df["block_pred"].isna()
-            )
-            comparison_df["FP"] = (comparison_df["block_true"].isna()) & (
-                comparison_df["block_pred"].notna()
-            )
-            comparison_df["FN"] = (comparison_df["block_true"].notna()) & (
-                comparison_df["block_pred"].isna()
-            )
+            total_tn = total_fp = total_fn = total_tp = 0
+            n_records = blocking_result.len_x
+
+            for start_idx in range(0, n_records, batch_size):
+                tn, fp, fn, tp = self._process_record_linkage_batch(
+                    start_idx, batch_size, n_records, true_blocks, blocking_result.result
+                )
+                total_tn += tn
+                total_fp += fp
+                total_fn += fn
+                total_tp += tp
+
             confusion = pd.DataFrame(
-                [
-                    [comparison_df["CNL"].sum(), comparison_df["FN"].sum()],
-                    [comparison_df["FP"].sum(), comparison_df["TP"].sum()],
-                ],
+                [[total_tn, total_fn], [total_fp, total_tp]],
                 index=["Predicted Negative", "Predicted Positive"],
                 columns=["Actual Negative", "Actual Positive"],
             )
@@ -477,37 +460,37 @@ class Blocker:
                 .rename(columns={"block": "true_id"})
             )
 
-            candidate_pairs = np.array(
-                list(itertools.combinations(range(pairs_to_eval_long.shape[0]), 2))
+            total_tn = total_fp = total_fn = total_tp = 0
+            n_pairs = pairs_to_eval_long.shape[0]
+
+            for start_idx in range(0, n_pairs, batch_size):
+                tn, fp, fn, tp = self._process_dedup_batch(
+                    pairs_to_eval_long, start_idx, batch_size
+                )
+                total_tn += tn
+                total_fp += fp
+                total_fn += fn
+                total_tp += tp
+
+            confusion = pd.DataFrame(
+                [[total_tn, total_fn], [total_fp, total_tp]],
+                index=["Predicted Negative", "Predicted Positive"],
+                columns=["Actual Negative", "Actual Positive"],
             )
 
-            block_id_array = pairs_to_eval_long["block_id"].to_numpy()
-            true_id_array = pairs_to_eval_long["true_id"].to_numpy()
-            same_block = (
-                block_id_array[candidate_pairs[:, 0]] == block_id_array[candidate_pairs[:, 1]]
-            )
-            same_truth = (
-                true_id_array[candidate_pairs[:, 0]] == true_id_array[candidate_pairs[:, 1]]
-            )
-
-            confusion = pd.crosstab(same_block, same_truth)
-            confusion.index = ["Predicted Negative", "Predicted Positive"]
-            confusion.columns = ["Actual Negative", "Actual Positive"]
-
-        fp = confusion.iloc[1, 0]
-        fn = confusion.iloc[0, 1]
-        tp = confusion.iloc[1, 1]
-        tn = confusion.iloc[0, 0]
-
-        recall = tp / (fn + tp) if (fn + tp) != 0 else 0
-        precision = tp / (tp + fp) if (tp + fp) != 0 else 0
+        recall = total_tp / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
+        precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) != 0 else 0
         f1_score = (
             2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
         )
-        accuracy = (tp + tn) / (tp + tn + fp + fn)
-        specificity = tn / (tn + fp) if (tn + fp) != 0 else 0
-        fpr = fp / (fp + tn) if (fp + tn) != 0 else 0
-        fnr = fn / (fn + tp) if (fn + tp) != 0 else 0
+        accuracy = (
+            (total_tp + total_tn) / (total_tp + total_tn + total_fp + total_fn)
+            if (total_tp + total_tn + total_fp + total_fn) != 0
+            else 0
+        )
+        specificity = total_tn / (total_tn + total_fp) if (total_tn + total_fp) != 0 else 0
+        fpr = total_fp / (total_fp + total_tn) if (total_fp + total_tn) != 0 else 0
+        fnr = total_fn / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
 
         eval_metrics = {
             "recall": recall,
@@ -531,3 +514,114 @@ class Blocker:
             colnames_xy=blocking_result.colnames,
             graph=blocking_result.graph is not None,
         )
+
+    def _process_dedup_batch(
+        self, pairs_to_eval_long: pd.DataFrame, start_idx: int, batch_size: int
+    ) -> tuple[int, int, int, int]:
+        """
+        Process a batch of candidate pairs for deduplication evaluation.
+        This method processes a subset of record pairs to compute confusion matrix elements
+        for evaluating blocking quality.
+
+        Parameters
+        ----------
+        pairs_to_eval_long : pd.DataFrame
+            DataFrame containing record pairs with their block_id and true_id assignments.
+        start_idx : int
+            Starting index in the pairs DataFrame to process.
+        batch_size : int
+            Number of records to process in this batch.
+
+        Returns
+        -------
+        tuple[int, int, int, int]
+            A tuple containing partial confusion matrix counts:
+            - tn (true negatives): Pairs correctly not blocked together
+            - fp (false positives): Pairs incorrectly blocked together
+            - fn (false negatives): Pairs incorrectly not blocked together
+            - tp (true positives): Pairs correctly blocked together
+
+        Notes
+        -----
+        The method generates all possible pairs within the batch range and compares
+        their blocking assignments against their true matching status.
+
+        """
+        n_pairs = pairs_to_eval_long.shape[0]
+        pairs_range = range(start_idx, min(start_idx + batch_size, n_pairs))
+        candidate_pairs = np.array([(i, j) for i in pairs_range for j in range(i + 1, n_pairs)])
+
+        if len(candidate_pairs) == 0:
+            return 0, 0, 0, 0
+
+        block_id_array = pairs_to_eval_long["block_id"].to_numpy()
+        true_id_array = pairs_to_eval_long["true_id"].to_numpy()
+
+        same_block = block_id_array[candidate_pairs[:, 0]] == block_id_array[candidate_pairs[:, 1]]
+        same_truth = true_id_array[candidate_pairs[:, 0]] == true_id_array[candidate_pairs[:, 1]]
+
+        tn = np.sum(~same_block & ~same_truth)
+        fp = np.sum(same_block & ~same_truth)
+        fn = np.sum(~same_block & same_truth)
+        tp = np.sum(same_block & same_truth)
+
+        return tn, fp, fn, tp
+
+    def _process_record_linkage_batch(
+        self,
+        start_idx: int,
+        batch_size: int,
+        n_records: int,
+        true_blocks: pd.DataFrame,
+        blocking_df: pd.DataFrame,
+    ) -> tuple[int, int, int, int]:
+        """
+        Process a batch of record pairs and compute confusion matrix counts.
+        This method processes a subset of record pairs for record linkage evaluation.
+
+        Parameters
+        ----------
+        start_idx : int
+            Starting index of the batch in the record set
+        batch_size : int
+            Size of the batch to process
+        n_records : int
+            Total number of records
+        true_blocks : pd.DataFrame
+            DataFrame containing true blocking assignments with columns ['x', 'y', 'block']
+        blocking_df : pd.DataFrame
+            DataFrame containing predicted blocking assignments with columns ['x', 'y', 'block']
+
+        Returns
+        -------
+        tuple[int, int, int, int]
+            A tuple containing (true_negatives, false_positives, false_negatives, true_positives)
+
+        Notes
+        -----
+        - The method generates all possible pairs between records in the batch and compares
+          their blocking assignments.
+
+        """
+        end_idx = min(start_idx + batch_size, n_records)
+        batch_pairs = list(itertools.product(range(start_idx, end_idx), true_blocks["y"]))
+
+        if not batch_pairs:
+            return 0, 0, 0, 0
+
+        cp_df = pd.DataFrame(batch_pairs, columns=["x", "y"])
+        cp_df = cp_df.astype(int)
+
+        comparison_df = (
+            cp_df.merge(true_blocks, on=["x", "y"], how="left")
+            .rename(columns={"block": "block_true"})
+            .merge(blocking_df, on=["x", "y"], how="left")
+            .rename(columns={"block": "block_pred"})
+        )
+
+        tp = np.sum((comparison_df["block_true"].notna()) & (comparison_df["block_pred"].notna()))
+        tn = np.sum((comparison_df["block_true"].isna()) & (comparison_df["block_pred"].isna()))
+        fp = np.sum((comparison_df["block_true"].isna()) & (comparison_df["block_pred"].notna()))
+        fn = np.sum((comparison_df["block_true"].notna()) & (comparison_df["block_pred"].isna()))
+
+        return tn, fp, fn, tp
