@@ -122,11 +122,15 @@ result = blocker.block(
 )
 evals = blocker.eval(
     blocking_result=result,
-    true_blocks=true_blocks
+    true_blocks=true_blocks,
+    batch_size=100 # (default is 10,000)
 )
 print(evals.metrics)
 print(evals.confusion) 
 ```
+
+Note: We recommend using eval() method when evaluating larger datasets since it allows you to set the batch size for currently evaluated record pairs.
+
 ### Example ground truth for record linkage
 
 ```python

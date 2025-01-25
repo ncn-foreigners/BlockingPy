@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.1.9
+- optimized evaluation part to allow batch processing
+
 ## v0.1.8 
 - added author Maciej Beręsewicz
 - added info about funding

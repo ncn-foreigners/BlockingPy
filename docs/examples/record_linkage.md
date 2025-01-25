@@ -271,6 +271,9 @@ eval_result = blocker.block(
 #     true_blocks=matches[['x', 'y', 'block']]
 #)
 # The procedure in both cases stays the same.
+
+# Note: We recommend using eval() method when evaluating larger datasets 
+# since it allows you to set the batch size for currently evaluated record pairs.
 ```
 
 and print results with evaluation metrics:

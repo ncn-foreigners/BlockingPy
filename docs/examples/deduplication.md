@@ -236,6 +236,7 @@ eval_result = blocker.block(
 #     true_blocks=true_blocs_dedup
 # ) 
 # The rest stays the same in both cases
+#Note: We recommend using eval() method when evaluating larger datasets since it allows you to set the batch #size for currently evaluated record pairs.
 
 print(eval_result)
 print(eval_result.metrics)
