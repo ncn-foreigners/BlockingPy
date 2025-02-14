@@ -41,21 +41,36 @@ If you're new to BlockingPy, we recommend following these steps:
 4. Explore the {ref}`user-guide` for detailed usage instructions
 5. Obtain more information via {ref}`api`
 
+## Example Datasets
+
+BlockingPy comes with built-in example datasets:
+
+- Census-Cis dataset created by Paula McLeod, Dick Heasman and Ian Forbes, ONS,
+    for the ESSnet DI on-the-job training course, Southampton,
+    25-28 January 2011
+
+- Deduplication dataset taken from [RecordLinkage](https://cran.r-project.org/package=RecordLinkage) R package developed by Murat Sariyar
+    and Andreas Borg. Package is licensed under GPL-3 license. Also known as [RLdata10000](https://www.rdocumentation.org/packages/RecordLinkage/versions/0.4-12.4/topics/RLdata).
+
 ## License
 
-BlockingPy is released under [MIT license](https://github.com/T-Strojny/BlockingPy/blob/main/LICENSE).
+BlockingPy is released under [MIT license](https://github.com/ncn-foreigners/BlockingPy/blob/main/LICENSE).
 
 ## Issues
 
-Feel free to report any issues, bugs, suggestions with github issues [here](https://github.com/T-Strojny/BlockingPy/issues).
+Feel free to report any issues, bugs, suggestions with github issues [here](https://github.com/ncn-foreigners/BlockingPy/issues).
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](https://github.com/T-Strojny/BlockingPy/blob/main/CONTRIBUTING.md) for more information.
+Please see [CONTRIBUTING.md](https://github.com/ncn-foreigners/BlockingPy/blob/main/CONTRIBUTING.md) for more information.
 
 ## Code of Conduct
 You can find it [here](https://github.com/ncn-foreigners/BlockingPy/blob/main/CODE_OF_CONDUCT.md).
 
 ## Acknowledgements
 
-This package is based on the R [blocking](https://github.com/ncn-foreigners/blocking/tree/main) package developed by [BERENZ](https://github.com/BERENZ). Special thanks to the original author for his foundational work in this area.
+This package is based on the R [blocking](https://github.com/ncn-foreigners/blocking/tree/main) package developed by [BERENZ](https://github.com/BERENZ).
+
+## Funding
+
+Work on this package is supported by the National Science Centre, OPUS 20 grant no. 2020/39/B/HS4/00941 (Towards census-like statistics for foreign-born populations -- quality, data integration and estimation)

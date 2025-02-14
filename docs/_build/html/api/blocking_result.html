@@ -59,7 +59,8 @@
 <li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocking_result.BlockingResult.confusion"><code class="docutils literal notranslate"><span class="pre">BlockingResult.confusion</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocking_result.BlockingResult.colnames"><code class="docutils literal notranslate"><span class="pre">BlockingResult.colnames</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocking_result.BlockingResult.graph"><code class="docutils literal notranslate"><span class="pre">BlockingResult.graph</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocking_result.BlockingResult.len_x"><code class="docutils literal notranslate"><span class="pre">BlockingResult.len_x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocking_result.BlockingResult.n_original_records"><code class="docutils literal notranslate"><span class="pre">BlockingResult.n_original_records</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocking_result.BlockingResult.reduction_ratio"><code class="docutils literal notranslate"><span class="pre">BlockingResult.reduction_ratio</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -100,7 +101,7 @@
 blocking results.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="blockingpy.blocking_result.BlockingResult">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blockingpy.blocking_result.</span></span><span class="sig-name descname"><span class="pre">BlockingResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ann</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deduplication</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">len_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confusion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colnames_xy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blockingpy/blocking_result.html#BlockingResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.blocking_result.BlockingResult" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blockingpy.blocking_result.</span></span><span class="sig-name descname"><span class="pre">BlockingResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ann</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deduplication</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_original_records</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">confusion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colnames_xy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reduction_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/blockingpy/blocking_result.html#BlockingResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.blocking_result.BlockingResult" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A class to represent and analyze the results of a blocking operation.</p>
 <p>This class provides functionality to analyze and evaluate blocking results,
@@ -113,11 +114,12 @@ graph representation of the blocking structure.</p>
 <li><p><strong>ann</strong> (<em>str</em>) – The blocking method used (e.g., ‘nnd’, ‘hnsw’, ‘annoy’, etc.)</p></li>
 <li><p><strong>deduplication</strong> (<em>bool</em>) – Whether the blocking was performed for deduplication</p></li>
 <li><p><strong>true_blocks</strong> (<em>pandas.DataFrame</em><em>, </em><em>optional</em>) – DataFrame with true blocks to calculate evaluation metrics</p></li>
-<li><p><strong>len_x</strong> (<em>int</em>) – Number of records in the original reference dataset</p></li>
+<li><p><strong>n_original_records</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>) – Number of records in the original dataset(s)</p></li>
 <li><p><strong>eval_metrics</strong> (<em>pandas.Series</em><em>, </em><em>optional</em>) – Evaluation metrics if true blocks were provided</p></li>
 <li><p><strong>confusion</strong> (<em>pandas.DataFrame</em><em>, </em><em>optional</em>) – Confusion matrix if true blocks were provided</p></li>
 <li><p><strong>colnames_xy</strong> (<em>numpy.ndarray</em>) – Column names used in the blocking process</p></li>
 <li><p><strong>graph</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to create a graph from the blocking results (default False)</p></li>
+<li><p><strong>reduction_ratio</strong> (<em>float</em><em>, </em><em>optional</em>) – Pre-calculated reduction ratio (default None)</p></li>
 </ul>
 </dd>
 </dl>
@@ -199,12 +201,23 @@ graph representation of the blocking structure.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="blockingpy.blocking_result.BlockingResult.len_x">
-<span class="sig-name descname"><span class="pre">len_x</span></span><a class="headerlink" href="#blockingpy.blocking_result.BlockingResult.len_x" title="Link to this definition"></a></dt>
-<dd><p>Number of records in the original reference dataset</p>
+<dt class="sig sig-object py" id="blockingpy.blocking_result.BlockingResult.n_original_records">
+<span class="sig-name descname"><span class="pre">n_original_records</span></span><a class="headerlink" href="#blockingpy.blocking_result.BlockingResult.n_original_records" title="Link to this definition"></a></dt>
+<dd><p>Number of records in the original dataset(s)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
+<dd class="field-odd"><p>tuple[int, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.blocking_result.BlockingResult.reduction_ratio">
+<span class="sig-name descname"><span class="pre">reduction_ratio</span></span><a class="headerlink" href="#blockingpy.blocking_result.BlockingResult.reduction_ratio" title="Link to this definition"></a></dt>
+<dd><p>Reduction ratio calculated for the blocking method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>

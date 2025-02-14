@@ -55,6 +55,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="deduplication.html">Deduplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deduplication_2.html">Deduplication No. 2</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">BlockingPy API</a></li>
@@ -88,12 +89,15 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="record-linkage">
 <span id="id1"></span><h1>Record Linkage<a class="headerlink" href="#record-linkage" title="Link to this heading"></a></h1>
-<p>This example demonstrates how to use BlockingPy for record linkage between two datasets. We’ll use example data from the URos 2021 Conference tutorial which contains:</p>
+<p>This example demonstrates how to use BlockingPy for record linkage between two datasets. We’ll use example data created by Paula McLeod, Dick Heasman and Ian Forbes, ONS,
+for the ESSnet DI on-the-job training course, Southampton,
+25-28 January 2011:</p>
 <ul class="simple">
 <li><p>Census: A fictional dataset representing observations from a decennial Census</p></li>
 <li><p>CIS: Fictional observations from Customer Information System (combined administrative data from tax and benefit systems)</p></li>
 </ul>
 <p>Some records in the CIS dataset contain Census person IDs, which we’ll use to evaluate our blocking performance.</p>
+<p>This datasets come with the <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> package and can be accesed via <code class="docutils literal notranslate"><span class="pre">load_census_cis_data</span></code> function from <code class="docutils literal notranslate"><span class="pre">blockingpy.datasets</span></code>.</p>
 <section id="setup">
 <h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
 <p>First, install BlockingPy:</p>
@@ -102,6 +106,7 @@
 </div>
 <p>Import required packages:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">blockingpy</span> <span class="kn">import</span> <span class="n">Blocker</span>
+<span class="kn">from</span> <span class="nn">blockingpy.datasets</span> <span class="kn">import</span> <span class="n">load_census_cis_data</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 </pre></div>
 </div>
@@ -109,21 +114,25 @@
 <section id="data-preparation">
 <h2>Data Preparation<a class="headerlink" href="#data-preparation" title="Link to this heading"></a></h2>
 <p>Download example data:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">census</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;https://raw.githubusercontent.com/djvanderlaan/tutorial-reclin-uros2021/main/data/census.csv&quot;</span><span class="p">)</span>
-<span class="n">cis</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;https://raw.githubusercontent.com/djvanderlaan/tutorial-reclin-uros2021/main/data/cis.csv&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">census</span><span class="p">,</span> <span class="n">cis</span> <span class="o">=</span> <span class="n">load_census_cis_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Firstly, we need to filter only those columns which we’ll need:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">census</span> <span class="o">=</span> <span class="n">census</span><span class="p">[[</span><span class="s2">&quot;PERSON_ID&quot;</span><span class="p">,</span> <span class="s2">&quot;PERNAME1&quot;</span><span class="p">,</span> <span class="s2">&quot;PERNAME2&quot;</span><span class="p">,</span> <span class="s2">&quot;SEX&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_DAY&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_MON&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_YEAR&quot;</span><span class="p">,</span> <span class="s2">&quot;ENUMCAP&quot;</span><span class="p">,</span> <span class="s2">&quot;ENUMPC&quot;</span><span class="p">]]</span>
+<span class="n">cis</span> <span class="o">=</span> <span class="n">cis</span><span class="p">[[</span><span class="s2">&quot;PERSON_ID&quot;</span><span class="p">,</span> <span class="s2">&quot;PERNAME1&quot;</span><span class="p">,</span> <span class="s2">&quot;PERNAME2&quot;</span><span class="p">,</span> <span class="s2">&quot;SEX&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_DAY&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_MON&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_YEAR&quot;</span><span class="p">,</span> <span class="s2">&quot;ENUMCAP&quot;</span><span class="p">,</span> <span class="s2">&quot;ENUMPC&quot;</span><span class="p">]]</span>
 </pre></div>
 </div>
 <p>Let’s take a look at the data:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">census</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 
-<span class="c1">#       person_id pername1 pername2 sex  dob_day  dob_mon  dob_year  \</span>
+<span class="c1">#       PERSON_ID PERNAME1 PERNAME2 SEX  DOB_DAY  DOB_MON  DOB_YEAR  \</span>
 <span class="c1"># 0  DE03US001001    COUIE    PRICE   M      1.0        6    1960.0   </span>
 <span class="c1"># 1  DE03US001002    ABBIE    PVICE   F      9.0       11    1961.0   </span>
 <span class="c1"># 2  DE03US001003    LACEY    PRICE   F      7.0        2    1999.0   </span>
 <span class="c1"># 3  DE03US001004   SAMUEL    PRICE   M     13.0        4    1990.0   </span>
 <span class="c1"># 4  DE03US001005   JOSEPH    PRICE   M     20.0        4    1986.0   </span>
 
-<span class="c1">#           enumcap  enumpc  </span>
+<span class="c1">#           ENUMCAP  ENUMPC  </span>
 <span class="c1"># 0  1 WINDSOR ROAD  DE03US  </span>
 <span class="c1"># 1  1 WINDSOR ROAD  DE03US  </span>
 <span class="c1"># 2  1 WINDSOR ROAD  DE03US  </span>
@@ -132,19 +141,19 @@
 
 <span class="nb">print</span><span class="p">(</span><span class="n">cis</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 
-<span class="c1">#   person_id  pername1  pername2 sex  dob_day  dob_mon  dob_year  \</span>
-<span class="c1"># 0       NaN    HAYDEN      HALL   M      NaN        1       NaN   </span>
-<span class="c1"># 1       NaN     SEREN  ANDERSON   F      1.0        1       NaN   </span>
-<span class="c1"># 2       NaN     LEWIS     LEWIS   M      1.0        1       NaN   </span>
-<span class="c1"># 3       NaN  HARRISON    POSTER   M      5.0        1       NaN   </span>
-<span class="c1"># 4       NaN  MUHAMMED    WATSUN   M      7.0        1       NaN   </span>
+<span class="c1">#        PERSON_ID  PERNAME1  PERNAME2 SEX  DOB_DAY  DOB_MON  DOB_YEAR  \</span>
+<span class="c1"># 0  PO827ER091001    HAYDEN      HALL   M      NaN        1       NaN   </span>
+<span class="c1"># 1  LS992DB024001     SEREN  ANDERSON   F      1.0        1       NaN   </span>
+<span class="c1"># 2   M432ZZ053003     LEWIS     LEWIS   M      1.0        1       NaN   </span>
+<span class="c1"># 3   SW75TQ018001  HARRISON    POSTER   M      5.0        1       NaN   </span>
+<span class="c1"># 4  EX527TR017006  MUHAMMED    WATSUN   M      7.0        1       NaN   </span>
 
-<span class="c1">#               enumcap   enumpc  </span>
+<span class="c1">#               ENUMCAP   ENUMPC  </span>
 <span class="c1"># 0    91 CLARENCE ROAD  PO827ER  </span>
 <span class="c1"># 1      24 CHURCH LANE  LS992DB  </span>
 <span class="c1"># 2      53 CHURCH ROAD   M432ZZ  </span>
 <span class="c1"># 3   19 HIGHFIELD ROAD   SW75TG  </span>
-<span class="c1"># 4  17 VICTORIA STREET      NaN </span>
+<span class="c1"># 4  17 VICTORIA STREET      NaN  </span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">census</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="c1"># (25343, 9)</span>
@@ -155,21 +164,21 @@
 </div>
 <p>Preprocess data and create column <code class="docutils literal notranslate"><span class="pre">txt</span></code> containing concatenated variables:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Convert numeric fields to strings</span>
-<span class="n">census</span><span class="p">[[</span><span class="s1">&#39;dob_day&#39;</span><span class="p">,</span> <span class="s1">&#39;dob_mon&#39;</span><span class="p">,</span> <span class="s1">&#39;dob_year&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">census</span><span class="p">[[</span><span class="s1">&#39;dob_day&#39;</span><span class="p">,</span> <span class="s1">&#39;dob_mon&#39;</span><span class="p">,</span> <span class="s1">&#39;dob_year&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
-<span class="n">cis</span><span class="p">[[</span><span class="s1">&#39;dob_day&#39;</span><span class="p">,</span> <span class="s1">&#39;dob_mon&#39;</span><span class="p">,</span> <span class="s1">&#39;dob_year&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cis</span><span class="p">[[</span><span class="s1">&#39;dob_day&#39;</span><span class="p">,</span> <span class="s1">&#39;dob_mon&#39;</span><span class="p">,</span> <span class="s1">&#39;dob_year&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+<span class="n">census</span><span class="p">[[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_MON&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">census</span><span class="p">[[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_MON&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+<span class="n">cis</span><span class="p">[[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_MON&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cis</span><span class="p">[[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_MON&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
 
 <span class="c1"># Fill NAs with empty strings</span>
 <span class="n">census</span> <span class="o">=</span> <span class="n">census</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 <span class="n">cis</span> <span class="o">=</span> <span class="n">cis</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 
 <span class="c1"># Concatenate fields</span>
-<span class="n">census</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;pername1&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;pername2&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;sex&#39;</span><span class="p">]</span> <span class="o">+</span> \
-                <span class="n">census</span><span class="p">[</span><span class="s1">&#39;dob_day&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;dob_mon&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;dob_year&#39;</span><span class="p">]</span> <span class="o">+</span> \
-                <span class="n">census</span><span class="p">[</span><span class="s1">&#39;enumcap&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;enumpc&#39;</span><span class="p">]</span>
+<span class="n">census</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;PERNAME1&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;PERNAME2&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;SEX&#39;</span><span class="p">]</span> <span class="o">+</span> \
+                <span class="n">census</span><span class="p">[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;DOB_MON&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]</span> <span class="o">+</span> \
+                <span class="n">census</span><span class="p">[</span><span class="s1">&#39;ENUMCAP&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;ENUMPC&#39;</span><span class="p">]</span>
 
-<span class="n">cis</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;pername1&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;pername2&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;sex&#39;</span><span class="p">]</span> <span class="o">+</span> \
-             <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;dob_day&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;dob_mon&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;dob_year&#39;</span><span class="p">]</span> <span class="o">+</span> \
-             <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;enumcap&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;enumpc&#39;</span><span class="p">]</span>
+<span class="n">cis</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;PERNAME1&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;PERNAME2&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;SEX&#39;</span><span class="p">]</span> <span class="o">+</span> \
+             <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;DOB_MON&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]</span> <span class="o">+</span> \
+             <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;ENUMCAP&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;ENUMPC&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>Let’s see how the new column looks like:</p>
@@ -231,7 +240,7 @@
 <span class="c1"># Blocking based on the hnsw method.</span>
 <span class="c1"># Number of blocks: 23996</span>
 <span class="c1"># Number of columns used for blocking: 1072</span>
-<span class="c1"># Reduction ratio: 1.0000</span>
+<span class="c1"># Reduction ratio: 0.999961</span>
 <span class="c1"># ========================================================</span>
 <span class="c1"># Distribution of the size of the blocks:</span>
 <span class="c1"># Block Size | Number of Blocks</span>
@@ -254,30 +263,28 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">cis</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">census</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">17339</span><span class="p">,</span> <span class="p">:])</span>
 
-<span class="c1"># person_id                                             </span>
-<span class="c1"># pername1                                        HAYDEN</span>
-<span class="c1"># pername2                                          HALL</span>
-<span class="c1"># sex                                                  M</span>
-<span class="c1"># dob_day                                            nan</span>
-<span class="c1"># dob_mon                                              1</span>
-<span class="c1"># dob_year                                           nan</span>
-<span class="c1"># enumcap                               91 CLARENCE ROAD</span>
-<span class="c1"># enumpc                                         PO827ER</span>
+<span class="c1"># PERSON_ID                                PO827ER091001</span>
+<span class="c1"># PERNAME1                                        HAYDEN</span>
+<span class="c1"># PERNAME2                                          HALL</span>
+<span class="c1"># SEX                                                  M</span>
+<span class="c1"># DOB_DAY                                            nan</span>
+<span class="c1"># DOB_MON                                              1</span>
+<span class="c1"># DOB_YEAR                                           nan</span>
+<span class="c1"># ENUMCAP                               91 CLARENCE ROAD</span>
+<span class="c1"># ENUMPC                                         PO827ER</span>
 <span class="c1"># txt          HAYDENHALLMnan1nan91 CLARENCE ROADPO827ER</span>
-<span class="c1"># y                                                    0</span>
 <span class="c1"># Name: 0, dtype: object</span>
-
-<span class="c1"># person_id                                   PO827ER091001</span>
-<span class="c1"># pername1                                           HAYDEM</span>
-<span class="c1"># pername2                                             HALL</span>
-<span class="c1"># sex                                                     M</span>
-<span class="c1"># dob_day                                               1.0</span>
-<span class="c1"># dob_mon                                                 1</span>
-<span class="c1"># dob_year                                           1957.0</span>
-<span class="c1"># enumcap                                  91 CLARENCE ROAD</span>
-<span class="c1"># enumpc                                            PO827ER</span>
+<span class="c1"># PERSON_ID                                   PO827ER091001</span>
+<span class="c1"># PERNAME1                                           HAYDEM</span>
+<span class="c1"># PERNAME2                                             HALL</span>
+<span class="c1"># SEX                                                     M</span>
+<span class="c1"># DOB_DAY                                               1.0</span>
+<span class="c1"># DOB_MON                                                 1</span>
+<span class="c1"># DOB_YEAR                                           1957.0</span>
+<span class="c1"># ENUMCAP                                  91 CLARENCE ROAD</span>
+<span class="c1"># ENUMPC                                            PO827ER</span>
 <span class="c1"># txt          HAYDEMHALLM1.011957.091 CLARENCE ROADPO827ER</span>
-<span class="c1"># x                                                   17339</span>
+<span class="c1"># Name: 17339, dtype: object</span>
 
 </pre></div>
 </div>
@@ -291,16 +298,20 @@
 
 <span class="c1"># Find true matches using person_id</span>
 <span class="n">matches</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-    <span class="n">left</span><span class="o">=</span><span class="n">census</span><span class="p">[[</span><span class="s1">&#39;person_id&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">]],</span>
-    <span class="n">right</span><span class="o">=</span><span class="n">cis</span><span class="p">[[</span><span class="s1">&#39;person_id&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]],</span>
-    <span class="n">on</span><span class="o">=</span><span class="s1">&#39;person_id&#39;</span>
+    <span class="n">left</span><span class="o">=</span><span class="n">census</span><span class="p">[[</span><span class="s1">&#39;PERSON_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">]],</span>
+    <span class="n">right</span><span class="o">=</span><span class="n">cis</span><span class="p">[[</span><span class="s1">&#39;PERSON_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]],</span>
+    <span class="n">on</span><span class="o">=</span><span class="s1">&#39;PERSON_ID&#39;</span>
 <span class="p">)</span>
 
 <span class="c1"># Add block numbers</span>
 <span class="n">matches</span><span class="p">[</span><span class="s1">&#39;block&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">))</span>
 
 <span class="n">matches</span><span class="o">.</span><span class="n">shape</span>
-<span class="c1"># (971, 4)</span>
+<span class="c1"># (24043, 4)</span>
+</pre></div>
+</div>
+<p>Let’s sample 1000 pairs for which we will evaluate:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">matches</span> <span class="o">=</span> <span class="n">matches</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Now we can evaluate the algorithm:</p>
@@ -329,6 +340,9 @@
 <span class="c1">#     true_blocks=matches[[&#39;x&#39;, &#39;y&#39;, &#39;block&#39;]]</span>
 <span class="c1">#)</span>
 <span class="c1"># The procedure in both cases stays the same.</span>
+
+<span class="c1"># Note: We recommend using eval() method when evaluating larger datasets </span>
+<span class="c1"># since it allows you to set the batch size for currently evaluated record pairs.</span>
 </pre></div>
 </div>
 <p>and print results with evaluation metrics:</p>

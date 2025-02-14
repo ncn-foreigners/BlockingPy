@@ -280,7 +280,7 @@ def test_eval_basic_functionality(small_named_txt_data):
 
     assert eval_result.method == result_no_eval.method
     assert eval_result.deduplication == result_no_eval.deduplication
-    assert eval_result.len_x == result_no_eval.len_x
+    assert eval_result.n_original_records == result_no_eval.n_original_records
     pd.testing.assert_frame_equal(eval_result.result, result_no_eval.result)
 
 

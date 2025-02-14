@@ -64,19 +64,19 @@ print(census.head())
 
 print(cis.head())
 
-#   PERSON_ID  PERNAME1  PERNAME2 SEX  DOB_DAY  DOB_MON  DOB_YEAR  \
-# 0       NaN    HAYDEN      HALL   M      NaN        1       NaN   
-# 1       NaN     SEREN  ANDERSON   F      1.0        1       NaN   
-# 2       NaN     LEWIS     LEWIS   M      1.0        1       NaN   
-# 3       NaN  HARRISON    POSTER   M      5.0        1       NaN   
-# 4       NaN  MUHAMMED    WATSUN   M      7.0        1       NaN   
+#        PERSON_ID  PERNAME1  PERNAME2 SEX  DOB_DAY  DOB_MON  DOB_YEAR  \
+# 0  PO827ER091001    HAYDEN      HALL   M      NaN        1       NaN   
+# 1  LS992DB024001     SEREN  ANDERSON   F      1.0        1       NaN   
+# 2   M432ZZ053003     LEWIS     LEWIS   M      1.0        1       NaN   
+# 3   SW75TQ018001  HARRISON    POSTER   M      5.0        1       NaN   
+# 4  EX527TR017006  MUHAMMED    WATSUN   M      7.0        1       NaN   
 
 #               ENUMCAP   ENUMPC  
 # 0    91 CLARENCE ROAD  PO827ER  
 # 1      24 CHURCH LANE  LS992DB  
 # 2      53 CHURCH ROAD   M432ZZ  
 # 3   19 HIGHFIELD ROAD   SW75TG  
-# 4  17 VICTORIA STREET      NaN 
+# 4  17 VICTORIA STREET      NaN  
 
 print(census.shape)
 # (25343, 9)
@@ -170,7 +170,7 @@ print(rec_lin_result)
 # Blocking based on the hnsw method.
 # Number of blocks: 23996
 # Number of columns used for blocking: 1072
-# Reduction ratio: 1.0000
+# Reduction ratio: 0.999961
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
@@ -193,7 +193,7 @@ Let's take a look at the pair in block `0` :
 print(cis.iloc[0, :])
 print(census.iloc[17339, :])
 
-# PERSON_ID                                             
+# PERSON_ID                                PO827ER091001
 # PERNAME1                                        HAYDEN
 # PERNAME2                                          HALL
 # SEX                                                  M
@@ -203,9 +203,7 @@ print(census.iloc[17339, :])
 # ENUMCAP                               91 CLARENCE ROAD
 # ENUMPC                                         PO827ER
 # txt          HAYDENHALLMnan1nan91 CLARENCE ROADPO827ER
-# y                                                    0
 # Name: 0, dtype: object
-
 # PERSON_ID                                   PO827ER091001
 # PERNAME1                                           HAYDEM
 # PERNAME2                                             HALL
@@ -216,7 +214,7 @@ print(census.iloc[17339, :])
 # ENUMCAP                                  91 CLARENCE ROAD
 # ENUMPC                                            PO827ER
 # txt          HAYDEMHALLM1.011957.091 CLARENCE ROADPO827ER
-# x                                                   17339
+# Name: 17339, dtype: object
 
 ```
 
@@ -240,7 +238,11 @@ matches = pd.merge(
 matches['block'] = range(len(matches))
 
 matches.shape
-# (971, 4)
+# (24043, 4)
+```
+Let's sample 1000 pairs for which we will evaluate:
+```python
+matches = matches.sample(1000, random_state=42)
 ```
 
 Now we can evaluate the algorithm:

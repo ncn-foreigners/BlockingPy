@@ -233,6 +233,8 @@ search algorithms for blocking in record linkage and deduplication tasks.</p>
 1. Text data (pandas.Series)
 2. Sparse matrices (scipy.sparse.csr_matrix) as a Document-Term Matrix (DTM)
 3. Dense matrices (numpy.ndarray) as a Document-Term Matrix (DTM)</p>
+<p>For evaluation of larger datasets, we recommend using the separate eval() method
+since it allows you to set the batch size for evaluation.</p>
 <p>For text data, additional preprocessing is performed using
 the parameters in control_txt.</p>
 <div class="admonition seealso">
@@ -250,12 +252,13 @@ the parameters in control_txt.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="blockingpy.blocker.Blocker.eval">
-<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocking_result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><span class="pre">BlockingResult</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><span class="pre">BlockingResult</span></a></span></span><a class="reference internal" href="../_modules/blockingpy/blocker.html#Blocker.eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.blocker.Blocker.eval" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocking_result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><span class="pre">BlockingResult</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><span class="pre">BlockingResult</span></a></span></span><a class="reference internal" href="../_modules/blockingpy/blocker.html#Blocker.eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.blocker.Blocker.eval" title="Link to this definition"></a></dt>
 <dd><p>Evaluate blocking results against true block assignments and return new BlockingResult.</p>
 <p>This method calculates evaluation metrics and confusion matrix
 by comparing predicted blocks with known true blocks and returns
 a new BlockingResult instance containing the evaluation results
-along with the original blocking results.</p>
+along with the original blocking results. It allows you to set
+the batch size for evaluation of larger datasets.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -263,6 +266,8 @@ along with the original blocking results.</p>
 <li><p><strong>true_blocks</strong> (<em>pandas.DataFrame</em>) – DataFrame with true block assignments
 For deduplication: columns [‘x’, ‘block’]
 For record linkage: columns [‘x’, ‘y’, ‘block’]</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>) – Size of the batch for evaluation. This size if applied for both datasets
+for record linkage. Defaults to 1,000.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

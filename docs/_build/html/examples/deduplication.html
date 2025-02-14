@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="BlockingPy API" href="../api/index.html" />
+    <link rel="next" title="Deduplication No. 2" href="deduplication_2.html" />
     <link rel="prev" title="Record Linkage" href="record_linkage.html" /> 
 </head>
 
@@ -55,6 +55,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#evaluation-with-true-blocks">Evaluation with True Blocks</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="deduplication_2.html">Deduplication No. 2</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">BlockingPy API</a></li>
@@ -305,6 +306,7 @@
 <span class="c1">#     true_blocks=true_blocs_dedup</span>
 <span class="c1"># ) </span>
 <span class="c1"># The rest stays the same in both cases</span>
+<span class="c1">#Note: We recommend using eval() method when evaluating larger datasets since it allows you to set the batch #size for currently evaluated record pairs.</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
@@ -361,7 +363,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="record_linkage.html" class="btn btn-neutral float-left" title="Record Linkage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../api/index.html" class="btn btn-neutral float-right" title="BlockingPy API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="deduplication_2.html" class="btn btn-neutral float-right" title="Deduplication No. 2" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

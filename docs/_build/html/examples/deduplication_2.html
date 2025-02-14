@@ -1,0 +1,343 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deduplication No. 2 &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BlockingPy API" href="../api/index.html" />
+    <link rel="prev" title="Deduplication" href="deduplication.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="record_linkage.html">Record Linkage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deduplication.html">Deduplication</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Deduplication No. 2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data-preparation">Data Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#basic-deduplication">Basic Deduplication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#true-blocks-preparation">True Blocks Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#evaluation">Evaluation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples</a></li>
+      <li class="breadcrumb-item active">Deduplication No. 2</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/deduplication_2.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="deduplication-no-2">
+<h1>Deduplication No. 2<a class="headerlink" href="#deduplication-no-2" title="Link to this heading"></a></h1>
+<p>In this example we’ll use data known as <code class="docutils literal notranslate"><span class="pre">RLdata10000</span></code> taken from <a class="reference external" href="https://cran.r-project.org/package=RecordLinkage">RecordLinkage</a> R package developed by Murat Sariyar
+and Andreas Borg. It contains 10 000 records in total where some have been duplicated with randomly generated errors. There are 9000 original records and 1000 duplicates.</p>
+<section id="data-preparation">
+<h2>Data Preparation<a class="headerlink" href="#data-preparation" title="Link to this heading"></a></h2>
+<p>Let’s install <code class="docutils literal notranslate"><span class="pre">blockingpy</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>blockingpy
+</pre></div>
+</div>
+<p>Import necessary packages and functions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">blockingpy</span> <span class="kn">import</span> <span class="n">Blocker</span>
+<span class="kn">from</span> <span class="nn">blockingpy.datasets</span> <span class="kn">import</span> <span class="n">load_deduplication_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Let’s load the data and take a look at first 5 rows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">load_deduplication_data</span><span class="p">()</span>
+<span class="n">data</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+
+<span class="c1"># 	fname_c1	fname_c2	lname_c1	lname_c2   by	bm	bd	id  true_id</span>
+<span class="c1"># 0	FRANK	    NaN	        MUELLER	    NaN	       1967	9	27	1	3606</span>
+<span class="c1"># 1	MARTIN	    NaN	        SCHWARZ	    NaN	       1967	2	17	2	2560</span>
+<span class="c1"># 2	HERBERT	    NaN	        ZIMMERMANN  NaN	       1961	11	6	3	3892</span>
+<span class="c1"># 3	HANS	    NaN	        SCHMITT	    NaN	       1945	8	14	4	329</span>
+<span class="c1"># 4	UWE	    NaN	        KELLER	    NaN	       2000	7	5	5	1994</span>
+</pre></div>
+</div>
+<p>Now we need to prepare the <code class="docutils literal notranslate"><span class="pre">txt</span></code> column:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[[</span><span class="s1">&#39;by&#39;</span><span class="p">,</span> <span class="s1">&#39;bm&#39;</span><span class="p">,</span> <span class="s1">&#39;bd&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[[</span><span class="s1">&#39;by&#39;</span><span class="p">,</span> <span class="s1">&#39;bm&#39;</span><span class="p">,</span> <span class="s1">&#39;bd&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;str&#39;</span><span class="p">)</span>
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;fname_c1&quot;</span><span class="p">]</span> <span class="o">+</span>
+    <span class="n">data</span><span class="p">[</span><span class="s2">&quot;fname_c2&quot;</span><span class="p">]</span> <span class="o">+</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;lname_c1&#39;</span><span class="p">]</span> <span class="o">+</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;lname_c2&#39;</span><span class="p">]</span> <span class="o">+</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;by&#39;</span><span class="p">]</span> <span class="o">+</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;bm&#39;</span><span class="p">]</span> <span class="o">+</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;bd&#39;</span><span class="p">]</span>
+    <span class="p">)</span>   
+<span class="n">data</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+
+<span class="c1"># 0         FRANKMUELLER1967927</span>
+<span class="c1"># 1        MARTINSCHWARZ1967217</span>
+<span class="c1"># 2    HERBERTZIMMERMANN1961116</span>
+<span class="c1"># 3          HANSSCHMITT1945814</span>
+<span class="c1"># 4             UWEKELLER200075</span>
+<span class="c1"># Name: txt, dtype: object</span>
+</pre></div>
+</div>
+</section>
+<section id="basic-deduplication">
+<h2>Basic Deduplication<a class="headerlink" href="#basic-deduplication" title="Link to this heading"></a></h2>
+<p>Let’s perfrom basic deduplication using <code class="docutils literal notranslate"><span class="pre">hnsw</span></code> algorithm</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">blocker</span> <span class="o">=</span> <span class="n">Blocker</span><span class="p">()</span>
+<span class="n">dedup_result</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">],</span>
+    <span class="n">ann</span><span class="o">=</span><span class="s1">&#39;hnsw&#39;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># ===== creating tokens =====</span>
+<span class="c1"># ===== starting search (hnsw, x, y: 10000,10000, t: 674) =====</span>
+<span class="c1"># ===== creating graph =====</span>
+</pre></div>
+</div>
+<p>We can now take a look at the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dedup_result</span><span class="p">)</span>
+
+<span class="c1"># ========================================================</span>
+<span class="c1"># Blocking based on the hnsw method.</span>
+<span class="c1"># Number of blocks: 2736</span>
+<span class="c1"># Number of columns used for blocking: 674</span>
+<span class="c1"># Reduction ratio: 0.9996</span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Distribution of the size of the blocks:</span>
+<span class="c1"># Block Size | Number of Blocks</span>
+<span class="c1">#          2 | 962            </span>
+<span class="c1">#          3 | 725            </span>
+<span class="c1">#          4 | 409            </span>
+<span class="c1">#          5 | 263            </span>
+<span class="c1">#          6 | 139            </span>
+<span class="c1">#          7 | 89             </span>
+<span class="c1">#          8 | 52             </span>
+<span class="c1">#          9 | 37             </span>
+<span class="c1">#         10 | 24             </span>
+<span class="c1">#         11 | 14             </span>
+<span class="c1">#         12 | 9              </span>
+<span class="c1">#         13 | 5              </span>
+<span class="c1">#         14 | 2              </span>
+<span class="c1">#         15 | 1              </span>
+<span class="c1">#         16 | 1              </span>
+<span class="c1">#         17 | 2              </span>
+<span class="c1">#         20 | 1              </span>
+<span class="c1">#         64 | 1   </span>
+</pre></div>
+</div>
+<p>and:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dedup_result</span><span class="o">.</span><span class="n">result</span><span class="p">)</span>
+<span class="c1">#          x     y  block      dist</span>
+<span class="c1"># 0     3402     0      0  0.256839</span>
+<span class="c1"># 1     1179     1      1  0.331352</span>
+<span class="c1"># 2     2457     2      2  0.209737</span>
+<span class="c1"># 3     1956     3      3  0.085341</span>
+<span class="c1"># 4     4448     4      4  0.375000</span>
+<span class="c1"># ...    ...   ...    ...       ...</span>
+<span class="c1"># 7259  9206  9994   1981  0.390912</span>
+<span class="c1"># 7260  6309  9995   1899  0.268436</span>
+<span class="c1"># 7261  5162  9996   1742  0.188893</span>
+<span class="c1"># 7262  6501  9997   1293  0.245406</span>
+<span class="c1"># 7263  5183  9999   1273  0.209088</span>
+</pre></div>
+</div>
+<p>Let’s see the pair in the <code class="docutils literal notranslate"><span class="pre">block</span></code> no. <code class="docutils literal notranslate"><span class="pre">3</span></code></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[[</span><span class="mi">1956</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">:</span> <span class="p">])</span>
+<span class="c1">#      fname_c1 fname_c2 lname_c1  ...    id true_id                  txt</span>
+<span class="c1"># 1956    HRANS           SCHMITT  ...  1957     329  HRANSSCHMITT1945814</span>
+<span class="c1"># 3        HANS           SCHMITT  ...     4     329   HANSSCHMITT1945814</span>
+</pre></div>
+</div>
+</section>
+<section id="true-blocks-preparation">
+<h2>True Blocks Preparation<a class="headerlink" href="#true-blocks-preparation" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df_eval</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">df_eval</span><span class="p">[</span><span class="s1">&#39;block&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_eval</span><span class="p">[</span><span class="s1">&#39;true_id&#39;</span><span class="p">]</span>
+<span class="n">df_eval</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_eval</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">df_eval</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<span class="c1">#   fname_c1 fname_c2    lname_c1  ...                       txt block  x</span>
+<span class="c1"># 0    FRANK              MUELLER  ...       FRANKMUELLER1967927  3606  0</span>
+<span class="c1"># 1   MARTIN              SCHWARZ  ...      MARTINSCHWARZ1967217  2560  1</span>
+<span class="c1"># 2  HERBERT           ZIMMERMANN  ...  HERBERTZIMMERMANN1961116  3892  2</span>
+<span class="c1"># 3     HANS              SCHMITT  ...        HANSSCHMITT1945814   329  3</span>
+<span class="c1"># 4      UWE               KELLER  ...           UWEKELLER200075  1994  4</span>
+</pre></div>
+</div>
+<p>Let’s create the final <code class="docutils literal notranslate"><span class="pre">true_blocks_dedup</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">true_blocks_dedup</span> <span class="o">=</span> <span class="n">df_eval</span><span class="p">[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;block&#39;</span><span class="p">]]</span>
+</pre></div>
+</div>
+</section>
+<section id="evaluation">
+<h2>Evaluation<a class="headerlink" href="#evaluation" title="Link to this heading"></a></h2>
+<p>Now we can evaluate our algorithm:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;faiss&quot;</span><span class="p">:{</span>
+        <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">blocker</span> <span class="o">=</span> <span class="n">Blocker</span><span class="p">()</span>
+<span class="n">eval_result</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">df_eval</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">],</span> 
+    <span class="n">ann</span><span class="o">=</span><span class="s1">&#39;faiss&#39;</span><span class="p">,</span>
+    <span class="n">true_blocks</span><span class="o">=</span><span class="n">true_blocks_dedup</span><span class="p">,</span> 
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+    <span class="n">control_ann</span><span class="o">=</span><span class="n">control_ann</span>
+<span class="p">)</span>
+<span class="c1"># ===== creating tokens =====</span>
+<span class="c1"># ===== starting search (faiss, x, y: 10000,10000, t: 674) =====</span>
+<span class="c1"># ===== creating graph =====</span>
+</pre></div>
+</div>
+<p>And the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Blocking based on the faiss method.</span>
+<span class="c1"># Number of blocks: 2737</span>
+<span class="c1"># Number of columns used for blocking: 674</span>
+<span class="c1"># Reduction ratio: 0.9996</span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Distribution of the size of the blocks:</span>
+<span class="c1"># Block Size | Number of Blocks</span>
+<span class="c1">#          2 | 972            </span>
+<span class="c1">#          3 | 721            </span>
+<span class="c1">#          4 | 423            </span>
+<span class="c1">#          5 | 236            </span>
+<span class="c1">#          6 | 138            </span>
+<span class="c1">#          7 | 92             </span>
+<span class="c1">#          8 | 62             </span>
+<span class="c1">#          9 | 29             </span>
+<span class="c1">#         10 | 28             </span>
+<span class="c1">#         11 | 15             </span>
+<span class="c1">#         12 | 8              </span>
+<span class="c1">#         13 | 3              </span>
+<span class="c1">#         14 | 3              </span>
+<span class="c1">#         15 | 1              </span>
+<span class="c1">#         16 | 1              </span>
+<span class="c1">#         17 | 2              </span>
+<span class="c1">#         18 | 1              </span>
+<span class="c1">#         20 | 1              </span>
+<span class="c1">#         67 | 1              </span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Evaluation metrics (standard):</span>
+<span class="c1"># recall : 100.0</span>
+<span class="c1"># precision : 4.7651</span>
+<span class="c1"># fpr : 0.04</span>
+<span class="c1"># fnr : 0.0</span>
+<span class="c1"># accuracy : 99.96</span>
+<span class="c1"># specificity : 99.96</span>
+<span class="c1"># f1_score : 9.0967</span>
+<span class="c1"># recall         1.000000</span>
+<span class="c1"># precision      0.047651</span>
+<span class="c1"># fpr            0.000400</span>
+<span class="c1"># fnr            0.000000</span>
+<span class="c1"># accuracy       0.999600</span>
+<span class="c1"># specificity    0.999600</span>
+<span class="c1"># f1_score       0.090967</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="o">.</span><span class="n">confusion</span><span class="p">)</span>
+<span class="c1"># 	                Actual Negative     Actual Positive</span>
+<span class="c1"># Predicted Negative	49974014	    0</span>
+<span class="c1"># Predicted Positive	19986	            1000</span>
+</pre></div>
+</div>
+<p>The results show high reduction ratio <code class="docutils literal notranslate"><span class="pre">0.9996</span></code> alongside perfect recall (<code class="docutils literal notranslate"><span class="pre">1.000</span></code>) indicating that our package handled this dataset very well.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="deduplication.html" class="btn btn-neutral float-left" title="Deduplication" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api/index.html" class="btn btn-neutral float-right" title="BlockingPy API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
