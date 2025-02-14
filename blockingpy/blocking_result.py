@@ -29,8 +29,8 @@ class BlockingResult:
         Whether the blocking was performed for deduplication
     true_blocks : pandas.DataFrame, optional
         DataFrame with true blocks to calculate evaluation metrics
-    len_x : int
-        Number of records in the original reference dataset
+    n_original_records : tuple[int, int]
+        Number of records in the original dataset(s)
     eval_metrics : pandas.Series, optional
         Evaluation metrics if true blocks were provided
     confusion : pandas.DataFrame, optional
@@ -39,6 +39,8 @@ class BlockingResult:
         Column names used in the blocking process
     graph : bool, optional
         Whether to create a graph from the blocking results (default False)
+    reduction_ratio : float, optional
+        Pre-calculated reduction ratio (default None)
 
     Attributes
     ----------
@@ -56,8 +58,10 @@ class BlockingResult:
         Names of columns used in blocking
     graph : networkx.Graph or None
         Network representation of blocking results if requested
-    len_x : int
-        Number of records in the original reference dataset
+    n_original_records : tuple[int, int]
+        Number of records in the original dataset(s)
+    reduction_ratio : float
+        Reduction ratio calculated for the blocking method
 
     Notes
     -----
@@ -71,12 +75,13 @@ class BlockingResult:
         x_df: pd.DataFrame,
         ann: str,
         deduplication: bool,
-        len_x: int,
+        n_original_records: tuple[int, int],
         true_blocks: pd.DataFrame | None,
         eval_metrics: pd.Series | None,
         confusion: pd.DataFrame | None,
         colnames_xy: np.ndarray,
         graph: bool | None = False,
+        reduction_ratio: float | None = None,
     ) -> None:
         """Initialize a BlockingResult instance."""
         self.result = x_df[["x", "y", "block", "dist"]]
@@ -88,7 +93,12 @@ class BlockingResult:
         self.graph = (
             nx.from_pandas_edgelist(x_df[["x", "y"]], source="x", target="y") if graph else None
         )
-        self.len_x = len_x
+        self.n_original_records = n_original_records
+
+        if reduction_ratio is None:
+            self.reduction_ratio = self._calculate_reduction_ratio()
+        else:
+            self.reduction_ratio = reduction_ratio
 
     def __repr__(self) -> str:
         """
@@ -129,14 +139,13 @@ class BlockingResult:
                 self.result.groupby("block").agg({"x": "nunique", "y": "nunique"}).sum(axis=1)
             )
         block_size_dist = Counter(block_sizes.values)
-        reduction_ratio = self._calculate_reduction_ratio()
 
         output = []
         output.append("=" * 56)
         output.append(f"Blocking based on the {self.method} method.")
         output.append(f"Number of blocks: {len(block_sizes)}")
         output.append(f"Number of columns used for blocking: {len(self.colnames)}")
-        output.append(f"Reduction ratio: {reduction_ratio:.4f}")
+        output.append(f"Reduction ratio: {self.reduction_ratio:.6f}")
         output.append("=" * 56)
 
         output.append("Distribution of the size of the blocks:")
@@ -174,13 +183,13 @@ class BlockingResult:
 
         """
         if self.deduplication:
-            denominator = self.len_x * (self.len_x - 1) / 2
+            denominator = self.n_original_records[0] * (self.n_original_records[0] - 1) / 2
             block_sizes = self.result.groupby("block")[["x", "y"]].apply(
                 lambda x: len(pd.concat([x["x"], x["y"]]).unique())
             )
             numerator = (block_sizes * (block_sizes - 1) / 2).sum() if len(block_sizes) > 0 else 0
         else:
-            denominator = self.len_x * len(self.result)
+            denominator = self.n_original_records[0] * self.n_original_records[1]
             block_comparisons = self.result.groupby("block").agg({"x": "nunique", "y": "nunique"})
             numerator = (block_comparisons["x"] * block_comparisons["y"]).sum()
 

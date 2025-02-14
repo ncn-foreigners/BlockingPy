@@ -163,11 +163,8 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
             "query_ef": -1,
         },
         "faiss": {
-            # to my knowledge, faiss only allows these parameters to be set
             "k_search": 30,
-            "distance": "euclidean",
-            # 'use_gpu': False, NOT SUPPORTED YET
-            # 'use_mutltiple_gpus': False, NOT SUPPORTED YET
+            "distance": "cosine",
             "path": None,
         },
         "algo": "lsh",

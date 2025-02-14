@@ -156,7 +156,7 @@ class Blocker:
         3. Dense matrices (numpy.ndarray) as a Document-Term Matrix (DTM)
 
         For evaluation of larger datasets, we recommend using the separate eval() method
-            since it allows you to set the batch size for evaluation.
+        since it allows you to set the batch size for evaluation.
 
         For text data, additional preprocessing is performed using
         the parameters in control_txt.
@@ -174,7 +174,6 @@ class Blocker:
         self.y_colnames = y_colnames
         self.control_ann = controls_ann(control_ann)
         self.control_txt = controls_txt(control_txt)
-        self.EVAL_BATCH_SIZE = 10_000
 
         if deduplication:
             self.y_colnames = self.x_colnames
@@ -203,9 +202,11 @@ class Blocker:
         if y is not None:
             deduplication = False
             k = 1
+            len_y = y.shape[0]
         else:
             y = x
             k = 2
+            len_y = None
 
         InputValidator.validate_true_blocks(true_blocks, deduplication)
 
@@ -257,7 +258,7 @@ class Blocker:
             verbose=True if verbose in {2, 3} else False,
             controls=self.control_ann,
         )
-        logger.info("===== creating graph =====\n")
+        logger.info("===== creating graph =====")
 
         if deduplication:
             x_df["pair"] = x_df.apply(lambda row: tuple(sorted([row["y"], row["x"]])), axis=1)
@@ -293,53 +294,55 @@ class Blocker:
         x_df["block"] = x_df["query_g"].apply(lambda x: x_block[x] if x in x_block else None)
 
         if true_blocks is not None:
+            logger.info("===== evaluating =====")
+            total_tn = total_fp = total_fn = total_tp = 0
+            batch_size = 1000
+
             if not deduplication:
-                total_tn = total_fp = total_fn = total_tp = 0
-                batch_size = 10_000
-                n_records = len(x_dtm)
+                unique_tb_x = true_blocks["x"].unique()
+                unique_tb_y = true_blocks["y"].unique()
 
-                for start_idx in range(0, n_records, batch_size):
-                    tn, fp, fn, tp = self._process_record_linkage_batch(
-                        start_idx, batch_size, n_records, true_blocks, x_df
-                    )
-                    total_tn += tn
-                    total_fp += fp
-                    total_fn += fn
-                    total_tp += tp
+                for start_idx_x in range(0, len(unique_tb_x), batch_size):
+                    sub_x = unique_tb_x[start_idx_x : start_idx_x + batch_size]
+                    for start_idx_y in range(0, len(unique_tb_y), batch_size):
+                        sub_y = unique_tb_y[start_idx_y : start_idx_y + batch_size]
 
-                self.confusion = pd.DataFrame(
-                    [[total_tn, total_fn], [total_fp, total_tp]],
-                    index=["Predicted Negative", "Predicted Positive"],
-                    columns=["Actual Negative", "Actual Positive"],
-                )
+                        tp, fp, fn = self._eval_rl_batch(sub_x, sub_y, true_blocks, x_df)
+
+                        total_tp += tp
+                        total_fp += fp
+                        total_fn += fn
+                total_tn = len(unique_tb_x) * len(unique_tb_y) - total_tp - total_fp - total_fn
 
             else:
-                pairs_to_eval_long = (
-                    pd.melt(x_df[["x", "y", "block"]], id_vars=["block"])[["block", "value"]]
-                    .drop_duplicates()
-                    .rename(columns={"block": "block_id", "value": "x"})
-                    .merge(true_blocks[["x", "block"]], on="x", how="left")
-                    .rename(columns={"block": "true_id"})
+                x_df_long = (
+                    x_df.melt(id_vars=["block"], value_vars=["x", "y"], value_name="x_x")
+                    .drop_duplicates(subset=["x_x"])[["x_x", "block"]]
+                    .rename(columns={"x_x": "x"})
+                )
+                unique_tb_x = true_blocks["x"].unique()
+                for start_idx in range(0, len(unique_tb_x), batch_size):
+                    sub_x = unique_tb_x[start_idx : start_idx + batch_size]
+                    for start_idx_y in range(0, len(unique_tb_x), batch_size):
+                        sub_y = unique_tb_x[start_idx_y : start_idx_y + batch_size]
+
+                        tp, fp, fn = self._eval_dedup_batch(sub_x, sub_y, true_blocks, x_df_long)
+
+                        total_tp += tp
+                        total_fp += fp
+                        total_fn += fn
+                total_tn = (
+                    ((len(unique_tb_x) * (len(unique_tb_x) - 1)) / 2)
+                    - total_tp
+                    - total_fp
+                    - total_fn
                 )
 
-                total_tn = total_fp = total_fn = total_tp = 0
-                batch_size = 10_000
-                n_pairs = pairs_to_eval_long.shape[0]
-
-                for start_idx in range(0, n_pairs, batch_size):
-                    tn, fp, fn, tp = self._process_dedup_batch(
-                        pairs_to_eval_long, start_idx, batch_size
-                    )
-                    total_tn += tn
-                    total_fp += fp
-                    total_fn += fn
-                    total_tp += tp
-
-                self.confusion = pd.DataFrame(
-                    [[total_tn, total_fn], [total_fp, total_tp]],
-                    index=["Predicted Negative", "Predicted Positive"],
-                    columns=["Actual Negative", "Actual Positive"],
-                )
+            self.confusion = pd.DataFrame(
+                [[total_tn, total_fn], [total_fp, total_tp]],
+                index=["Predicted Negative", "Predicted Positive"],
+                columns=["Actual Negative", "Actual Positive"],
+            ).astype(int)
 
             recall = total_tp / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
             precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) != 0 else 0
@@ -372,7 +375,7 @@ class Blocker:
             x_df=x_df,
             ann=ann,
             deduplication=deduplication,
-            len_x=len_x,
+            n_original_records=(len_x, len_y),
             true_blocks=true_blocks,
             eval_metrics=self.eval_metrics,
             confusion=self.confusion,
@@ -381,7 +384,7 @@ class Blocker:
         )
 
     def eval(
-        self, blocking_result: BlockingResult, true_blocks: pd.DataFrame, batch_size: int = 10_000
+        self, blocking_result: BlockingResult, true_blocks: pd.DataFrame, batch_size: int = 1_000
     ) -> BlockingResult:
         """
         Evaluate blocking results against true block assignments and return new BlockingResult.
@@ -401,9 +404,8 @@ class Blocker:
             For deduplication: columns ['x', 'block']
             For record linkage: columns ['x', 'y', 'block']
         batch_size : int
-            Number of records from dataset X to evaluate in each batch.
-            Each batch will be compared with all records from dataset Y.
-            Defaults to 10,000.
+            Size of the batch for evaluation. This size if applied for both datasets
+            for record linkage. Defaults to 1,000.
 
         Returns
         -------
@@ -430,53 +432,54 @@ class Blocker:
             )
         InputValidator.validate_true_blocks(true_blocks, blocking_result.deduplication)
 
+        total_tn = total_fp = total_fn = total_tp = 0
+
         if not blocking_result.deduplication:
-            total_tn = total_fp = total_fn = total_tp = 0
-            n_records = blocking_result.len_x
+            unique_tb_x = true_blocks["x"].unique()
+            unique_tb_y = true_blocks["y"].unique()
 
-            for start_idx in range(0, n_records, batch_size):
-                tn, fp, fn, tp = self._process_record_linkage_batch(
-                    start_idx, batch_size, n_records, true_blocks, blocking_result.result
-                )
-                total_tn += tn
-                total_fp += fp
-                total_fn += fn
-                total_tp += tp
+            for start_idx_x in range(0, len(unique_tb_x), batch_size):
+                sub_x = unique_tb_x[start_idx_x : start_idx_x + batch_size]
+                for start_idx_y in range(0, len(unique_tb_y), batch_size):
+                    sub_y = unique_tb_y[start_idx_y : start_idx_y + batch_size]
 
-            confusion = pd.DataFrame(
-                [[total_tn, total_fn], [total_fp, total_tp]],
-                index=["Predicted Negative", "Predicted Positive"],
-                columns=["Actual Negative", "Actual Positive"],
-            )
+                    tp, fp, fn = self._eval_rl_batch(
+                        sub_x, sub_y, true_blocks, blocking_result.result
+                    )
+
+                    total_tp += tp
+                    total_fp += fp
+                    total_fn += fn
+            total_tn = len(unique_tb_x) * len(unique_tb_y) - total_tp - total_fp - total_fn
 
         else:
-            pairs_to_eval_long = (
-                pd.melt(blocking_result.result[["x", "y", "block"]], id_vars=["block"])[
-                    ["block", "value"]
-                ]
-                .drop_duplicates()
-                .rename(columns={"block": "block_id", "value": "x"})
-                .merge(true_blocks[["x", "block"]], on="x", how="left")
-                .rename(columns={"block": "true_id"})
-            )
-
-            total_tn = total_fp = total_fn = total_tp = 0
-            n_pairs = pairs_to_eval_long.shape[0]
-
-            for start_idx in range(0, n_pairs, batch_size):
-                tn, fp, fn, tp = self._process_dedup_batch(
-                    pairs_to_eval_long, start_idx, batch_size
+            x_df_long = (
+                blocking_result.result.melt(
+                    id_vars=["block"], value_vars=["x", "y"], value_name="x_x"
                 )
-                total_tn += tn
-                total_fp += fp
-                total_fn += fn
-                total_tp += tp
-
-            confusion = pd.DataFrame(
-                [[total_tn, total_fn], [total_fp, total_tp]],
-                index=["Predicted Negative", "Predicted Positive"],
-                columns=["Actual Negative", "Actual Positive"],
+                .drop_duplicates(subset=["x_x"])[["x_x", "block"]]
+                .rename(columns={"x_x": "x"})
             )
+            unique_tb_x = true_blocks["x"].unique()
+            for start_idx in range(0, len(unique_tb_x), batch_size):
+                sub_x = unique_tb_x[start_idx : start_idx + batch_size]
+                for start_idx_y in range(0, len(unique_tb_x), batch_size):
+                    sub_y = unique_tb_x[start_idx_y : start_idx_y + batch_size]
+
+                    tp, fp, fn = self._eval_dedup_batch(sub_x, sub_y, true_blocks, x_df_long)
+
+                    total_tp += tp
+                    total_fp += fp
+                    total_fn += fn
+            total_tn = (
+                ((len(unique_tb_x) * (len(unique_tb_x) - 1)) / 2) - total_tp - total_fp - total_fn
+            )
+
+        confusion = pd.DataFrame(
+            [[total_tn, total_fn], [total_fp, total_tp]],
+            index=["Predicted Negative", "Predicted Positive"],
+            columns=["Actual Negative", "Actual Positive"],
+        ).astype(int)
 
         recall = total_tp / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
         precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) != 0 else 0
@@ -507,7 +510,7 @@ class Blocker:
             x_df=blocking_result.result,
             ann=blocking_result.method,
             deduplication=blocking_result.deduplication,
-            len_x=blocking_result.len_x,
+            n_original_records=blocking_result.n_original_records,
             true_blocks=true_blocks,
             eval_metrics=eval_metrics,
             confusion=confusion,
@@ -515,9 +518,13 @@ class Blocker:
             graph=blocking_result.graph is not None,
         )
 
-    def _process_dedup_batch(
-        self, pairs_to_eval_long: pd.DataFrame, start_idx: int, batch_size: int
-    ) -> tuple[int, int, int, int]:
+    def _eval_dedup_batch(
+        self,
+        sub_x: np.ndarray,
+        sub_y: np.ndarray,
+        true_blocks: pd.DataFrame,
+        x_df_long: pd.DataFrame,
+    ) -> tuple[int, int, int]:
         """
         Process a batch of candidate pairs for deduplication evaluation.
         This method processes a subset of record pairs to compute confusion matrix elements
@@ -525,103 +532,103 @@ class Blocker:
 
         Parameters
         ----------
-        pairs_to_eval_long : pd.DataFrame
-            DataFrame containing record pairs with their block_id and true_id assignments.
-        start_idx : int
-            Starting index in the pairs DataFrame to process.
-        batch_size : int
-            Number of records to process in this batch.
+        sub_x : numpy.ndarray
+            Subset of records from dataset X to evaluate
+        sub_y : numpy.ndarray
+            Subset of records from dataset X to evaluate, needed to create candidate pairs
+        true_blocks : pandas.DataFrame
+            DataFrame containing true block assignments with columns ['x', 'y', 'block']
+        x_df_long : pandas.DataFrame
+            DataFrame containing predicted block assignments with columns ['x', 'block']
 
         Returns
         -------
-        tuple[int, int, int, int]
+        tuple[int, int, int]
             A tuple containing partial confusion matrix counts:
-            - tn (true negatives): Pairs correctly not blocked together
+            - tp (true positives): Pairs correctly blocked together
             - fp (false positives): Pairs incorrectly blocked together
             - fn (false negatives): Pairs incorrectly not blocked together
-            - tp (true positives): Pairs correctly blocked together
-
-        Notes
-        -----
-        The method generates all possible pairs within the batch range and compares
-        their blocking assignments against their true matching status.
 
         """
-        n_pairs = pairs_to_eval_long.shape[0]
-        pairs_range = range(start_idx, min(start_idx + batch_size, n_pairs))
-        candidate_pairs = np.array([(i, j) for i in pairs_range for j in range(i + 1, n_pairs)])
+        pair_chunk = pd.DataFrame(
+            [(i, j) for i in sub_x for j in sub_y if i < j], columns=["x", "y"]
+        )
 
-        if len(candidate_pairs) == 0:
-            return 0, 0, 0, 0
+        pair_chunk = pair_chunk.merge(true_blocks, on="x", how="left").rename(
+            columns={"block": "true_block_x"}
+        )
+        pair_chunk = pair_chunk.merge(
+            true_blocks, left_on="y", right_on="x", how="left", suffixes=(None, "_tb")
+        ).rename(columns={"block": "true_block_y"})
+        pair_chunk = pair_chunk.merge(x_df_long, on="x", how="left").rename(
+            columns={"block": "pred_block_x"}
+        )
+        pair_chunk = pair_chunk.merge(
+            x_df_long, left_on="y", right_on="x", how="left", suffixes=(None, "_pred")
+        ).rename(columns={"block": "pred_block_y"})
 
-        block_id_array = pairs_to_eval_long["block_id"].to_numpy()
-        true_id_array = pairs_to_eval_long["true_id"].to_numpy()
+        pair_chunk["true_link"] = pair_chunk["true_block_x"] == pair_chunk["true_block_y"]
+        pair_chunk["pred_link"] = pair_chunk["pred_block_x"] == pair_chunk["pred_block_y"]
 
-        same_block = block_id_array[candidate_pairs[:, 0]] == block_id_array[candidate_pairs[:, 1]]
-        same_truth = true_id_array[candidate_pairs[:, 0]] == true_id_array[candidate_pairs[:, 1]]
+        tp = (pair_chunk["true_link"] & pair_chunk["pred_link"]).sum()
+        fp = (~pair_chunk["true_link"] & pair_chunk["pred_link"]).sum()
+        fn = (pair_chunk["true_link"] & ~pair_chunk["pred_link"]).sum()
 
-        tn = np.sum(~same_block & ~same_truth)
-        fp = np.sum(same_block & ~same_truth)
-        fn = np.sum(~same_block & same_truth)
-        tp = np.sum(same_block & same_truth)
+        return tp, fp, fn
 
-        return tn, fp, fn, tp
-
-    def _process_record_linkage_batch(
+    def _eval_rl_batch(
         self,
-        start_idx: int,
-        batch_size: int,
-        n_records: int,
+        sub_x: np.ndarray,
+        sub_y: np.ndarray,
         true_blocks: pd.DataFrame,
-        blocking_df: pd.DataFrame,
-    ) -> tuple[int, int, int, int]:
+        x_df: pd.DataFrame,
+    ) -> tuple[int, int, int]:
         """
         Process a batch of record pairs and compute confusion matrix counts.
         This method processes a subset of record pairs for record linkage evaluation.
 
         Parameters
         ----------
-        start_idx : int
-            Starting index of the batch in the record set
-        batch_size : int
-            Size of the batch to process
-        n_records : int
-            Total number of records
-        true_blocks : pd.DataFrame
-            DataFrame containing true blocking assignments with columns ['x', 'y', 'block']
-        blocking_df : pd.DataFrame
-            DataFrame containing predicted blocking assignments with columns ['x', 'y', 'block']
+        sub_x : numpy.ndarray
+            Subset of records from dataset X to evaluate
+        sub_y : numpy.ndarray
+            Subset of records from dataset Y to evaluate
+        true_blocks : pandas.DataFrame
+            DataFrame containing true block assignments with columns ['x', 'y', 'block']
+        x_df : pandas.DataFrame
+            DataFrame containing predicted block assignments with columns ['x', 'y', 'block']
 
         Returns
         -------
-        tuple[int, int, int, int]
-            A tuple containing (true_negatives, false_positives, false_negatives, true_positives)
+        tuple[int, int, int]
+            A tuple containing:
+            - tp (true positives): Number of pairs correctly assigned to same block
+            - fp (false positives): Number of pairs incorrectly assigned to same block
+            - fn (false negatives): Number of pairs incorrectly assigned to different blocks
 
         Notes
         -----
-        - The method generates all possible pairs between records in the batch and compares
-          their blocking assignments.
+        The method creates candidate pairs between records in sub_x and sub_y,
+        then compares their true and predicted block assignments to compute
+        confusion matrix counts.
 
         """
-        end_idx = min(start_idx + batch_size, n_records)
-        batch_pairs = list(itertools.product(range(start_idx, end_idx), true_blocks["y"]))
-
-        if not batch_pairs:
-            return 0, 0, 0, 0
-
-        cp_df = pd.DataFrame(batch_pairs, columns=["x", "y"])
-        cp_df = cp_df.astype(int)
-
-        comparison_df = (
-            cp_df.merge(true_blocks, on=["x", "y"], how="left")
-            .rename(columns={"block": "block_true"})
-            .merge(blocking_df, on=["x", "y"], how="left")
-            .rename(columns={"block": "block_pred"})
+        pair_chunk = pd.DataFrame(itertools.product(sub_x, sub_y), columns=["x", "y"])
+        pair_chunk = (
+            pair_chunk.merge(true_blocks[["x", "block"]], on="x", how="left")
+            .rename(columns={"block": "true_block_x"})
+            .merge(true_blocks[["y", "block"]], on="y", how="left")
+            .rename(columns={"block": "true_block_y"})
+            .merge(x_df[["x", "block"]], on="x", how="left")
+            .rename(columns={"block": "pred_block_x"})
+            .merge(x_df[["y", "block"]], on="y", how="left")
+            .rename(columns={"block": "pred_block_y"})
         )
+        pair_chunk["true_link"] = pair_chunk["true_block_x"] == pair_chunk["true_block_y"]
+        pair_chunk["pred_link"] = pair_chunk["pred_block_x"] == pair_chunk["pred_block_y"]
 
-        tp = np.sum((comparison_df["block_true"].notna()) & (comparison_df["block_pred"].notna()))
-        tn = np.sum((comparison_df["block_true"].isna()) & (comparison_df["block_pred"].isna()))
-        fp = np.sum((comparison_df["block_true"].isna()) & (comparison_df["block_pred"].notna()))
-        fn = np.sum((comparison_df["block_true"].notna()) & (comparison_df["block_pred"].isna()))
+        tp = (pair_chunk["true_link"] & pair_chunk["pred_link"]).sum()
+        fp = (~pair_chunk["true_link"] & pair_chunk["pred_link"]).sum()
+        fn = (pair_chunk["true_link"] & ~pair_chunk["pred_link"]).sum()
 
-        return tn, fp, fn, tp
+        return tp, fp, fn
