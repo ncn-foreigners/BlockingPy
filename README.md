@@ -93,10 +93,10 @@ By printing `block_result.result` we can take a look at the results table contai
 
 ```python
 print(block_result.result)
-#    x  y  block  dist
-# 0  4  0      0   0.0
-# 1  1  1      1   0.0
-# 2  7  2      2   6.0
+#    x  y  block      dist
+# 0  4  0      0  1.000000
+# 1  3  1      1  1.000000
+# 2  6  2      2  0.392232
 ```
 ### Deduplication
 We can perform deduplication by putting previously created DataFrame in the `block()` method.
@@ -109,7 +109,7 @@ print(dedup_result)
 # Blocking based on the faiss method.
 # Number of blocks: 2
 # Number of columns used for blocking: 25
-# Reduction ratio: 0.5714
+# Reduction ratio: 0.571429
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
@@ -117,13 +117,13 @@ print(dedup_result)
 ```
 ```python
 print(dedup_result.result)
-#    x  y  block  dist
-# 0  1  0      0   2.0
-# 1  1  2      0   2.0
-# 2  1  3      0   2.0
-# 3  5  4      1   2.0
-# 4  4  6      1   3.0
-# 5  4  7      1   6.0
+#    x  y  block      dist
+# 0  1  0      0  0.875000
+# 1  3  1      0  0.894427
+# 2  1  2      0  0.894427
+# 3  5  4      1  0.916667
+# 4  4  6      1  0.894427
+# 5  5  7      1  0.721688
 ```
 ## Features
 - Multiple ANN algorithms available:
@@ -158,8 +158,6 @@ BlockingPy comes with built-in example datasets:
 - Deduplication dataset taken from [RecordLinkage](https://cran.r-project.org/package=RecordLinkage) R package developed by Murat Sariyar
     and Andreas Borg. Package is licensed under GPL-3 license. Also known as [RLdata10000](https://www.rdocumentation.org/packages/RecordLinkage/versions/0.4-12.4/topics/RLdata).
 
-## Disclaimer
-BlockingPy is still under development, API and features may change. Also bugs or errors can occur. 
 
 ## License
 BlockingPy is released under [MIT license](https://github.com/ncn-foreigners/BlockingPy/blob/main/LICENSE).
