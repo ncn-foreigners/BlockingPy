@@ -3,7 +3,6 @@
 ## v0.1.10
 - evaluation only for records that exist in true blocks.
 - default distance for `faiss` changed to `cosine`
-- code simplification
 - minor changes
 
 ## v0.1.9

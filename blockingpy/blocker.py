@@ -302,12 +302,31 @@ class Blocker:
                 unique_tb_x = true_blocks["x"].unique()
                 unique_tb_y = true_blocks["y"].unique()
 
+                true_x_blocks = true_blocks[["x", "block"]].drop_duplicates()
+                true_y_blocks = true_blocks[["y", "block"]].drop_duplicates()
+                pred_x_blocks = x_df[["x", "block"]].drop_duplicates()
+                pred_y_blocks = x_df[["y", "block"]].drop_duplicates()
+
+                total_batches_x = (len(unique_tb_x) + batch_size - 1) // batch_size
+                total_batches_y = (len(unique_tb_y) + batch_size - 1) // batch_size
+                total_batches = total_batches_x * total_batches_y
+
                 for start_idx_x in range(0, len(unique_tb_x), batch_size):
+
+                    current_batch_x = (start_idx_x // batch_size) + 1
+
                     sub_x = unique_tb_x[start_idx_x : start_idx_x + batch_size]
+
                     for start_idx_y in range(0, len(unique_tb_y), batch_size):
+                        current_batch_y = (start_idx_y // batch_size) + 1
+                        current_batch = ((current_batch_x - 1) * total_batches_y) + current_batch_y
+                        logger.info(f"Evaluating batch {current_batch} of {total_batches}")
+
                         sub_y = unique_tb_y[start_idx_y : start_idx_y + batch_size]
 
-                        tp, fp, fn = self._eval_rl_batch(sub_x, sub_y, true_blocks, x_df)
+                        tp, fp, fn = self._eval_rl_batch(
+                            sub_x, sub_y, true_x_blocks, true_y_blocks, pred_x_blocks, pred_y_blocks
+                        )
 
                         total_tp += tp
                         total_fp += fp
@@ -321,9 +340,18 @@ class Blocker:
                     .rename(columns={"x_x": "x"})
                 )
                 unique_tb_x = true_blocks["x"].unique()
+
+                total_batches_x = (len(unique_tb_x) + batch_size - 1) // batch_size
+                total_batches = total_batches_x * total_batches_x
+
                 for start_idx in range(0, len(unique_tb_x), batch_size):
+                    current_batch_x = (start_idx // batch_size) + 1
                     sub_x = unique_tb_x[start_idx : start_idx + batch_size]
                     for start_idx_y in range(0, len(unique_tb_x), batch_size):
+                        current_batch_y = (start_idx_y // batch_size) + 1
+                        current_batch = ((current_batch_x - 1) * total_batches_x) + current_batch_y
+                        logger.info(f"Evaluating batch {current_batch} of {total_batches}")
+
                         sub_y = unique_tb_x[start_idx_y : start_idx_y + batch_size]
 
                         tp, fp, fn = self._eval_dedup_batch(sub_x, sub_y, true_blocks, x_df_long)
@@ -438,13 +466,27 @@ class Blocker:
             unique_tb_x = true_blocks["x"].unique()
             unique_tb_y = true_blocks["y"].unique()
 
+            true_x_blocks = true_blocks[["x", "block"]].drop_duplicates()
+            true_y_blocks = true_blocks[["y", "block"]].drop_duplicates()
+            pred_x_blocks = blocking_result.result[["x", "block"]].drop_duplicates()
+            pred_y_blocks = blocking_result.result[["y", "block"]].drop_duplicates()
+
+            total_batches_x = (len(unique_tb_x) + batch_size - 1) // batch_size
+            total_batches_y = (len(unique_tb_y) + batch_size - 1) // batch_size
+            total_batches = total_batches_x * total_batches_y
+
             for start_idx_x in range(0, len(unique_tb_x), batch_size):
+                current_batch_x = (start_idx_x // batch_size) + 1
                 sub_x = unique_tb_x[start_idx_x : start_idx_x + batch_size]
+
                 for start_idx_y in range(0, len(unique_tb_y), batch_size):
+                    current_batch_y = (start_idx_y // batch_size) + 1
+                    current_batch = ((current_batch_x - 1) * total_batches_y) + current_batch_y
+                    logger.info(f"Evaluating batch {current_batch} of {total_batches}")
                     sub_y = unique_tb_y[start_idx_y : start_idx_y + batch_size]
 
                     tp, fp, fn = self._eval_rl_batch(
-                        sub_x, sub_y, true_blocks, blocking_result.result
+                        sub_x, sub_y, true_x_blocks, true_y_blocks, pred_x_blocks, pred_y_blocks
                     )
 
                     total_tp += tp
@@ -461,9 +503,19 @@ class Blocker:
                 .rename(columns={"x_x": "x"})
             )
             unique_tb_x = true_blocks["x"].unique()
+
+            total_batches_x = (len(unique_tb_x) + batch_size - 1) // batch_size
+            total_batches = total_batches_x * total_batches_x
+
             for start_idx in range(0, len(unique_tb_x), batch_size):
+                current_batch_x = (start_idx // batch_size) + 1
                 sub_x = unique_tb_x[start_idx : start_idx + batch_size]
+
                 for start_idx_y in range(0, len(unique_tb_x), batch_size):
+                    current_batch_y = (start_idx_y // batch_size) + 1
+                    current_batch = ((current_batch_x - 1) * total_batches_x) + current_batch_y
+                    logger.info(f"Evaluating batch {current_batch} of {total_batches}")
+
                     sub_y = unique_tb_x[start_idx_y : start_idx_y + batch_size]
 
                     tp, fp, fn = self._eval_dedup_batch(sub_x, sub_y, true_blocks, x_df_long)
@@ -580,8 +632,10 @@ class Blocker:
         self,
         sub_x: np.ndarray,
         sub_y: np.ndarray,
-        true_blocks: pd.DataFrame,
-        x_df: pd.DataFrame,
+        true_x_blocks: pd.DataFrame,
+        true_y_blocks: pd.DataFrame,
+        pred_x_blocks: pd.DataFrame,
+        pred_y_blocks: pd.DataFrame,
     ) -> tuple[int, int, int]:
         """
         Process a batch of record pairs and compute confusion matrix counts.
@@ -593,10 +647,14 @@ class Blocker:
             Subset of records from dataset X to evaluate
         sub_y : numpy.ndarray
             Subset of records from dataset Y to evaluate
-        true_blocks : pandas.DataFrame
-            DataFrame containing true block assignments with columns ['x', 'y', 'block']
-        x_df : pandas.DataFrame
-            DataFrame containing predicted block assignments with columns ['x', 'y', 'block']
+        true_x_blocks : pandas.DataFrame
+            DataFrame with true block assignments for X records with columns ['x', 'block']
+        true_y_blocks : pandas.DataFrame
+            DataFrame with true block assignments for Y records with columns ['y', 'block']
+        pred_x_blocks : pandas.DataFrame
+            DataFrame with predicted block assignments for X records with columns ['x', 'block']
+        pred_y_blocks : pandas.DataFrame
+            DataFrame with predicted block assignments for Y records with columns ['y', 'block']
 
         Returns
         -------
@@ -615,15 +673,16 @@ class Blocker:
         """
         pair_chunk = pd.DataFrame(itertools.product(sub_x, sub_y), columns=["x", "y"])
         pair_chunk = (
-            pair_chunk.merge(true_blocks[["x", "block"]], on="x", how="left")
+            pair_chunk.merge(true_x_blocks, on="x", how="left")
             .rename(columns={"block": "true_block_x"})
-            .merge(true_blocks[["y", "block"]], on="y", how="left")
+            .merge(true_y_blocks, on="y", how="left")
             .rename(columns={"block": "true_block_y"})
-            .merge(x_df[["x", "block"]], on="x", how="left")
+            .merge(pred_x_blocks, on="x", how="left")
             .rename(columns={"block": "pred_block_x"})
-            .merge(x_df[["y", "block"]], on="y", how="left")
+            .merge(pred_y_blocks, on="y", how="left")
             .rename(columns={"block": "pred_block_y"})
         )
+
         pair_chunk["true_link"] = pair_chunk["true_block_x"] == pair_chunk["true_block_y"]
         pair_chunk["pred_link"] = pair_chunk["pred_block_x"] == pair_chunk["pred_block_y"]
 

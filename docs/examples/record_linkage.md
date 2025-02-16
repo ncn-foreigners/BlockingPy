@@ -284,26 +284,26 @@ and print results with evaluation metrics:
 print(eval_result)
 # ========================================================
 # Blocking based on the faiss method.
-# Number of blocks: 23984
+# Number of blocks: 23997
 # Number of columns used for blocking: 1072
-# Reduction ratio: 1.0000
+# Reduction ratio: 0.999961
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          2 | 23369          
-#          3 | 602            
-#          4 | 12             
-#          5 | 1                      
+#          2 | 23395          
+           3 | 589            
+           4 | 12             
+           5 | 1                       
 # ========================================================
 print(eval_result.metrics)
 # Evaluation metrics (standard):
-# recall : 99.691
-# precision : 99.691
+# recall : 99.6
+# precision : 100.0
 # fpr : 0.0
-# fnr : 0.309
-# accuracy : 100.0
+# fnr : 0.4
+# accuracy : 99.9996
 # specificity : 100.0
-# f1_score : 99.691
+# f1_score : 99.7996
 ```
 The output shows:
 
@@ -324,9 +324,9 @@ If true matches were provided:
 
 For this example, using `faiss` we achieve:
 
-- 99.69% recall and precision
+- 99.6% recall and precision
 - close to 100% accuracy
-- Near perfect reduction ratio of 1.0
+- Great reduction ratio of 0.999961
 - Most blocks contain just 2-3 records
 
 This demonstrates BlockingPy's effectiveness at finding matching records while drastically reducing the number of required comparisons.

@@ -272,9 +272,7 @@ def create_sparse_dtm(x: pd.Series, control_txt: dict, verbose: bool = False) ->
     return x_sparse_df
 
 
-def rearrange_array(
-    indices: np.ndarray, distances: np.ndarray
-) -> tuple[np.ndarray, np.ndarray]:
+def rearrange_array(indices: np.ndarray, distances: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Rearrange the array of indices to match the correct order.
     If the algoritm returns the record "itself" for a given row (in deduplication), but not

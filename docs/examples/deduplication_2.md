@@ -16,7 +16,7 @@ Import necessary packages and functions:
 ```python
 import pandas as pd
 from blockingpy import Blocker
-from blockingpy.datasets import load_deduplication_data()
+from blockingpy.datasets import load_deduplication_data
 ```
 
 Let's load the data and take a look at first 5 rows:
@@ -83,7 +83,7 @@ print(dedup_result)
 # Blocking based on the hnsw method.
 # Number of blocks: 2736
 # Number of columns used for blocking: 674
-# Reduction ratio: 0.9996
+# Reduction ratio: 0.999586
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
@@ -163,11 +163,6 @@ true_blocks_dedup = df_eval[['x', 'block']]
 Now we can evaluate our algorithm:
 
 ```python
-control_ann = {
-    "faiss":{
-        "distance": "cosine"
-    }
-}
 
 blocker = Blocker()
 eval_result = blocker.block(
@@ -190,7 +185,7 @@ print(eval_result.metrics)
 # Blocking based on the faiss method.
 # Number of blocks: 2737
 # Number of columns used for blocking: 674
-# Reduction ratio: 0.9996
+# Reduction ratio: 0.999580
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks

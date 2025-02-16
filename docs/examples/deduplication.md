@@ -110,34 +110,34 @@ print(dedup_result)
 
 # ========================================================
 # Blocking based on the voyager method.
-# Number of blocks: 2711
+# Number of blocks: 2686
 # Number of columns used for blocking: 1169
-# Reduction ratio: 0.9996
+# Reduction ratio: 0.999554
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          2 | 917            
-#          3 | 877            
-#          4 | 367            
-#          5 | 204            
-#          6 | 105            
-#          7 | 77             
-#          8 | 34             
-#          9 | 26             
-#         10 | 30             
-#         11 | 12             
-#         12 | 10             
-#         13 | 13             
-#         14 | 12             
-#         15 | 10             
+#          2 | 905            
+#          3 | 865            
+#          4 | 361            
+#          5 | 203            
+#          6 | 98             
+#          7 | 76             
+#          8 | 39             
+#          9 | 29             
+#         10 | 32             
+#         11 | 17             
+#         12 | 11             
+#         13 | 8              
+#         14 | 9              
+#         15 | 13             
 #         16 | 4              
-#         17 | 3              
-#         18 | 2              
+#         17 | 5              
+#         18 | 3              
 #         19 | 2              
-#         21 | 1              
-#         22 | 3              
-#         27 | 1              
-#         30 | 1   
+#         21 | 3              
+#         22 | 1              
+#         24 | 1              
+#         29 | 1        
 ```
 and:
 
@@ -160,7 +160,7 @@ print(dedup_result.result)
 Let's take a look at the pair in block `1`:
 
 ```python
-print(data.iloc[[7,8], : ])
+print(data.iloc[[9998,9999], : ])
 
 #              rec-id first_name second_name   last_name               region        birth_date personal_id                                                       txt
 # 9998  rec-999-dup-1     RESŻKA    LILIANNA  MAŁGÓRZATA  WARMIŃSKO-MAZURSKIE         12/01/1978        NaN         RESŻKALILIANNAMAŁGÓRZATAWARMIŃSKO-MAZURSKIE12/...
@@ -244,7 +244,7 @@ print(eval_result.metrics)
 # Blocking based on the hnsw method.
 # Number of blocks: 2972
 # Number of columns used for blocking: 1169
-# Reduction ratio: 0.9996
+# Reduction ratio: 0.999649
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
@@ -283,4 +283,4 @@ The results show:
 - High reduction ratio (`0.9996`) indicating significant reduction in comparison space
 - High recall (`99.02%`) showing most true duplicates are found
 
-The block size distribution shows most blocks contain 1-3 records, with a few larger blocks which could occur due to the fact that even records without duplicates will be grouped it to one of the blocks. This is not a problem since those pairs would not be matched when performing one-to-one comparison afterwards. This demonstrates BlockingPy's effectiveness at identifying potential duplicates while drastically reducing the number of required comparisons.
+The block size distribution shows most blocks contain 2-4 records, with a few larger blocks which could occur due to the fact that even records without duplicates will be grouped it to one of the blocks. This is not a problem since those pairs would not be matched when performing one-to-one comparison afterwards. This demonstrates BlockingPy's effectiveness at identifying potential duplicates while drastically reducing the number of required comparisons.
