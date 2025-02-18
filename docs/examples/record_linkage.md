@@ -321,11 +321,14 @@ If true matches were provided:
 - Specificity 
 - F1 score
 
+**NOTE:** Keep in mind that the metrics shown above are based only on the records that appear in `true_blocks`.
+We assume that we have no knowledge
+about the other records and their true blocks.
 
 
 For this example, using `faiss` we achieve:
 
-- 99.7% recall and precision
+- 99.7% recall and and 100% precision
 - close to 100% accuracy
 - Great reduction ratio of 0.999961
 - Most blocks contain just 2-3 records
