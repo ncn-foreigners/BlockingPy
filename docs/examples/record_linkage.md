@@ -89,8 +89,8 @@ Preprocess data and create column `txt` containing concatenated variables:
 
 ```python
 # Convert numeric fields to strings
-census[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']] = census[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']].astype(str)
-cis[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']] = cis[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']].astype(str)
+census[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']] = census[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']].astype("Int64").astype(str).replace('<NA>', '')
+cis[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']] = cis[['DOB_DAY', 'DOB_MON', 'DOB_YEAR']].astype("Int64").astype(str).replace('<NA>', '')
 
 # Fill NAs with empty strings
 census = census.fillna('')
@@ -112,20 +112,20 @@ Let's see how the new column looks like:
 print(census['txt'].head())
 
 # txt
-# 0	COUIEPRICEM1.061960.01 WINDSOR ROADDE03US
-# 1	ABBIEPVICEF9.0111961.01 WINDSOR ROADDE03US
-# 2	LACEYPRICEF7.021999.01 WINDSOR ROADDE03US
-# 3	SAMUELPRICEM13.041990.01 WINDSOR ROADDE03US
-# 4	JOSEPHPRICEM20.041986.01 WINDSOR ROADDE03US
+# 0      COUIEPRICEM1619601 WINDSOR ROADDE03US
+# 1     ABBIEPVICEF91119611 WINDSOR ROADDE03US
+# 2      LACEYPRICEF7219991 WINDSOR ROADDE03US
+# 3    SAMUELPRICEM13419901 WINDSOR ROADDE03US
+# 4    JOSEPHPRICEM20419861 WINDSOR ROADDE03US
 
 print(cis['txt'].head())
 
 # 	txt
-# 0	HAYDENHALLMnan1nan91 CLARENCE ROADPO827ER
-# 1	SERENANDERSONF1.01nan24 CHURCH LANELS992DB
-# 2	LEWISLEWISM1.01nan53 CHURCH ROADM432ZZ
-# 3	HARRISONPOSTERM5.01nan19 HIGHFIELD ROADSW75TG
-# 4	MUHAMMEDWATSUNM7.01nan17 VICTORIA STREET
+# 0         HAYDENHALLM191 CLARENCE ROADPO827ER
+# 1       SERENANDERSONF1124 CHURCH LANELS992DB
+# 2           LEWISLEWISM1153 CHURCH ROADM432ZZ
+# 3    HARRISONPOSTERM5119 HIGHFIELD ROADSW75TG
+# 4         MUHAMMEDWATSUNM7117 VICTORIA STREET
 
 ```
 
@@ -174,46 +174,47 @@ print(rec_lin_result)
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          2 | 23392          
-#          3 | 592            
-#          4 | 11             
-#          5 | 1   
+        #  2 | 23390          
+        #  3 | 590            
+        #  4 | 13             
+        #  5 | 1    
 
 print(rec_lin_result.result.head())
 
-#            x      y  block      dist
-# 0      17339      0      0  0.273628
-# 1       9567      1      1  0.103388
-# 2      10389      2      2  0.107852
-# 3      24258      3      3  0.211039
-# 4       3714      4      4  0.294986
+#      x      y  block      dist
+# 0    17339  0      0  0.134151
+# 1    9567   1      1  0.064307
+# 2    10389  2      2  0.044183
+# 3    24258  3      3  0.182125
+# 4    3714   4      4  0.288487
 ```
 Let's take a look at the pair in block `0` :
 ```python
 print(cis.iloc[0, :])
 print(census.iloc[17339, :])
 
-# PERSON_ID                                PO827ER091001
-# PERNAME1                                        HAYDEN
-# PERNAME2                                          HALL
-# SEX                                                  M
-# DOB_DAY                                            nan
-# DOB_MON                                              1
-# DOB_YEAR                                           nan
-# ENUMCAP                               91 CLARENCE ROAD
-# ENUMPC                                         PO827ER
-# txt          HAYDENHALLMnan1nan91 CLARENCE ROADPO827ER
+# PERSON_ID                          PO827ER091001
+# PERNAME1                                  HAYDEN
+# PERNAME2                                    HALL
+# SEX                                            M
+# DOB_DAY                                         
+# DOB_MON                                        1
+# DOB_YEAR                                        
+# ENUMCAP                         91 CLARENCE ROAD
+# ENUMPC                                   PO827ER
+# txt          HAYDENHALLM191 CLARENCE ROADPO827ER
 # Name: 0, dtype: object
-# PERSON_ID                                   PO827ER091001
-# PERNAME1                                           HAYDEM
-# PERNAME2                                             HALL
-# SEX                                                     M
-# DOB_DAY                                               1.0
-# DOB_MON                                                 1
-# DOB_YEAR                                           1957.0
-# ENUMCAP                                  91 CLARENCE ROAD
-# ENUMPC                                            PO827ER
-# txt          HAYDEMHALLM1.011957.091 CLARENCE ROADPO827ER
+
+# PERSON_ID                               PO827ER091001
+# PERNAME1                                       HAYDEM
+# PERNAME2                                         HALL
+# SEX                                                 M
+# DOB_DAY                                             1
+# DOB_MON                                             1
+# DOB_YEAR                                         1957
+# ENUMCAP                              91 CLARENCE ROAD
+# ENUMPC                                        PO827ER
+# txt          HAYDEMHALLM11195791 CLARENCE ROADPO827ER
 # Name: 17339, dtype: object
 
 ```
@@ -284,26 +285,26 @@ and print results with evaluation metrics:
 print(eval_result)
 # ========================================================
 # Blocking based on the faiss method.
-# Number of blocks: 23997
+# Number of blocks: 23992
 # Number of columns used for blocking: 1072
 # Reduction ratio: 0.999961
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          2 | 23395          
-           3 | 589            
-           4 | 12             
-           5 | 1                       
+#          2 | 23386          
+#          3 | 592            
+#          4 | 13             
+#          5 | 1                       
 # ========================================================
 print(eval_result.metrics)
 # Evaluation metrics (standard):
-# recall : 99.6
+# recall : 99.7
 # precision : 100.0
 # fpr : 0.0
-# fnr : 0.4
-# accuracy : 99.9996
+# fnr : 0.3
+# accuracy : 99.9997
 # specificity : 100.0
-# f1_score : 99.7996
+# f1_score : 99.8498
 ```
 The output shows:
 
@@ -324,7 +325,7 @@ If true matches were provided:
 
 For this example, using `faiss` we achieve:
 
-- 99.6% recall and precision
+- 99.7% recall and precision
 - close to 100% accuracy
 - Great reduction ratio of 0.999961
 - Most blocks contain just 2-3 records
