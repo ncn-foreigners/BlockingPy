@@ -88,8 +88,8 @@ control_ann = {
 
 **Supported distance metrics**:
 
-- `euclidean` (default)
-- `cosine`
+- `euclidean` 
+- `cosine` (default)
 - `inner_product`
 - `l1`
 - `manhattan`

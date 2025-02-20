@@ -157,7 +157,7 @@ print(dedup_result.result)
 # 7301  9999  9997     66  0.128579
 # 7302  9999  9998     66  0.140395
 ```
-Let's take a look at the pair in block `1`:
+Let's take a look at the pair in block `66`:
 
 ```python
 print(data.iloc[[9998,9999], : ])

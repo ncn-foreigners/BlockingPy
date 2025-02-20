@@ -136,7 +136,7 @@ Key priorities in blocking evaluation should focus on:
 
 As for other metrics:
 
-- **Accuracy and Specificity** : Those should usually be high since most pairs fall into the **FN** category due to the nature of blocking.
+- **Accuracy and Specificity** : Those should usually be high since most pairs fall into the **TN** category due to the nature of blocking.
 
 - **Precision** : Low precision scores would be adressed in the later stages of entity matching procedure as most False Positive pairs would be eliminated during one-to-one comparison.
 

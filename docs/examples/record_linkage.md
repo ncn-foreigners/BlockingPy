@@ -328,9 +328,9 @@ about the other records and their true blocks.
 
 For this example, using `faiss` we achieve:
 
-- 99.7% recall and and 100% precision
-- close to 100% accuracy
-- Great reduction ratio of 0.999961
+- `99.7%` recall and `100%` precision
+- close to `100%` accuracy
+- Great reduction ratio of `0.999961`
 - Most blocks contain just 2-3 records
 
 This demonstrates BlockingPy's effectiveness at finding matching records while drastically reducing the number of required comparisons.

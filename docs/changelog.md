@@ -1,5 +1,9 @@
 # Changelog
 
+## v.0.1.11
+- recordlinkage package integration example in docs
+- minor fixes
+
 ## v0.1.10
 - evaluation only for records that exist in true blocks.
 - default distance for `faiss` changed to `cosine`
