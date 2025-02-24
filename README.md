@@ -94,9 +94,9 @@ By printing `block_result.result` we can take a look at the results table contai
 ```python
 print(block_result.result)
 #    x  y  block      dist
-# 0  4  0      0  1.000000
-# 1  3  1      1  1.000000
-# 2  6  2      2  0.392232
+# 0  4  0      0  0.000000
+# 1  3  1      1  0.000000
+# 2  6  2      2  0.607768
 ```
 ### Deduplication
 We can perform deduplication by putting previously created DataFrame in the `block()` method.
@@ -118,12 +118,12 @@ print(dedup_result)
 ```python
 print(dedup_result.result)
 #    x  y  block      dist
-# 0  1  0      0  0.875000
-# 1  3  1      0  0.894427
-# 2  1  2      0  0.894427
-# 3  5  4      1  0.916667
-# 4  4  6      1  0.894427
-# 5  5  7      1  0.721688
+# 0  1  0      0  0.125000
+# 1  3  1      0  0.105573
+# 2  1  2      0  0.105573
+# 3  5  4      1  0.083333
+# 4  4  6      1  0.105573
+# 5  5  7      1  0.278312
 ```
 ## Features
 - Multiple ANN algorithms available:
