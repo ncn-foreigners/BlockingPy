@@ -21,7 +21,8 @@ import recordlinkage
 from recordlinkage.datasets import load_febrl1
 from blockingpy import Blocker
 import pandas as pd
-from itertools import combinations 
+import numpy as np
+np.random.seed(42)
 ```
 
 ## Data preparation
@@ -30,7 +31,7 @@ from itertools import combinations
 
 ```python
 df = load_febrl1()
-print(df.head())
+print(df.head(2))
 
 #               given_name	 surnam     street_number   address_1         address_2	suburb	    postcode	state	date_of_birth	soc_sec_id
 # rec_id										
@@ -58,7 +59,7 @@ Now we can obtain blocks from `BlockingPy`:
 blocker = Blocker()
 blocking_result = blocker.block(x=df['txt'])
 
-print(res)
+print(blocking_result)
 # ========================================================
 # Blocking based on the faiss method.
 # Number of blocks: 500
@@ -68,7 +69,7 @@ print(res)
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
 #          2 | 500  
-print(res.result.head())
+print(blocking_result.result.head())
 #        x    y  block      dist
 # 0    474    0      0  0.048376
 # 1    330    1      1  0.038961
@@ -86,15 +87,15 @@ result_df = blocking_result.result
 
 mapping_df = (
     result_df
-    .melt(id_vars=['block'], value_vars=['x', 'y']  value_name='record_id')
+    .melt(id_vars=['block'], value_vars=['x', 'y'], value_name='record_id')
     .drop_duplicates(subset=['record_id'])
 )
 
 record_to_block = dict(zip(mapping_df['record_id'], mapping_df['block']))
     
-new_data = original_data.copy()
+new_data = df.copy()
 
-new_data['block'] = [record_to_block.get(i) for i in range(len(original_data))]
+new_data['block'] = [record_to_block.get(i) for i in range(len(df))]
 
 print(new_data[['given_name', 'block']].head(5))
 # 	        given_name block
