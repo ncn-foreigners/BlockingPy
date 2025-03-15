@@ -109,10 +109,10 @@ settings = SettingsCreator(
     link_type="dedupe_only",
     blocking_rules_to_generate_predictions=[
         block_on("block_pred"), # BlockingPy integration
-        block_on("first_name"),
-        block_on("surname"),
-        block_on("dob"),
-        block_on("email"),
+        # block_on("first_name"),
+        # block_on("surname"),
+        # block_on("dob"),
+        # block_on("email"),
     ],
     comparisons=[
         cl.ForenameSurnameComparison("first_name", "surname"),
@@ -146,9 +146,6 @@ linker.training.estimate_probability_two_random_records_match(
 
 linker.training.estimate_u_using_random_sampling(max_pairs=1e6, seed=5)
 
-linker.training.estimate_parameters_using_expectation_maximisation(
-    block_on("block_pred"), estimate_without_term_frequencies=True
-)
 session_dob = linker.training.estimate_parameters_using_expectation_maximisation(
     block_on("dob"), estimate_without_term_frequencies=True
 )
@@ -159,20 +156,51 @@ linker.training.estimate_parameters_using_expectation_maximisation(
     block_on("first_name", "surname"), estimate_without_term_frequencies=True
 )
 ```
+The above example shows how to inegrate `BlockingPy` with `Splink`. In the following section, we will compare several blocking approaches using this dataset.
 
-## Evaluation
-Now we can evaluate the used approach:
+## Comparing Different Blocking Strategies
+
+We can compare three ways to handle blocking:
+
+1. **Using only Splink** (from the original example)
+2. **Using only BlockingPy**
+3. **Combining both approaches**
+
+To test these approaches, we simply modify the `block_on` parameters in `SettingsCreator` while keeping everything else the same. This lets us see how each blocking strategy affects match quality.
 
 ```python
-linker.evaluation.accuracy_analysis_from_labels_column(
-    "cluster",
-    output_type="threshold_selection",
-    threshold_match_probability=0.5,
-    add_metrics=["f1"],
-)
+# 1. BlockingPy only
+blocking_rules_to_generate_predictions=[
+        block_on("block_pred"),
+],
+# 2. Splink only
+blocking_rules_to_generate_predictions=[
+        block_on("first_name"),
+        block_on("surname"),
+        block_on("dob"),
+        block_on("email"),
+],
+# 3. Splink + BlockingPy
+blocking_rules_to_generate_predictions=[
+        block_on("block_pred"),
+        block_on("first_name"),
+        block_on("surname"),
+        block_on("dob"),
+        block_on("email"),
+],    
 ```
-Running the above code will show the accuracy analysis results, including the F1 score and other metrics.
+Ater training each model, we can evaluate the results using the `accuracy_analysis_from_labels_column` method from `Splink`, which will visialize the results. Below we present the results of the three models:
+
+### BlockingPy only
+![BlockingPy only](./blockingpy_only.svg "BlockingPy only")
+
+### Splink only
+![Splink only](./splink_only_1.svg "Splink only")
+
+### Splink + BlockingPy
+![Splink + BlockingPy](./combined_1.svg "Splink + BlockingPy")
 
 ## Conclusion
 
-In this example, we demonstrated how to integrate `BlockingPy` with `Splink` for probabilistic record linkage. By using `BlockingPy` for blocking we were able to obtain some record pairs which would otherwise be missed. The integration allows for efficient blocking and accurate matching, making it a powerful combination for entity resolution tasks.
+In this example, we demonstrated how to integrate `BlockingPy` with `Splink` for probabilistic record linkage. The comparsion between traditional methods, `BlockingPy` and the combination of both shows that when using both approaches we were able to significantly improve the performance metrics by capturing comparison pairs that would otherwise be missed. The integration allows for efficient blocking and accurate matching, making it a powerful combination for entity resolution tasks.
+
