@@ -107,6 +107,7 @@ class Blocker:
         control_ann: dict[str, Any] = {},
         x_colnames: list[str] | None = None,
         y_colnames: list[str] | None = None,
+        random_seed: int | None = None,
     ) -> BlockingResult:
         """
         Perform blocking using the specified algorithm.
@@ -137,6 +138,8 @@ class Blocker:
             Column names for reference dataset used with csr_matrix or np.ndarray
         y_colnames : list of str, optional
             Column names for query dataset used with csr_matrix or np.ndarray
+        random_seed : int, optional
+            Random seed for reproducibility (default is None)
 
         Raises
         ------
@@ -177,6 +180,9 @@ class Blocker:
 
         if deduplication:
             self.y_colnames = self.x_colnames
+
+        if self.control_ann["random_seed"] is None:
+            self.control_ann["random_seed"] = random_seed
 
         if ann == "nnd":
             distance = self.control_ann.get("nnd").get("metric")

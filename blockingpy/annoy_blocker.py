@@ -93,6 +93,7 @@ class AnnoyBlocker(BlockingMethod):
         controls : dict
             Algorithm control parameters with the following structure:
             {
+                'random_seed': int,
                 'annoy': {
                     'distance': str,
                     'seed': int,
@@ -122,7 +123,7 @@ class AnnoyBlocker(BlockingMethod):
         self.x_columns = x.columns
 
         distance = controls["annoy"].get("distance")
-        seed = controls["annoy"].get("seed")
+        seed = controls.get("random_seed", None)
         path = controls["annoy"].get("path")
         n_trees = controls["annoy"].get("n_trees")
         build_on_disk = controls["annoy"].get("build_on_disk")

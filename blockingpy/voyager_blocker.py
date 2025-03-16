@@ -95,13 +95,13 @@ class VoyagerBlocker(BlockingMethod):
         controls : dict
             Algorithm control parameters with the following structure:
             {
+                'random_seed': int,
                 'voyager': {
                     'distance': str,
                     'k_search': int,
                     'path': str,
                     'M': int,
                     'ef_construction': int,
-                    'random_seed': int,
                     'max_elements': int,
                     'num_threads': int,
                     'query_ef': int
@@ -131,13 +131,16 @@ class VoyagerBlocker(BlockingMethod):
         space = self.METRIC_MAP[distance]
         k_search = controls["voyager"].get("k_search")
         path = controls["voyager"].get("path")
+        seed = controls.get("random_seed")
+        if seed is None:
+            seed = 1
 
         self.index = Index(
             space=space,
             num_dimensions=x.shape[1],
             M=controls["voyager"].get("M"),
             ef_construction=controls["voyager"].get("ef_construction"),
-            random_seed=controls["voyager"].get("random_seed"),
+            random_seed=seed,
             max_elements=controls["voyager"].get("max_elements"),
         )
 

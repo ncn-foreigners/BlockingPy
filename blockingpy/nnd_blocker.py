@@ -75,6 +75,7 @@ class NNDBlocker(BlockingMethod):
         controls : dict
             Algorithm control parameters with the following structure:
             {
+                'random_seed': int,
                 'nnd': {
                     'metric': str,
                     'k_search': int,
@@ -151,6 +152,7 @@ class NNDBlocker(BlockingMethod):
             delta=controls["nnd"].get("delta"),
             compressed=controls["nnd"].get("compressed"),
             parallel_batch_queries=controls["nnd"].get("parallel_batch_queries"),
+            random_state=controls.get("random_seed", None),
         )
 
         logger.info("Querying index...")

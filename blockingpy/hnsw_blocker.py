@@ -86,6 +86,7 @@ class HNSWBlocker(BlockingMethod):
         controls : dict
             Algorithm control parameters with the following structure:
             {
+                'random_seed': int,
                 'hnsw': {
                     'k_search': int,
                     'distance': str,
@@ -93,7 +94,7 @@ class HNSWBlocker(BlockingMethod):
                     'path': str,
                     'ef_c': int,
                     'ef_s': int,
-                    'M': int
+                    'M': int,
                 }
             }
 
@@ -122,6 +123,9 @@ class HNSWBlocker(BlockingMethod):
         path = controls["hnsw"].get("path")
         k_search = controls["hnsw"].get("k_search")
         space = self.SPACE_MAP[distance]
+        seed = controls.get("random_seed")
+        if seed is None:
+            seed = 100
 
         logger.info("Initializing HNSW index...")
 
@@ -130,6 +134,7 @@ class HNSWBlocker(BlockingMethod):
             max_elements=x.shape[0],
             ef_construction=controls["hnsw"].get("ef_c"),
             M=controls["hnsw"].get("M"),
+            random_seed=seed,
         )
         self.index.set_num_threads(n_threads)
 

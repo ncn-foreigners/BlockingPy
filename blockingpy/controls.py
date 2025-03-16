@@ -93,6 +93,7 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
 
     """
     defaults = {
+        "random_seed": None,
         "nnd": {
             "metric": "euclidean",
             "k_search": 30,
@@ -125,7 +126,6 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         },
         "lsh": {
             "k_search": 30,
-            "seed": None,
             "bucket_size": 500,
             "hash_width": 10.0,
             "num_probes": 0,
@@ -134,7 +134,6 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         },
         "kd": {
             "k_search": 30,
-            "seed": None,
             "algorithm": "dual_tree",
             "epsilon": 0.0,
             "leaf_size": 20,
@@ -146,7 +145,6 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         "annoy": {
             "k_search": 30,
             "path": None,
-            "seed": None,
             "distance": "angular",
             "n_trees": 250,
             "build_on_disk": False,
@@ -154,7 +152,6 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         "voyager": {
             "k_search": 30,
             "path": None,
-            "random_seed": 1,
             "distance": "cosine",
             "M": 12,
             "ef_construction": 200,

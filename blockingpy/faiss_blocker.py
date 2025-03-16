@@ -164,8 +164,8 @@ class FaissBlocker(BlockingMethod):
 
         if distance == "cosine":
             # faiss returns cosine similarity ([0,1] since there are only non-negative values in DTM),
-             # we want cosine distance
-            distances = 1 - distances 
+            # we want cosine distance
+            distances = 1 - distances
 
         if k == 2:
             indices, distances = rearrange_array(indices, distances)

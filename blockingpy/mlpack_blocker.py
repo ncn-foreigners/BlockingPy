@@ -76,9 +76,9 @@ class MLPackBlocker(BlockingMethod):
         controls : dict
             Algorithm control parameters with the following structure:
             {
-                'algo': str,
+                'random_seed': int,
+                'algo': str # 'lsh' or 'kd',
                 'lsh': {  # if using LSH
-                    'seed': int,
                     'k_search': int,
                     'bucket_size': int,
                     'hash_width': float,
@@ -87,7 +87,6 @@ class MLPackBlocker(BlockingMethod):
                     'tables': int
                 },
                 'kd': {   # if using k-d tree
-                    'seed': int,
                     'k_search': int,
                     'algorithm': str,
                     'leaf_size': int,
@@ -118,11 +117,10 @@ class MLPackBlocker(BlockingMethod):
 
         self.algo = controls.get("algo", "lsh")
         self._check_algo(self.algo)
+        seed = controls.get("random_seed", None)
         if self.algo == "lsh":
-            seed = controls["lsh"].get("seed")
             k_search = controls["lsh"].get("k_search")
         else:
-            seed = controls["kd"].get("seed")
             k_search = controls["kd"].get("k_search")
 
         if k_search > x.shape[0]:
