@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.12
+- impoved reproducibility of the results
+- added `random_seed` parameter to `Blocker` class
+- new&improved examples in docs
+- minor fixes
+
 ## v.0.1.11
 - recordlinkage package integration example in docs
 - minor fixes

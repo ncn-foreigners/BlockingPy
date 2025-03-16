@@ -67,6 +67,7 @@ dedup_result = blocker.block(
     x=data['txt'],
     ann='hnsw',
     verbose=1,
+    radnom_seed=42,
 )
 
 # ===== creating tokens =====
@@ -167,70 +168,62 @@ Now we can evaluate our algorithm:
 blocker = Blocker()
 eval_result = blocker.block(
     x=df_eval['txt'], 
-    ann='faiss',
+    ann='voyager',
     true_blocks=true_blocks_dedup, 
     verbose=1, 
-    control_ann=control_ann
+    random_seed=42,
 )
 # ===== creating tokens =====
-# ===== starting search (faiss, x, y: 10000,10000, t: 674) =====
+# ===== starting search (voyager, x, y: 10000,10000, t: 674) =====
 # ===== creating graph =====
 ```
 And the results:
 
 ```python
-print(eval_result)
-print(eval_result.metrics)
+# print(eval_result)
+# print(eval_result.metrics)
 # ========================================================
-# Blocking based on the faiss method.
-# Number of blocks: 2737
+# Blocking based on the voyager method.
+# Number of blocks: 2726
 # Number of columns used for blocking: 674
-# Reduction ratio: 0.999580
+# Reduction ratio: 0.999581
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          2 | 972            
-#          3 | 721            
-#          4 | 423            
-#          5 | 236            
-#          6 | 138            
-#          7 | 92             
-#          8 | 62             
-#          9 | 29             
-#         10 | 28             
-#         11 | 15             
-#         12 | 8              
-#         13 | 3              
-#         14 | 3              
-#         15 | 1              
-#         16 | 1              
-#         17 | 2              
+#          2 | 956            
+#          3 | 712            
+#          4 | 412            
+#          5 | 267            
+#          6 | 141            
+#          7 | 91             
+#          8 | 51             
+#          9 | 36             
+#         10 | 22             
+#         11 | 14             
+#         12 | 9              
+#         13 | 5              
+#         14 | 4              
+#         15 | 2              
+#         17 | 1              
 #         18 | 1              
 #         20 | 1              
-#         67 | 1              
+#         66 | 1              
 # ========================================================
 # Evaluation metrics (standard):
 # recall : 100.0
-# precision : 4.7651
-# fpr : 0.04
+# precision : 4.7787
+# fpr : 0.0399
 # fnr : 0.0
-# accuracy : 99.96
-# specificity : 99.96
-# f1_score : 9.0967
-# recall         1.000000
-# precision      0.047651
-# fpr            0.000400
-# fnr            0.000000
-# accuracy       0.999600
-# specificity    0.999600
-# f1_score       0.090967
+# accuracy : 99.9601
+# specificity : 99.9601
+# f1_score : 9.1216
 ```
 
 ```python
 print(eval_result.confusion)
 # 	                Actual Negative     Actual Positive
-# Predicted Negative	49974014	    0
-# Predicted Positive	19986	            1000
+# Predicted Negative	49974074	    0
+# Predicted Positive	19926	            1000
 ```
 
 The results show high reduction ratio `0.9996` alongside perfect recall (`1.000`) indicating that our package handled this dataset very well.

@@ -59,6 +59,7 @@ Each algorithm has its own set of parameters in the `control_ann` dictionary. Ov
 
 ```python
 control_ann = {
+    "random_seed" : None, # Alternative to setting the seed directly in the `Blocker` 
     "faiss" : {
         # parameters here
     },
@@ -104,11 +105,11 @@ For more information about `faiss` see [here](https://github.com/facebookresearc
 
 ```python
 control_ann = {
+    'random_seed': None, # Random seed
     'voyager': {
         'distance': 'cosine',   # Distance metric
         'k_search': 30,         # Number of neighbors to search
         'path': None,           # Optional path to save index
-        'random_seed': 1,       # Random seed
         'M': 12,                # Number of connections per element
         'ef_construction': 200, # Size of dynamic candidate list (construction)
         'max_elements': 1,      # Maximum number of elements
@@ -130,6 +131,7 @@ For more information about `voyager` see [here](https://github.com/spotify/voyag
 
 ```python
 control_ann = {
+    'random_seed': None, # Random seed
     'hnsw': {
         'distance': 'cosine', # Distance metric
         'k_search': 30,       # Number of neighbors to search
@@ -137,7 +139,7 @@ control_ann = {
         'path': None,         # Optional path to save index
         'M': 25,              # Number of connections per element
         'ef_c': 200,          # Size of dynamic candidate list (construction)
-        'ef_s': 200           # Size of dynamic candidate list (search)
+        'ef_s': 200,          # Size of dynamic candidate list (search)
     }
 }
 ```
@@ -154,11 +156,11 @@ For more information about `hnsw` configuration see [here](https://github.com/nm
 
 ```python
 control_ann = {
+    'random_seed': None, # Random seed
     'annoy': {
         'distance': 'angular', # Distance metric
         'k_search': 30,        # Number of neighbors to search
         'path': None,          # Optional path to save index
-        'seed': None,          # Random seed
         'n_trees': 250,        # Number of trees
         'build_on_disk': False # Build index on disk
     }
@@ -178,9 +180,9 @@ For more information about `annoy` configuratino see [here](https://github.com/s
 
 ```python
 control_ann = {
+    'random_seed': None, # Random seed
     'lsh': {
         'k_search': 30,        # Number of neighbors to search
-        'seed': None,          # Random seed
         'bucket_size': 500,    # Hash bucket size
         'hash_width': 10.0,    # Hash function width
         'num_probes': 0,       # Number of probes
@@ -195,9 +197,9 @@ For more information about `lsh` see [here](https://github.com/mlpack).
 
 ```python
 control_ann = {
+    'random_seed': None, # Random seed
     'kd': {
         'k_search': 30,           # Number of neighbors to search
-        'seed': None,             # Random seed
         'algorithm': 'dual_tree', # Algorithm type
         'leaf_size': 20,          # Leaf size for tree
         'random_basis': False,    # Use random basis
@@ -215,6 +217,7 @@ For more information about `kd` see [here](https://github.com/mlpack).
 
 ```python
 control_ann = {
+    'random_seed': None, # Random seed
     'nnd': {
         'metric': 'euclidean',  # Distance metric
         'k_search': 30,         # Number of neighbors to search
@@ -222,7 +225,7 @@ control_ann = {
         'leaf_size': None,      # Leaf size for tree building
         'n_trees': None,        # Number of trees
         'diversify_prob': 1.0,  # Probability of including diverse neighbors
-        'low_memory': True      # Use low memory mode
+        'low_memory': True,     # Use low memory mode
     }
 }
 ```

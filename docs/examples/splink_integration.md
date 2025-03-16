@@ -54,26 +54,27 @@ blocker = Blocker()
 
 res = blocker.block(
         x = df['txt'],
-        ann='faiss',
+        ann='hnsw',
+        random_seed=42,
 )
 
 print(res)
 # ========================================================
-# Blocking based on the faiss method.
-# Number of blocks: 253
+# Blocking based on the hnsw method.
+# Number of blocks: 252
 # Number of columns used for blocking: 906
-# Reduction ratio: 0.996314
+# Reduction ratio: 0.996306
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          2 | 64             
+#          2 | 62             
 #          3 | 53             
-#          4 | 50             
+#          4 | 51             
 #          5 | 36             
 #          6 | 26             
 #          7 | 16             
 #          8 | 7              
-#          9 | 1   
+#          9 | 1     
 print(res.result.head())
 #      x  y  block      dist
 # 0    1  0      0  0.142391
@@ -192,13 +193,13 @@ blocking_rules_to_generate_predictions=[
 Ater training each model, we can evaluate the results using the `accuracy_analysis_from_labels_column` method from `Splink`, which will visialize the results. Below we present the results of the three models:
 
 ### BlockingPy only
-![BlockingPy only](./blockingpy_only.svg "BlockingPy only")
+![BlockingPy only](./voyager.svg "BlockingPy only")
 
 ### Splink only
-![Splink only](./splink_only_1.svg "Splink only")
+![Splink only](./splink_only_2.svg "Splink only")
 
 ### Splink + BlockingPy
-![Splink + BlockingPy](./combined_1.svg "Splink + BlockingPy")
+![Splink + BlockingPy](./combined.svg "Splink + BlockingPy")
 
 ## Conclusion
 

@@ -95,7 +95,8 @@ dedup_result = blocker.block(
     x=data['txt'],
     ann='voyager',
     verbose=1,
-    control_ann=control_ann
+    control_ann=control_ann,
+    random_seed=42
 )
 
 # ===== creating tokens =====
@@ -110,34 +111,35 @@ print(dedup_result)
 
 # ========================================================
 # Blocking based on the voyager method.
-# Number of blocks: 2686
+# Number of blocks: 2723
 # Number of columns used for blocking: 1169
-# Reduction ratio: 0.999554
+# Reduction ratio: 0.999564
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          2 | 905            
-#          3 | 865            
-#          4 | 361            
-#          5 | 203            
-#          6 | 98             
-#          7 | 76             
-#          8 | 39             
-#          9 | 29             
-#         10 | 32             
-#         11 | 17             
-#         12 | 11             
-#         13 | 8              
-#         14 | 9              
-#         15 | 13             
-#         16 | 4              
+#          2 | 926            
+#          3 | 883            
+#          4 | 363            
+#          5 | 211            
+#          6 | 100            
+#          7 | 78             
+#          8 | 41             
+#          9 | 26             
+#         10 | 21             
+#         11 | 15             
+#         12 | 13             
+#         13 | 7              
+#         14 | 7              
+#         15 | 9              
+#         16 | 9              
 #         17 | 5              
-#         18 | 3              
+#         18 | 2              
 #         19 | 2              
-#         21 | 3              
-#         22 | 1              
+#         20 | 1              
+#         23 | 1              
 #         24 | 1              
-#         29 | 1        
+#         27 | 1              
+#         32 | 1         
 ```
 and:
 
@@ -151,11 +153,11 @@ print(dedup_result.result)
 # 3     5562     4      3  0.396494
 # 4     1389     5      4  0.461184
 # ...    ...   ...    ...       ...
-# 7298  9995  9993   2710  0.241895
-# 7299  9995  9994   2710  0.135667
-# 7300  4029  9996   1549  0.386845
-# 7301  9999  9997     66  0.128579
-# 7302  9999  9998     66  0.140395
+# 7281  9995  9993   2722  0.241895
+# 7282  9995  9994   2722  0.135667
+# 7283  4029  9996   1561  0.386845
+# 7284  9998  9997     67  0.128579
+# 7285  9998  9999     67  0.128579
 ```
 Let's take a look at the pair in block `66`:
 
@@ -222,14 +224,16 @@ eval_result = blocker.block(
     ann='hnsw',
     true_blocks=true_blocks_dedup, 
     verbose=1, 
-    control_ann=control_ann
+    control_ann=control_ann,
+    random_seed=42
 )
 # We can also evaluate separately with `eval` method:
 # result = blocker.block(
 #     x=df_eval['txt'], 
 #     ann='hnsw', 
 #     verbose=1, 
-#     control_ann=control_ann
+#     control_ann=control_ann,
+#     random_seed=42
 # )
 # eval_result = blocker.eval(
 #     blocking_result=result,

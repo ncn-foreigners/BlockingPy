@@ -152,6 +152,7 @@ rec_lin_result = blocker.block(
     verbose=1,      
     control_ann=control_ann, 
     # control_txt=control_txt, # let's leave this as default
+    random_seed=42
 )
 
 # Output:
@@ -168,7 +169,7 @@ print(rec_lin_result)
 
 # ========================================================
 # Blocking based on the hnsw method.
-# Number of blocks: 23996
+# Number of blocks: 23994
 # Number of columns used for blocking: 1072
 # Reduction ratio: 0.999961
 # ========================================================
@@ -255,11 +256,12 @@ eval_result = blocker.block(
     y=cis['txt'],
     true_blocks=matches[['x', 'y', 'block']],
     verbose=1,
-    ann='faiss'  # Try a different algorithm
+    ann='voyager',  # Try a different algorithm
+    random_state=42
 )
 
 # ===== creating tokens =====
-# ===== starting search (hnsw, x, y: 25343,24613, t: 1072) =====
+# ===== starting search (voyager, x, y: 25343,24613, t: 1072) =====
 # ===== creating graph =====
 
 # alternatively we can use the `eval` method for separation:
@@ -267,7 +269,8 @@ eval_result = blocker.block(
 #     x=census['txt'],
 #     y=cis['txt'],
 #     verbose=1,
-#     ann='faiss'
+#     ann='voyager',
+#     random_state=42
 # )
 # eval_result = blocker.eval(
 #     blocking_result=result,
@@ -284,27 +287,27 @@ and print results with evaluation metrics:
 ```python
 print(eval_result)
 # ========================================================
-# Blocking based on the faiss method.
-# Number of blocks: 23992
+# Blocking based on the voyager method.
+# Number of blocks: 23922
 # Number of columns used for blocking: 1072
 # Reduction ratio: 0.999961
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-#          2 | 23386          
-#          3 | 592            
+#          2 | 23248          
+#          3 | 659            
 #          4 | 13             
-#          5 | 1                       
+#          5 | 2              
 # ========================================================
 print(eval_result.metrics)
-# Evaluation metrics (standard):
-# recall : 99.7
-# precision : 100.0
-# fpr : 0.0
-# fnr : 0.3
-# accuracy : 99.9997
-# specificity : 100.0
-# f1_score : 99.8498
+Evaluation metrics (standard):
+# recall : 99.3
+# precision : 99.8994
+# fpr : 0.0001
+# fnr : 0.7
+# accuracy : 99.9992
+# specificity : 99.9999
+# f1_score : 99.5988
 ```
 The output shows:
 
@@ -326,9 +329,9 @@ We assume that we have no knowledge
 about the other records and their true blocks.
 
 
-For this example, using `faiss` we achieve:
+For this example, using `voyager` we achieve:
 
-- `99.7%` recall and `100%` precision
+- `99.3%` recall and `99.9%` precision
 - close to `100%` accuracy
 - Great reduction ratio of `0.999961`
 - Most blocks contain just 2-3 records

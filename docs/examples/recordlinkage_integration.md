@@ -57,11 +57,15 @@ Now we can obtain blocks from `BlockingPy`:
 
 ```python
 blocker = Blocker()
-blocking_result = blocker.block(x=df['txt'])
+blocking_result = blocker.block(
+    x=df['txt'],
+    ann='hnsw',
+    random_seed=42
+)
 
 print(blocking_result)
 # ========================================================
-# Blocking based on the faiss method.
+# Blocking based on the hnsw method.
 # Number of blocks: 500
 # Number of columns used for blocking: 1023
 # Reduction ratio: 0.998999
@@ -70,12 +74,12 @@ print(blocking_result)
 # Block Size | Number of Blocks
 #          2 | 500  
 print(blocking_result.result.head())
-#        x    y  block      dist
-# 0    474    0      0  0.048376
-# 1    330    1      1  0.038961
-# 2    351    2      2  0.086690
-# 3    290    3      3  0.024617
-# 4    333    4      4  0.105662
+#      x  y  block      dist
+# 0  474  0      0  0.048375
+# 1  330  1      1  0.038961
+# 2  351  2      2  0.086690
+# 3  290  3      3  0.024617
+# 4  333  4      4  0.105662
 ```
 
 ## Integration
