@@ -68,7 +68,7 @@ class Blocker:
     - MLPack (LSH and k-d tree)
     - NND (Nearest Neighbor Descent)
     - Voyager (Spotify)
-    - FAISS (Facebook AI Similarity Search)
+    - FAISS (LSH, HNSW and Flat Indexes)
 
     """
 
@@ -107,7 +107,7 @@ class Blocker:
         control_ann: dict[str, Any] = {},
         x_colnames: list[str] | None = None,
         y_colnames: list[str] | None = None,
-        random_seed: int | None = None,
+        random_seed: int | None = 2025,
     ) -> BlockingResult:
         """
         Perform blocking using the specified algorithm.
@@ -197,7 +197,7 @@ class Blocker:
                 "hnsw": "cosine",
                 "annoy": "angular",
                 "voyager": "cosine",
-                "faiss": "euclidean",
+                "faiss": "cosine",
                 "lsh": None,
                 "kd": None,
             }.get(ann)

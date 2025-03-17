@@ -56,6 +56,7 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
     dict
         Configuration dictionary with the following structure:
         {
+            'random_seed': int,
             'nnd': {
                 'metric': str,
                 'k_search': int,
@@ -160,9 +161,16 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
             "query_ef": -1,
         },
         "faiss": {
+            "index_type": "hnsw",
             "k_search": 30,
             "distance": "cosine",
             "path": None,
+            "hnsw_M": 32,
+            "hnsw_ef_construction": 200,
+            "hnsw_ef_search": 200,
+            "lsh_nbits": 8,
+            "lsh_rotate_data": True
+
         },
         "algo": "lsh",
     }

@@ -14,9 +14,15 @@ def faiss_controls():
     """Default FAISS parameters."""
     return {
         "faiss": {
+            "index_type": "flat",
             "k_search": 5,
             "path": None,
-            "distance": "euclidean",
+            "distance": "cosine",
+            "hnsw_M": 32,
+            "hnsw_ef_construction": 200,
+            "hnsw_ef_search": 200,
+            "lsh_nbits": 8,
+            "lsh_rotate_data": True,
         }
     }
 
@@ -143,7 +149,7 @@ def test_empty_data_handling(faiss_blocker, faiss_controls):
     x = pd.DataFrame(columns=["col1", "col2", "col3"])
     y = pd.DataFrame(rng.random((5, 3)))
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(AttributeError):
         faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=faiss_controls)
 
 
@@ -183,3 +189,97 @@ def test_invalid_save_path(faiss_blocker, small_sparse_data, faiss_controls):
 
     with pytest.raises(ValueError, match="Provided path is incorrect"):
         faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
+
+
+@pytest.mark.parametrize(
+    "index_type,index_params",
+    [
+        ("flat", {}),
+        ("hnsw", {"hnsw_M": 16, "hnsw_ef_construction": 100, "hnsw_ef_search": 50}),
+        ("lsh", {"lsh_nbits": 8, "lsh_rotate_data": True}),
+    ],
+)
+def test_index_types(faiss_blocker, small_sparse_data, faiss_controls, index_type, index_params):
+    """Test different FAISS index types."""
+    x, y = small_sparse_data
+
+    controls = faiss_controls.copy()
+    controls["faiss"]["index_type"] = index_type
+    controls["faiss"].update(index_params)
+
+    result = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
+
+    assert isinstance(result, pd.DataFrame)
+    assert set(result.columns) == {"x", "y", "dist"}
+    assert len(result) == len(y)
+    assert result["dist"].notna().all()
+
+
+def test_hnsw_parameters(faiss_blocker, small_sparse_data, faiss_controls):
+    """Test HNSW with different parameter configurations."""
+    x, y = small_sparse_data
+
+    for M in [8, 16, 32]:
+        controls = faiss_controls.copy()
+        controls["faiss"]["index_type"] = "hnsw"
+        controls["faiss"]["hnsw_M"] = M
+        controls["faiss"]["hnsw_ef_construction"] = 100
+        controls["faiss"]["hnsw_ef_search"] = 50
+
+        result = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
+        assert len(result) == len(y)
+
+    for ef in [50, 100, 200]:
+        controls = faiss_controls.copy()
+        controls["faiss"]["index_type"] = "hnsw"
+        controls["faiss"]["hnsw_M"] = 16
+        controls["faiss"]["hnsw_ef_construction"] = ef
+        controls["faiss"]["hnsw_ef_search"] = 50
+
+        result = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
+        assert len(result) == len(y)
+
+
+def test_lsh_parameters(faiss_blocker, small_sparse_data, faiss_controls):
+    """Test LSH with different parameter configurations."""
+    x, y = small_sparse_data
+
+    for nbits in [0.5, 1, 0.3]:
+        controls = faiss_controls.copy()
+        controls["faiss"]["index_type"] = "lsh"
+        controls["faiss"]["lsh_nbits"] = nbits
+        controls["faiss"]["lsh_rotate_data"] = True
+
+        result = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
+        assert len(result) == len(y)
+
+    for rotate in [True, False]:
+        controls = faiss_controls.copy()
+        controls["faiss"]["index_type"] = "lsh"
+        controls["faiss"]["lsh_nbits"] = 1
+        controls["faiss"]["lsh_rotate_data"] = rotate
+
+        result = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
+        assert len(result) == len(y)
+
+
+def test_index_type_reproducibility(faiss_blocker, small_sparse_data, faiss_controls):
+    """Test result reproducibility with different index types."""
+    x, y = small_sparse_data
+
+    for index_type in ["flat", "hnsw", "lsh"]:
+        controls = faiss_controls.copy()
+        controls["faiss"]["index_type"] = index_type
+
+        if index_type == "hnsw":
+            controls["faiss"]["hnsw_M"] = 16
+            controls["faiss"]["hnsw_ef_construction"] = 100
+            controls["faiss"]["hnsw_ef_search"] = 50
+        elif index_type == "lsh":
+            controls["faiss"]["lsh_nbits"] = 8
+            controls["faiss"]["lsh_rotate_data"] = True
+
+        result1 = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
+        result2 = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
+
+        pd.testing.assert_frame_equal(result1, result2)

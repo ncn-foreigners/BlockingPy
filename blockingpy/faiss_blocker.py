@@ -1,4 +1,4 @@
-"""Contains the FaissBlocker class for performing blocking using the FAISS algorithm from Meta."""
+"""Contains the FaissBlocker class for performing blocking using one of the FAISS algorithms from Meta."""
 
 import logging
 import os
@@ -39,16 +39,28 @@ class FaissBlocker(BlockingMethod):
     See Also
     --------
     BlockingMethod : Abstract base class defining the blocking interface
-    faiss.IndexFlat : The underlying FAISS index implementation
+    faiss.Index : The underlying FAISS index implementation
 
     Notes
     -----
+    The available Index types from FAISS are: 'flat', 'hnsw', and 'lsh'.
+    - 'flat' is a brute-force exact search (most accurate but slowest)
+    - 'hnsw' is a Hierarchical Navigable Small World graph algorithm
+        (good balance of speed and accuracy)
+    - 'lsh' is a Locality Sensitive Hashing algorithm 
+        (fastest but approximate results) 
+    
     For more details about the FAISS library and implementation, see:
     https://github.com/facebookresearch/faiss
 
     Some distance metrics require special handling:
     - Cosine similarity is implemented through L2 normalization
     - Jensen-Shannon and Canberra metrics require smoothing to handle zero values
+    - Selected distance metrics does not affect the algorithm if 'lsh' was selected
+
+    Faiss does not support `random_seed` parameter. Instead, it handles reproducibility 
+    inside the algorithm. For more details, see:
+    https://gist.github.com/mdouze/1892178b5663b80e85ab076966c59c28
 
     """
 
@@ -76,7 +88,7 @@ class FaissBlocker(BlockingMethod):
 
         Creates a new FaissBlocker with empty index.
         """
-        self.index: faiss.IndexFlat
+        self.index: faiss.Index
         self.x_columns: list[str]
 
     def block(
@@ -104,9 +116,17 @@ class FaissBlocker(BlockingMethod):
             Algorithm control parameters with the following structure:
             {
                 'faiss': {
+                    'index_type': ['flat', 'hnsw', 'lsh'],
                     'distance': str,
                     'k_search': int,
-                    'path': str
+                    'path': str,
+
+                    'hnsw_M': int,
+                    'hnsw_ef_construction': int,
+                    'hnsw_ef_search': int,
+
+                    'lsh_nbits': int, (gets multiplied by dimensions)
+                    'lsh_rotate_data': bool,
                 }
             }
 
@@ -124,6 +144,8 @@ class FaissBlocker(BlockingMethod):
         - For cosine similarity, vectors are L2-normalized
         - For Jensen-Shannon and Canberra metrics, small constant is added
           to prevent undefined values
+        - For LSH index, the distance calculation is determined by the hash function, 
+          not directly by the selected distance metric
 
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
@@ -132,6 +154,13 @@ class FaissBlocker(BlockingMethod):
         distance = controls["faiss"].get("distance")
         k_search = controls["faiss"].get("k_search")
         path = controls["faiss"].get("path")
+        index_type = controls["faiss"].get("index_type", "hnsw")
+
+        if index_type not in {"flat", "hnsw", "lsh"}:
+            raise ValueError(
+                f"Invalid index_type '{index_type}'. Must be one of 'flat', 'hnsw', or 'lsh'."
+            )
+        
 
         if distance == "cosine":
             x = np.ascontiguousarray(x.sparse.to_dense().to_numpy(), dtype=np.float32)
@@ -145,7 +174,21 @@ class FaissBlocker(BlockingMethod):
 
         metric = self.METRIC_MAP[distance]
 
-        self.index = faiss.IndexFlat(x.shape[1], metric)
+        if index_type == "flat":
+            self.index = faiss.IndexFlat(x.shape[1], metric)
+        elif index_type == "hnsw":
+            M = controls["faiss"].get("hnsw_M")
+            ef_construction = controls["faiss"].get("hnsw_ef_construction")
+            ef_search = controls["faiss"].get("hnsw_ef_search")
+            self.index = faiss.IndexHNSWFlat(x.shape[1], M, metric)
+            self.index.hnsw.efConstruction = ef_construction
+            self.index.hnsw.efSearch = ef_search
+        elif index_type == "lsh":
+            nbits = controls["faiss"].get("lsh_nbits") * x.shape[1]
+            if not isinstance(nbits, int):
+                nbits = round(nbits)
+            rotate_data = controls["faiss"].get("lsh_rotate_data")
+            self.index = faiss.IndexLSH(x.shape[1], nbits, rotate_data)
 
         logger.info("Building index...")
         self.index.add(x=x)
@@ -162,9 +205,7 @@ class FaissBlocker(BlockingMethod):
 
         distances, indices = self.index.search(x=y, k=k_search)
 
-        if distance == "cosine":
-            # faiss returns cosine similarity ([0,1] since there are only non-negative values in DTM),
-            # we want cosine distance
+        if distance == "cosine" and index_type != "lsh":
             distances = 1 - distances
 
         if k == 2:
