@@ -1,13 +1,15 @@
 # Welcome to BlockingPy's Documentation
 
-[![License](https://img.shields.io/github/license/T-Strojny/BlockingPy)](https://github.com/T-Strojny/BlockingPy/blob/main/LICENSE) 
+[![License](https://img.shields.io/github/license/ncn-foreigners/BlockingPy)](https://github.com/ncn-foreigners/BlockingPy/blob/main/LICENSE) 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Python version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
-[![Code Coverage](https://img.shields.io/codecov/c/github/T-Strojny/BlockingPy)](https://codecov.io/gh/T-Strojny/BlockingPy)\
+[![codecov](https://codecov.io/gh/ncn-foreigners/BlockingPy/graph/badge.svg?token=BF41O220NY)](https://codecov.io/gh/ncn-foreigners/BlockingPy)\
 [![PyPI version](https://img.shields.io/pypi/v/blockingpy.svg)](https://pypi.org/project/blockingpy/) 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://github.com/T-Strojny/BlockingPy/actions/workflows/run_tests.yml/badge.svg)](https://github.com/T-Strojny/BlockingPy/actions/workflows/run_tests.yml)
-[![GitHub last commit](https://img.shields.io/github/last-commit/T-Strojny/BlockingPy)](https://github.com/T-Strojny/BlockingPy/commits/main)
+[![Tests](https://github.com/ncn-foreigners/BlockingPy/actions/workflows/run_tests.yml/badge.svg)](https://github.com/ncn-foreigners/BlockingPy/actions/workflows/run_tests.yml)
+[![GitHub last commit](https://img.shields.io/github/last-commit/ncn-foreigners/BlockingPy)](https://github.com/ncn-foreigners/BlockingPy/commits/main)
+[![Documentation Status](https://readthedocs.org/projects/blockingpy/badge/?version=latest)](https://blockingpy.readthedocs.io/en/latest/?badge=latest)
+![PyPI Downloads](https://img.shields.io/pypi/dm/blockingpy)
 
 ```{toctree}
 :maxdepth: 2

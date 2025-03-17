@@ -60,7 +60,7 @@ print(blocking_result)
 ```
 Our output contains:
 
-- Algorithm used for blocking (default - `faiss`)
+- Algorithm used for blocking (default - `faiss - HNSW index`)
 - Number of blocks created
 - Number of columns used for blocking (obtained by creating DTMs from datasets)
 - Reduction ratio i.e. how large is the reduction of comparison pairs (here `0.8750` which means blocking reduces comparison by over 87.5%).

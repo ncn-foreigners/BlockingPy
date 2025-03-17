@@ -95,7 +95,7 @@ By printing `block_result.result` we can take a look at the results table contai
 print(block_result.result)
 #    x  y  block      dist
 # 0  4  0      0  0.000000
-# 1  3  1      1  0.000000
+# 1  1  1      1  0.000000
 # 2  6  2      2  0.607768
 ```
 ### Deduplication
@@ -126,8 +126,8 @@ print(dedup_result.result)
 # 5  5  7      1  0.278312
 ```
 ## Features
-- Multiple ANN algorithms available:
-    - [FAISS](https://github.com/facebookresearch/faiss) (Facebook AI Similarity Search)
+- Multiple ANN implementations available:
+    - [FAISS](https://github.com/facebookresearch/faiss) (Facebook AI Similarity Search) (`lsh`, `hnsw`, `flat`)
     - [Voyager](https://github.com/spotify/voyager) (Spotify)
     - [HNSW](https://github.com/nmslib/hnswlib) (Hierarchical Navigable Small World)
     - [MLPACK](https://github.com/mlpack/mlpack) (both LSH and k-d tree)

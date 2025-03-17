@@ -182,13 +182,13 @@ print(evals.confusion)
 BlockingPy supports multiple ANN algorithms, each with its strengths:
 
 ```python
-# FAISS (default) - good general purpose choice
+# FAISS (default) - Supports LSH, HNSW and Flat Index
 result = blocker.block(x=data, ann="faiss")
 
-# Annoy - good for memory efficiency
+# Annoy
 result = blocker.block(x=data, ann="annoy")
 
-# HNSW - good for high accuracy
+# HNSW
 result = blocker.block(x=data, ann="hnsw")
 
 # Other options: "voyager", "lsh", "kd", "nnd"
@@ -213,4 +213,16 @@ result = blocker.block(
     ann="lsh",
     control_ann=control_ann,
 )
+```
+
+## Working with faiss implementation:
+
+When the selected algo is faiss, you should specify which index to use in `control_ann`:
+
+```python
+control_ann = {
+    "faiss" : {
+        "index_type": "flat" or "hnsw" or "lsh"
+    }
+}
 ```

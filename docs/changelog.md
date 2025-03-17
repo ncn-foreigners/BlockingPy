@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.13
+- set default `random_seed` to 2025
+- added `IndexLSH` and `IndexHNSWFlat` to `faiss`
+
 ## v0.1.12
 - impoved reproducibility of the results
 - added `random_seed` parameter to `Blocker` class

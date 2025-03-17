@@ -80,9 +80,17 @@ control_ann = {
 ```python
 control_ann = {
     'faiss': {
-        'distance': 'euclidean', # Distance metric
-        'k_search': 30,          # Number of neighbors to search
-        'path': None             # Optional path to save index
+        'index_type': ['flat', 'hnsw', 'lsh'], # Index type
+        'distance': str, # Distance metric
+        'k_search': int, # Number of neighbors to search
+        'path': str,     # Optional path to save index
+
+        'hnsw_M': int,               # Number of connections per element
+        'hnsw_ef_construction': int, # Size of dynamic candidate list (construction)
+        'hnsw_ef_search': int,       # Size of dynamic candidate list (search)
+
+        'lsh_nbits': int,        # (gets multiplied by dimensions) Number of bits for LSH
+        'lsh_rotate_data': bool, # Rotate data for LSH
     }
 }
 ```
@@ -98,6 +106,8 @@ control_ann = {
 - `canberra`
 - `bray_curtis`
 - `jensen_shannon`
+
+***NOTE*** : Distance metrics do not apply to `lsh` index type.
 
 For more information about `faiss` see [here](https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances).
 
