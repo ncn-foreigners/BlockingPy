@@ -47,9 +47,9 @@ class FaissBlocker(BlockingMethod):
     - 'flat' is a brute-force exact search (most accurate but slowest)
     - 'hnsw' is a Hierarchical Navigable Small World graph algorithm
         (good balance of speed and accuracy)
-    - 'lsh' is a Locality Sensitive Hashing algorithm 
-        (fastest but approximate results) 
-    
+    - 'lsh' is a Locality Sensitive Hashing algorithm
+        (fastest but approximate results)
+
     For more details about the FAISS library and implementation, see:
     https://github.com/facebookresearch/faiss
 
@@ -58,7 +58,7 @@ class FaissBlocker(BlockingMethod):
     - Jensen-Shannon and Canberra metrics require smoothing to handle zero values
     - Selected distance metrics does not affect the algorithm if 'lsh' was selected
 
-    Faiss does not support `random_seed` parameter. Instead, it handles reproducibility 
+    Faiss does not support `random_seed` parameter. Instead, it handles reproducibility
     inside the algorithm. For more details, see:
     https://gist.github.com/mdouze/1892178b5663b80e85ab076966c59c28
 
@@ -144,7 +144,7 @@ class FaissBlocker(BlockingMethod):
         - For cosine similarity, vectors are L2-normalized
         - For Jensen-Shannon and Canberra metrics, small constant is added
           to prevent undefined values
-        - For LSH index, the distance calculation is determined by the hash function, 
+        - For LSH index, the distance calculation is determined by the hash function,
           not directly by the selected distance metric
 
         """
@@ -160,7 +160,6 @@ class FaissBlocker(BlockingMethod):
             raise ValueError(
                 f"Invalid index_type '{index_type}'. Must be one of 'flat', 'hnsw', or 'lsh'."
             )
-        
 
         if distance == "cosine":
             x = np.ascontiguousarray(x.sparse.to_dense().to_numpy(), dtype=np.float32)
