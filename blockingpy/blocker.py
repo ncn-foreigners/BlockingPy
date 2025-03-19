@@ -373,9 +373,12 @@ class Blocker:
                 )
 
             self.confusion = pd.DataFrame(
-                [[total_tn, total_fn], [total_fp, total_tp]],
-                index=["Predicted Negative", "Predicted Positive"],
-                columns=["Actual Negative", "Actual Positive"],
+                [
+                    [total_tp, total_fn],  
+                    [total_fp, total_tn],  
+                ],
+                index=["Actual Positive", "Actual Negative"],
+                columns=["Predicted Positive", "Predicted Negative"],
             ).astype(int)
 
             recall = total_tp / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
@@ -534,9 +537,12 @@ class Blocker:
             )
 
         confusion = pd.DataFrame(
-            [[total_tn, total_fn], [total_fp, total_tp]],
-            index=["Predicted Negative", "Predicted Positive"],
-            columns=["Actual Negative", "Actual Positive"],
+            [
+                [total_tp, total_fn],  
+                [total_fp, total_tn],  
+            ],
+            index=["Actual Positive", "Actual Negative"],
+            columns=["Predicted Positive", "Predicted Negative"],
         ).astype(int)
 
         recall = total_tp / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
