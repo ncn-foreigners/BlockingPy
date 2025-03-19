@@ -36,10 +36,10 @@ For record linkage:
 
 The blocking outcome can be represented in a confusion matrix as follows:
 
-|               | True Match   | True Non-Match |
+|               | Predicted Match   | Predicted Non-Match |
 |---------------|------------------|---------------------|
-| Predicted Match    | TP              | FP                 |
-| Predicted Non-Match| FN              | TN                 |
+| True Match    | TP              | FN                 |
+| True Non-Match| FP              | TN                 |
 
 ## Evaluation Metrics
 

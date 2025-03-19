@@ -131,27 +131,16 @@ print(cis['txt'].head())
 
 ## Perform record linkage
 
-Initialize blocker instance and perform blocking with `hnsw` algorithm, `cosine` distance and custom parameters:
+Initialize blocker instance and perform blocking with `hnsw` algorithm and default parameters:
 
 ```python
 blocker = Blocker()
-
-control_ann = {
-    "hnsw": {
-        'distance': "cosine",
-        'M': 40,
-        'ef_c': 500,
-        'ef_s': 500
-    }
-}
 
 rec_lin_result = blocker.block(
     x=census['txt'],
     y=cis['txt'],   
     ann='hnsw',    
     verbose=1,      
-    control_ann=control_ann, 
-    # control_txt=control_txt, # let's leave this as default
     random_seed=42
 )
 
@@ -169,14 +158,14 @@ print(rec_lin_result)
 
 # ========================================================
 # Blocking based on the hnsw method.
-# Number of blocks: 23994
+# Number of blocks: 23993
 # Number of columns used for blocking: 1072
 # Reduction ratio: 0.999961
 # ========================================================
 # Distribution of the size of the blocks:
 # Block Size | Number of Blocks
-        #  2 | 23390          
-        #  3 | 590            
+        #  2 | 23388          
+        #  3 | 591            
         #  4 | 13             
         #  5 | 1    
 
@@ -230,16 +219,16 @@ census['x'] = range(len(census))
 cis['y'] = range(len(cis))
 
 # Find true matches using person_id
-matches = pd.merge(
+true_blocks = pd.merge(
     left=census[['PERSON_ID', 'x']],
     right=cis[['PERSON_ID', 'y']],
     on='PERSON_ID'
 )
 
 # Add block numbers
-matches['block'] = range(len(matches))
+true_blocks['block'] = range(len(true_blocks))
 
-matches.shape
+true_blocks.shape
 # (24043, 4)
 ```
 Let's sample 1000 pairs for which we will evaluate:
@@ -250,88 +239,30 @@ matches = matches.sample(1000, random_state=42)
 Now we can evaluate the algorithm:
 
 ```python
-# Perform blocking with evaluation
-eval_result = blocker.block(
-    x=census['txt'],
-    y=cis['txt'],
-    true_blocks=matches[['x', 'y', 'block']],
-    verbose=1,
-    ann='voyager',  # Try a different algorithm
-    random_state=42
-)
-
-# ===== creating tokens =====
-# ===== starting search (voyager, x, y: 25343,24613, t: 1072) =====
-# ===== creating graph =====
-
-# alternatively we can use the `eval` method for separation:
-# result = blocker.block(
-#     x=census['txt'],
-#     y=cis['txt'],
-#     verbose=1,
-#     ann='voyager',
-#     random_state=42
-# )
-# eval_result = blocker.eval(
-#     blocking_result=result,
-#     true_blocks=matches[['x', 'y', 'block']]
-#)
-# The procedure in both cases stays the same.
-
-# Note: We recommend using eval() method when evaluating larger datasets 
-# since it allows you to set the batch size for currently evaluated record pairs.
+eval_result = blocker.eval(rec_lin_result, true_blocks[['x', 'y', 'block']])
 ```
 
-and print results with evaluation metrics:
+and print the evaluation metrics:
 
 ```python
-print(eval_result)
-# ========================================================
-# Blocking based on the voyager method.
-# Number of blocks: 23922
-# Number of columns used for blocking: 1072
-# Reduction ratio: 0.999961
-# ========================================================
-# Distribution of the size of the blocks:
-# Block Size | Number of Blocks
-#          2 | 23248          
-#          3 | 659            
-#          4 | 13             
-#          5 | 2              
-# ========================================================
 print(eval_result.metrics)
-Evaluation metrics (standard):
-# recall : 99.3
-# precision : 99.8994
-# fpr : 0.0001
-# fnr : 0.7
-# accuracy : 99.9992
-# specificity : 99.9999
-# f1_score : 99.5988
+# recall         0.997000
+# precision      1.000000
+# fpr            0.000000
+# fnr            0.003000
+# accuracy       0.999997
+# specificity    1.000000
+# f1_score       0.998498
 ```
-The output shows:
-
-- Reduction ratio (how much the comparison space was reduced)
-- Block size distribution
-
-If true matches were provided:
-
-- Recall
-- Precision
-- False positive rate
-- False negative rate
-- Accuracy
-- Specificity 
-- F1 score
 
 **NOTE:** Keep in mind that the metrics shown above are based only on the records that appear in `true_blocks`.
 We assume that we have no knowledge
 about the other records and their true blocks.
 
 
-For this example, using `voyager` we achieve:
+For this example, using `hnsw` we achieve:
 
-- `99.3%` recall and `99.9%` precision
+- `99.7%` recall and `100%` precision
 - close to `100%` accuracy
 - Great reduction ratio of `0.999961`
 - Most blocks contain just 2-3 records

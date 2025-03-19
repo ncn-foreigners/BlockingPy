@@ -221,9 +221,9 @@ And the results:
 
 ```python
 print(eval_result.confusion)
-# 	                Actual Negative     Actual Positive
-# Predicted Negative	49974074	    0
-# Predicted Positive	19926	            1000
+# 	                Predicted Positive     Predicted Negative
+# Actual Positive	1000	               0
+# Actual Negative	19926	               49974074
 ```
 
 The results show high reduction ratio `0.9996` alongside perfect recall (`1.000`) indicating that our package handled this dataset very well.

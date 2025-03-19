@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.14
+- changed defaul `lsh_nbits` from 8 to 2
+- improved confusion matrix
+- minor changes
+
 ## v0.1.13
 - set default `random_seed` to 2025
 - added `IndexLSH` and `IndexHNSWFlat` to `faiss`
