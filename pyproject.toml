@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blockingpy"
-version = "0.1.13"
+version = "0.1.14"
 description = "Blocking records for record linkage and data deduplication based on ANN algorithms."
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>", "Maciej Beręsewicz <maciej.beresewicz@ue.poznan.pl>"]
 readme = "README.md"
@@ -32,7 +32,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-numpy = "^1.21"
+numpy = "^1.26.4"
 annoy = "^1.17.3"
 hnswlib = "^0.8.0"
 scipy = ">=1.5.0"
