@@ -168,7 +168,7 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
             "hnsw_M": 32,
             "hnsw_ef_construction": 200,
             "hnsw_ef_search": 200,
-            "lsh_nbits": 8,
+            "lsh_nbits": 2,
             "lsh_rotate_data": True,
         },
         "algo": "lsh",
