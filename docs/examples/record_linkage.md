@@ -233,13 +233,13 @@ true_blocks.shape
 ```
 Let's sample 1000 pairs for which we will evaluate:
 ```python
-matches = matches.sample(1000, random_state=42)
+matches = true_blocks.sample(1000, random_state=42)
 ```
 
 Now we can evaluate the algorithm:
 
 ```python
-eval_result = blocker.eval(rec_lin_result, true_blocks[['x', 'y', 'block']])
+eval_result = blocker.eval(rec_lin_result, matches[['x', 'y', 'block']])
 ```
 
 and print the evaluation metrics:
