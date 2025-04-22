@@ -20,11 +20,11 @@ from .faiss_blocker import FaissBlocker
 from .helper_functions import (
     DistanceMetricValidator,
     InputValidator,
-    create_sparse_dtm,
 )
 from .hnsw_blocker import HNSWBlocker
 from .mlpack_blocker import MLPackBlocker
 from .nnd_blocker import NNDBlocker
+from .text_encoders.text_transformer import TextTransformer
 from .voyager_blocker import VoyagerBlocker
 
 logger = logging.getLogger(__name__)
@@ -217,7 +217,6 @@ class Blocker:
         InputValidator.validate_true_blocks(true_blocks, deduplication)
 
         len_x = x.shape[0]
-        # TOKENIZATION
         if sparse.issparse(x):
             if self.x_colnames is None:
                 raise ValueError("Input is sparse, but x_colnames is None.")
@@ -239,15 +238,10 @@ class Blocker:
                 pd.SparseDtype("int", fill_value=0)
             )
         else:
-            FULL_VERBOSE = 3
-            logger.info("===== creating tokens =====")
-            x_dtm = create_sparse_dtm(
-                x, self.control_txt, verbose=True if verbose == FULL_VERBOSE else False
-            )
-            y_dtm = create_sparse_dtm(
-                y, self.control_txt, verbose=True if verbose == FULL_VERBOSE else False
-            )
-        # TOKENIZATION
+            logger.info(f"===== creating tokens: {self.control_txt.get('encoder', 'Error')} =====")
+            transformer = TextTransformer(**self.control_txt)
+            x_dtm = transformer.transform(x)
+            y_dtm = transformer.transform(y)
 
         colnames_xy = np.intersect1d(x_dtm.columns, y_dtm.columns)
 
@@ -374,8 +368,8 @@ class Blocker:
 
             self.confusion = pd.DataFrame(
                 [
-                    [total_tp, total_fn],  
-                    [total_fp, total_tn],  
+                    [total_tp, total_fn],
+                    [total_fp, total_tn],
                 ],
                 index=["Actual Positive", "Actual Negative"],
                 columns=["Predicted Positive", "Predicted Negative"],
@@ -538,8 +532,8 @@ class Blocker:
 
         confusion = pd.DataFrame(
             [
-                [total_tp, total_fn],  
-                [total_fp, total_tn],  
+                [total_tp, total_fn],
+                [total_fp, total_tn],
             ],
             index=["Actual Positive", "Actual Negative"],
             columns=["Predicted Positive", "Predicted Negative"],

@@ -1,4 +1,4 @@
-"""Contains the FaissBlocker class for performing blocking using one of the FAISS algorithms from Meta."""
+"""Contains the FaissBlocker class for performing blocking using one of the FAISS algorithms."""
 
 import logging
 import os
@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from .base import BlockingMethod
-from .helper_functions import rearrange_array
+from .helper_functions import df_to_array, rearrange_array
 
 logger = logging.getLogger(__name__)
 
@@ -162,10 +162,10 @@ class FaissBlocker(BlockingMethod):
             )
 
         if distance == "cosine":
-            x = np.ascontiguousarray(x.sparse.to_dense().to_numpy(), dtype=np.float32)
-            y = np.ascontiguousarray(y.sparse.to_dense().to_numpy(), dtype=np.float32)
-            faiss.normalize_L2(x)
-            faiss.normalize_L2(y)
+            x_arr = df_to_array(x)
+            y_arr = df_to_array(y)
+            faiss.normalize_L2(x_arr)
+            faiss.normalize_L2(y_arr)
         elif distance in {"jensen_shannon", "canberra"}:
             smooth = 1e-12
             x += smooth

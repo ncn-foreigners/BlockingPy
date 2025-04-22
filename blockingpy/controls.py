@@ -199,31 +199,60 @@ def controls_txt(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
     dict
         Configuration dictionary with the following structure:
         {
-            'n_shingles': int,
-            'max_features': int,
-            'lowercase': bool,
-            'strip_non_alphanum': bool
+            'encoder': str,
+            'embedding': {
+                'model': str,
+                'normalize': bool,
+                'max_length': int,
+                'emb_batch_size': int,
+                'show_progress_bar': bool,
+                'use_multiprocessing': bool,
+                'multiprocessing_threshold': int,
+            },
+            'shingle': {
+                'n_shingles': int,
+                'lowercase': bool,
+                'strip_non_alphanum': bool,
+                'max_features': int,
+            },
         }
 
     Notes
     -----
     Configuration options:
-    - n_shingles: Number of consecutive tokens to combine
-    - max_features: Maximum number of features to keep
-    - lowercase: Convert text to lowercase if True
-    - strip_non_alphanum: Remove non-alphanumeric characters if True
-
-    Examples
-    --------
-    >>> config = controls_txt(n_shingles=3, lowercase=False)
-    >>> config = controls_txt({'max_features': 10000})
+    - encoder: Type of text encoder ('shingle' or 'embedding')
+    For 'embedding', additional parameters are required:
+        - model: Pretrained model identifier or path
+        - normalize: Normalize output vectors if True
+        - max_length: Maximum sequence length for encoding
+        - emb_batch_size: Batch size for encoding
+        - show_progress_bar: Show progress bar if True
+        - use_multiprocessing: Use multiprocessing if True
+        - multiprocessing_threshold: Threshold for multiprocessing
+    For 'shingle', additional parameters are required:
+        - n_shingles: Number of consecutive characters to combine
+        - max_features: Maximum number of features to keep
+        - lowercase: Convert text to lowercase if True
+        - strip_non_alphanum: Remove non-alphanumeric characters if True
 
     """
     defaults = {
-        "n_shingles": 2,
-        "max_features": 5000,
-        "lowercase": True,
-        "strip_non_alphanum": True,
+        "encoder": "shingle",
+        "embedding": {
+            "model": "minishlab/potion-base-8M",
+            "normalize": True,
+            "max_length": 512,
+            "emb_batch_size": 1024,
+            "show_progress_bar": False,
+            "use_multiprocessing": True,
+            "multiprocessing_threshold": 10000,
+        },
+        "shingle": {
+            "n_shingles": 2,
+            "lowercase": True,
+            "strip_non_alphanum": True,
+            "max_features": 5000,
+        },
     }
 
     updates = {}

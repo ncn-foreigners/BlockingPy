@@ -3,13 +3,11 @@ Contains helper functions for blocking operations such as input validation, metr
 algorithm validation and Document Term Matrix (DTM) creation.
 """
 
-import re
 
 import numpy as np
 import pandas as pd
-from nltk.util import ngrams
+from pandas import SparseDtype
 from scipy import sparse
-from sklearn.feature_extraction.text import CountVectorizer
 
 
 class DistanceMetricValidator:
@@ -162,116 +160,6 @@ class InputValidator:
                 raise ValueError("`true blocks` should be a DataFrame with columns: " "x, block")
 
 
-def tokenize_character_shingles(
-    text: str, n: int = 2, lowercase: bool = True, strip_non_alphanum: bool = True
-) -> list[str]:
-    """
-    Generate character n-grams (shingles) from input text.
-
-    Parameters
-    ----------
-    text : str
-        Input text to tokenize
-    n : int, optional
-        Size of character n-grams (default 2)
-    lowercase : bool, optional
-        Whether to convert text to lowercase (default True)
-    strip_non_alphanum : bool, optional
-        Whether to remove non-alphanumeric characters (default True)
-
-    Returns
-    -------
-    list of str
-        List of character n-grams
-
-    Examples
-    --------
-    >>> tokenize_character_shingles("Hello", n=2)
-    ['he', 'el', 'll', 'lo']
-
-    Notes
-    -----
-    The function processes text in the following order:
-    1. Converts to lowercase (if requested)
-    2. Removes non-alphanumeric characters (if requested)
-    3. Generates n-character shingles
-
-    """
-    if lowercase:
-        text = text.lower()
-    if strip_non_alphanum:
-        text = re.sub(r"[^a-z0-9]+", "", text)
-    shingles = ["".join(gram) for gram in ngrams(text, n)]
-    return shingles
-
-
-def create_sparse_dtm(x: pd.Series, control_txt: dict, verbose: bool = False) -> pd.DataFrame:
-    """
-    Create a sparse document-term matrix from input texts.
-
-    Parameters
-    ----------
-    x : pandas.Series
-        Input texts to process
-    control_txt : dict
-        Configuration dictionary with keys:
-        - n_shingles : int
-            Size of character n-grams
-        - lowercase : bool
-            Whether to convert text to lowercase
-        - strip_non_alphanum : bool
-            Whether to remove non-alphanumeric characters
-        - max_features : int
-            Maximum number of features to keep
-    verbose : bool, optional
-        Whether to print additional information (default False)
-
-    Returns
-    -------
-    pandas.DataFrame
-        Sparse dataframe containing the document-term matrix
-
-    Notes
-    -----
-    The function uses CountVectorizer from scikit-learn with custom
-    tokenization based on character n-grams. The resulting matrix
-    is stored as a sparse pandas DataFrame.
-
-    Examples
-    --------
-    >>> texts = pd.Series(['hello world', 'hello there'])
-    >>> controls = {'n_shingles': 2, 'lowercase': True,
-    ...            'strip_non_alphanum': True, 'max_features': 100}
-    >>> dtm = create_sparse_dtm(texts, controls)
-
-    """
-    x = x.tolist() if isinstance(x, pd.Series) else x
-
-    vectorizer = CountVectorizer(
-        tokenizer=lambda x: tokenize_character_shingles(
-            x,
-            n=control_txt.get("n_shingles", 2),
-            lowercase=control_txt.get("lowercase", True),
-            strip_non_alphanum=control_txt.get("strip_non_alphanum", True),
-        ),
-        max_features=control_txt.get("max_features", 5000),
-        token_pattern=None,
-    )
-    x_dtm_sparse = vectorizer.fit_transform(x)
-    x_voc = vectorizer.vocabulary_
-
-    x_sparse_df = pd.DataFrame.sparse.from_spmatrix(
-        x_dtm_sparse, columns=vectorizer.get_feature_names_out()
-    )
-
-    if verbose:
-        print("Vocabulary:", x_voc)
-        print("Sparse DataFrame shape:", x_sparse_df.shape)
-        print("Sparse DataFrame:\n", x_sparse_df)
-
-    return x_sparse_df
-
-
 def rearrange_array(indices: np.ndarray, distances: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Rearrange the array of indices to match the correct order.
@@ -316,3 +204,29 @@ def rearrange_array(indices: np.ndarray, distances: np.ndarray) -> tuple[np.ndar
                 result[i][0] = value_to_move
 
     return result, result_dist
+
+
+def df_to_array(df: pd.DataFrame) -> np.ndarray:
+    """
+    Convert DataFrame to numpy array.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame to convert
+
+    Returns
+    -------
+    np.ndarray
+        Numpy array representation of the DataFrame
+
+    """
+
+    def is_sparse_df(df: pd.DataFrame) -> bool:
+        return any(isinstance(dt, SparseDtype) for dt in df.dtypes)
+
+    if is_sparse_df(df):
+        arr = df.sparse.to_dense().to_numpy(dtype=np.float32)
+    else:
+        arr = df.to_numpy(dtype=np.float32)
+    return np.ascontiguousarray(arr)
