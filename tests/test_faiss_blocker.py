@@ -149,7 +149,7 @@ def test_empty_data_handling(faiss_blocker, faiss_controls):
     x = pd.DataFrame(columns=["col1", "col2", "col3"])
     y = pd.DataFrame(rng.random((5, 3)))
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(AssertionError):
         faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=faiss_controls)
 
 
