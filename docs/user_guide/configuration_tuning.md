@@ -14,11 +14,23 @@ The `control_txt` dictionary controls how text data is processed before blocking
 
 ```python
 control_txt = {
-    'n_shingles': 2,           # Size of character n-grams
-    'max_features': 5000,      # Maximum number of features to keep
-    'lowercase': True,         # Convert text to lowercase
-    'strip_non_alphanum': True # Remove non-alphanumeric characters
-}
+        "encoder": "shingle",
+        "embedding": {
+            "model": "minishlab/potion-base-8M",
+            "normalize": True,
+            "max_length": 512,
+            "emb_batch_size": 1024,
+            "show_progress_bar": False,
+            "use_multiprocessing": True,
+            "multiprocessing_threshold": 10000,
+        },
+        "shingle": {
+            "n_shingles": 2,
+            "lowercase": True,
+            "strip_non_alphanum": True,
+            "max_features": 5000,
+        },
+    }
 ```
 ### Parameter Details
 

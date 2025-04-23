@@ -1,7 +1,7 @@
 (input_data_handling)=
 # Input Data Handling
 
-##Supported Input Formats
+## Supported Input Formats
 
 BlockingPy is flexible in terms of input data formats. The package accepts three main types of input:
 
@@ -11,9 +11,16 @@ BlockingPy is flexible in terms of input data formats. The package accepts three
 
 ## Text Processing Options
 
-When working with text data, you can configure preprocessing using the control_txt parameter:
+When working with text data, Blockingpy provides two main options for processing:
+
+### 1. Character shingle encoding (default)
+
+This method creates features based on character n-grams. Futher options can be set in the `control_txt` dictionary.
 
 ```python
+import pandas as pd
+from blockingpy import Blocker
+
 texts = pd.Series([
     "john smith",
     "smith john",
@@ -21,14 +28,36 @@ texts = pd.Series([
 ])
 
 control_txt = {
-    'n_shingles': 2,           # Size of character n-grams
-    'max_features': 5000,      # Maximum number of features to keep
-    'lowercase': True,         # Convert text to lowercase
-    'strip_non_alphanum': True # Remove non-alphanumeric characters
+    'encoder': 'shingle',
+    'shingle': {
+        'n_shingles': 2,
+        'max_features': 5000,
+        'lowercase': True,
+        'strip_non_alphanum': True
+    }
+}
+
+blocker = Blocker()
+result = blocker.block(x=texts, control_txt=control_txt)
+```
+
+### 2. Embedding encoding
+You can also utilize pre-trained embeddings for more semantically meaningful blocking via `model2vec` library:
+```python
+control_txt = {
+    'encoder': 'embedding',
+    'embedding': {
+        'model': 'minishlab/potion-base-8M',
+        'normalize': True,
+        'max_length': 512,
+        'emb_batch_size': 1024
+    }
 }
 
 result = blocker.block(x=texts, control_txt=control_txt)
 ```
+For more details on the embedding options, refer to the [model2vec documentation](https://github.com/MinishLab/model2vec)
+
 ## Dataframes
 
 If you have a DataFrame with multiple columns (like name, address, etc.), we recommend combining these columns into a single text column before passing it to the blocker:

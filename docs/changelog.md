@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.15
+- added embedding-based encoding support via `model2vec` library
+- fix `lowercase=False` bug
+
 ## v0.1.14
 - changed defaul `lsh_nbits` from 8 to 2
 - improved confusion matrix

@@ -131,7 +131,7 @@ This quick start covered the basics using default settings. BlockingPy offers se
 
 - Multiple ANN algorithms (Faiss, HNSW, Voyager, Annoy, MLPack, NND)
 - Various distance metrics
-- Custom text processing options
+- Custom text processing options (Embeddings or Ngrams)
 - Performance tuning parameters
 - Eval metrics when true blocks are known
 
