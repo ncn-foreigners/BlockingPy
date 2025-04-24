@@ -67,7 +67,7 @@ dedup_result = blocker.block(
     x=data['txt'],
     ann='hnsw',
     verbose=1,
-    radnom_seed=42,
+    random_seed=42,
 )
 
 # ===== creating tokens =====
