@@ -84,32 +84,21 @@ print(blocking_result.result.head())
 
 ## Integration
 
-To integrate our results, we can add a `block` column to the original dataframe, which we can do by melting the blocking result and merging it with the original dataframe.
+To integrate our results, we can add a `block` column to the original dataframe.
+`Blockingpy` provides a `add_block_column` method for this step. Since the index of the original dataframe is not the same as the positional index in the blocking result, we need to add an `id` column to the original dataframe.
 
 ```python
-result_df = blocking_result.result
+df['id'] = range(len(df))
+df_final = blocking_result.add_block_column(df, id_col_left='id')
 
-mapping_df = (
-    result_df
-    .melt(id_vars=['block'], value_vars=['x', 'y'], value_name='record_id')
-    .drop_duplicates(subset=['record_id'])
-)
-
-record_to_block = dict(zip(mapping_df['record_id'], mapping_df['block']))
-    
-new_data = df.copy()
-
-new_data['block'] = [record_to_block.get(i) for i in range(len(df))]
-
-print(new_data[['given_name', 'block']].head(5))
-# 	        given_name block
+print(df_final['block'].head(5))
+# 	         block
 # rec_id		
-# rec-223-org		   0
-# rec-122-org	lachlan	   1
-# rec-373-org	deakin	   2
-# rec-10-dup-0	kayla	   3
-# rec-227-org	luke	   4
-
+# rec-223-org	0
+# rec-122-org	1
+# rec-373-org	2
+# rec-10-dup-0	3
+# rec-227-org	4
 ```
 
 Now we can use the `Index` object from `recordlinkage` with the `block` column to integrate `BlockingPy` results with `recordlinkage`:
@@ -117,7 +106,7 @@ Now we can use the `Index` object from `recordlinkage` with the `block` column t
 ```python
 indexer = recordlinkage.Index()
 indexer.block('block')
-pairs = indexer.index(new_data)
+pairs = indexer.index(df_final)
 print(pairs)
 # MultiIndex([('rec-344-dup-0',   'rec-344-org'),
 #             (  'rec-251-org', 'rec-251-dup-0'),

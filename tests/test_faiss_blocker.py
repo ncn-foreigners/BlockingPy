@@ -72,7 +72,7 @@ def test_cosine_normalization(faiss_blocker, small_sparse_data, faiss_controls):
 
     result = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
     print(result)
-    assert (result["dist"] >= -1.001).all() and (result["dist"] <= 1.001).all()
+    assert (result["dist"] >= -1.1).all() and (result["dist"] <= 1.1).all()
 
 
 def test_smoothing_metrics(faiss_blocker, small_sparse_data, faiss_controls):

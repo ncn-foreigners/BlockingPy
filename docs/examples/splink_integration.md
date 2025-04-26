@@ -86,20 +86,10 @@ print(res.result.head())
 
 ## Results integration
 
-To integrate our results, we can add a `block` column to the original dataframe, which we can do by melting the blocking result and merging it with the original dataframe.
+To integrate our results, we can add a `block` column to the original dataframe, which we can with the help of `add_block_column` method.
 
 ```python
-result_df = res.result
-
-mapping_df = (
-    result_df
-    .melt(id_vars=['block'], value_vars=['x', 'y'], value_name='record_id')
-    .drop_duplicates(subset=['record_id'])
-)
-
-record_to_block = dict(zip(mapping_df['record_id'], mapping_df['block']))
-
-df['block_pred'] = [record_to_block.get(i) for i in range(len(df))]
+df = res.add_block_column(df)
 ```
 
 ## Splink settings
@@ -109,7 +99,7 @@ Now we can configure and run `Splink` using our `BlockingPy` results. The follow
 settings = SettingsCreator(
     link_type="dedupe_only",
     blocking_rules_to_generate_predictions=[
-        block_on("block_pred"), # BlockingPy integration
+        block_on("block"), # BlockingPy integration
         # block_on("first_name"),
         # block_on("surname"),
         # block_on("dob"),
@@ -172,7 +162,7 @@ To test these approaches, we simply modify the `block_on` parameters in `Setting
 ```python
 # 1. BlockingPy only
 blocking_rules_to_generate_predictions=[
-        block_on("block_pred"),
+        block_on("block"),
 ],
 # 2. Splink only
 blocking_rules_to_generate_predictions=[
@@ -183,7 +173,7 @@ blocking_rules_to_generate_predictions=[
 ],
 # 3. Splink + BlockingPy
 blocking_rules_to_generate_predictions=[
-        block_on("block_pred"),
+        block_on("block"),
         block_on("first_name"),
         block_on("surname"),
         block_on("dob"),
