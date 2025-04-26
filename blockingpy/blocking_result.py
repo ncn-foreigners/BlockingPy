@@ -162,6 +162,97 @@ class BlockingResult:
 
         return "\n".join(output)
 
+    def add_block_column(
+        self,
+        df_left: pd.DataFrame,
+        df_right: pd.DataFrame | None = None,
+        id_col_left: str | None = None,
+        id_col_right: str | None = None,
+        block_col: str = "block",
+    ) -> pd.DataFrame | tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Attach block IDs back onto the original DataFrame(s), filling any
+        records with no assignment into their own singleton blocks.
+
+        - **Deduplication**: pass only `df_left`; returns one DataFrame.
+        - **Record-linkage**: pass both `df_left` and `df_right`; returns
+          a tuple `(left_with_blocks, right_with_blocks)`.
+
+        Parameters
+        ----------
+        df_left
+            If dedup: your input DataFrame. If rec-lin: the “x” DataFrame.
+        df_right
+            If rec-lin: the “y” DataFrame. Otherwise None.
+        id_col_left
+            Column in `df_left` matching integer index into `self.result.x`;
+            if None, uses the DataFrame's positional index.
+        id_col_right
+            Column in `df_right` matching integer index into `self.result.y`;
+            if None, uses that DataFrame's positional index.
+        block_col
+            Name of the new block-ID column.
+
+        Returns
+        -------
+        Single DataFrame (dedup) or tuple of two DataFrames (rec-lin).
+
+        Examples
+        --------
+        >>> x = blocking_result.add_block_column(org_x_df) #dedup
+        >>> x, y = blocking_result.add_block_column(org_x_df, org_y_df) #rec-lin
+
+        """
+
+        def _fill_orphans(out: pd.DataFrame, col: str, start_id: int) -> int:
+            mask = out[col].isna()
+            n = int(mask.sum())
+            if n > 0:
+                new_ids = range(start_id, start_id + n)
+                out.loc[mask, col] = list(new_ids)
+                start_id += n
+            out[col] = out[col].astype("int64")
+            return start_id
+
+        max_block = int(self.result["block"].max()) + 1
+
+        if df_right is None:
+            mapping = (
+                self.result.melt(id_vars="block", value_vars=["x", "y"], value_name="rec-id-map")
+                .drop_duplicates("rec-id-map")
+                .set_index("rec-id-map")["block"]
+            )
+            out = df_left.copy()
+            if id_col_left:
+                out[block_col] = out[id_col_left].map(mapping)
+            else:
+                out[block_col] = out.index.map(mapping)
+
+            out[block_col] = out[block_col].astype("Int64")
+            _fill_orphans(out, block_col, max_block)
+            return out
+
+        map_x = self.result[["x", "block"]].drop_duplicates("x").set_index("x")["block"]
+        map_y = self.result[["y", "block"]].drop_duplicates("y").set_index("y")["block"]
+
+        left = df_left.copy()
+        if id_col_left:
+            left[block_col] = left[id_col_left].map(map_x)
+        else:
+            left[block_col] = left.index.map(map_x)
+        left[block_col] = left[block_col].astype("Int64")
+        max_block = _fill_orphans(left, block_col, max_block)
+
+        right = df_right.copy()
+        if id_col_right:
+            right[block_col] = right[id_col_right].map(map_y)
+        else:
+            right[block_col] = right.index.map(map_y)
+        right[block_col] = right[block_col].astype("Int64")
+        _fill_orphans(right, block_col, max_block)
+
+        return left, right
+
     def _calculate_reduction_ratio(self) -> float:
         """
         Calculate the reduction ratio for the blocking method.
