@@ -14,3 +14,4 @@ This project uses the following open source packages:
 - Faiss: MIT License (https://github.com/facebookresearch/faiss/blob/main/LICENSE)
 - NetworkX: BSD-3 Clause License (https://github.com/networkx/networkx/blob/main/LICENSE.txt)
 - nltk: Apache 2.0 License (https://github.com/nltk/nltk/blob/develop/README.md) 
+- model2vec: MIT License (https://github.com/MinishLab/model2vec/blob/main/LICENSE)

@@ -140,6 +140,7 @@ print(dedup_result.result)
     - Inner Product
     
     and more...
+- Support for both shingle-based and embedding-based text representation
 - Comprehensive algorithm parameters customization with `control_ann` and `control_txt`
 - Support for already created Document-Term-Matrices (as `np.ndarray` or `csr_matrix`)
 - Support for both record linkage and deduplication
