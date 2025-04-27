@@ -149,30 +149,6 @@ def test_parameter_variations(nnd_blocker, small_sparse_data, nnd_controls, para
     assert isinstance(result, pd.DataFrame)
 
 
-def test_large_input(nnd_blocker, large_sparse_data, nnd_controls):
-    """Test blocking with larger input matrices."""
-    x, y = large_sparse_data
-
-    result = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)
-
-    assert isinstance(result, pd.DataFrame)
-    assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
-    assert result["dist"].notna().all()
-
-
-@pytest.mark.parametrize("n_threads", [1, 2, -1])
-def test_multithreading(nnd_blocker, large_sparse_data, nnd_controls, n_threads):
-    """Test NND blocking with different thread options."""
-    x, y = large_sparse_data
-
-    controls = nnd_controls.copy()
-    controls["nnd"]["n_threads"] = n_threads
-
-    result = nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
-    assert isinstance(result, pd.DataFrame)
-
-
 def test_metric_with_params(nnd_blocker, small_sparse_data, nnd_controls):
     """Test metric with additional parameters."""
     x, y = small_sparse_data

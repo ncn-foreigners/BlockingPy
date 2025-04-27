@@ -12,7 +12,7 @@ import pandas as pd
 from voyager import Index, Space
 
 from .base import BlockingMethod
-from .helper_functions import rearrange_array
+from .helper_functions import df_to_array, rearrange_array
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +135,11 @@ class VoyagerBlocker(BlockingMethod):
         if seed is None:
             seed = 1
 
+        if x.shape[0] == 0:
+            raise ValueError("Reference dataset `x` must not be empty.")
+        if y.shape[0] == 0:
+            raise ValueError("Query dataset `y` must not be empty.")
+
         self.index = Index(
             space=space,
             num_dimensions=x.shape[1],
@@ -146,8 +151,9 @@ class VoyagerBlocker(BlockingMethod):
 
         logger.info("Building index...")
 
+        x_vec = df_to_array(x)
         self.index.add_items(
-            x.sparse.to_dense().values.tolist(),
+            x_vec,
             num_threads=controls["voyager"].get("num_threads"),
         )
 
@@ -164,8 +170,9 @@ class VoyagerBlocker(BlockingMethod):
                 f"({x.shape[0]}). Adjusted k_search to {k_search}."
             )
 
+        y_vec = df_to_array(y)
         all_neighbor_ids, all_distances = self.index.query(
-            vectors=y.sparse.to_dense().values.tolist(),
+            vectors=y_vec,
             k=k_search,
             num_threads=controls["voyager"].get("num_threads"),
             query_ef=controls["voyager"].get("query_ef"),

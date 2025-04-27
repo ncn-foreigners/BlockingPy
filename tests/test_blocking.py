@@ -60,6 +60,22 @@ def test_algorithm_selection(algo, small_named_csr_data, small_named_txt_data):
     assert isinstance(result_txt, BlockingResult)
     assert result_txt.method == algo
 
+@pytest.mark.parametrize("algo", ["nnd", "hnsw", "annoy", "faiss", "voyager"])
+def test_algos_with_embedding(algo, small_named_txt_data):
+    """Test different algorithms with embeddings."""
+    blocker = Blocker()
+    x_txt, y_txt = small_named_txt_data
+
+    control_txt = {
+        "encoder":"embedding",
+        "embedding":{
+            "model":"minishlab/potion-base-8M"
+        }
+    }
+    result_txt = blocker.block(x_txt["txt"], y=y_txt["txt"], ann=algo, control_txt=control_txt)
+    assert isinstance(result_txt, BlockingResult)
+    assert result_txt.method == algo
+
 
 def test_deduplication_vs_linkage(small_named_csr_data, small_named_txt_data):
     """Test deduplication and linkage with both matrix and text data."""
