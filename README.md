@@ -78,7 +78,7 @@ print(block_result)
 # ========================================================
 # Blocking based on the faiss method.
 # Number of blocks: 3
-# Number of columns used for blocking: 17
+# Number of columns created for blocking: 17
 # Reduction ratio: 0.8750
 # ========================================================
 # Distribution of the size of the blocks:
@@ -108,7 +108,7 @@ print(dedup_result)
 # ========================================================
 # Blocking based on the faiss method.
 # Number of blocks: 2
-# Number of columns used for blocking: 25
+# Number of columns created for blocking: 25
 # Reduction ratio: 0.571429
 # ========================================================
 # Distribution of the size of the blocks:

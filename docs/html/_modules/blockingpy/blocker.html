@@ -1,0 +1,813 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blockingpy.blocker &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blockingpy.blocker</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blockingpy.blocker</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Contains the main Blocker class for record linkage</span>
+<span class="sd">and deduplication blocking.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span>
+
+<span class="kn">from</span> <span class="nn">.annoy_blocker</span> <span class="kn">import</span> <span class="n">AnnoyBlocker</span>
+<span class="kn">from</span> <span class="nn">.blocking_result</span> <span class="kn">import</span> <span class="n">BlockingResult</span>
+<span class="kn">from</span> <span class="nn">.controls</span> <span class="kn">import</span> <span class="n">controls_ann</span><span class="p">,</span> <span class="n">controls_txt</span>
+<span class="kn">from</span> <span class="nn">.faiss_blocker</span> <span class="kn">import</span> <span class="n">FaissBlocker</span>
+<span class="kn">from</span> <span class="nn">.helper_functions</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DistanceMetricValidator</span><span class="p">,</span>
+    <span class="n">InputValidator</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.hnsw_blocker</span> <span class="kn">import</span> <span class="n">HNSWBlocker</span>
+<span class="kn">from</span> <span class="nn">.mlpack_blocker</span> <span class="kn">import</span> <span class="n">MLPackBlocker</span>
+<span class="kn">from</span> <span class="nn">.nnd_blocker</span> <span class="kn">import</span> <span class="n">NNDBlocker</span>
+<span class="kn">from</span> <span class="nn">.text_encoders.text_transformer</span> <span class="kn">import</span> <span class="n">TextTransformer</span>
+<span class="kn">from</span> <span class="nn">.voyager_blocker</span> <span class="kn">import</span> <span class="n">VoyagerBlocker</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Blocker">
+<a class="viewcode-back" href="../../api/blocker.html#blockingpy.blocker.Blocker">[docs]</a>
+<span class="k">class</span> <span class="nc">Blocker</span><span class="p">:</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class implementing various blocking methods for record linkage and deduplication.</span>
+
+<span class="sd">    This class provides a unified interface to multiple approximate nearest neighbor</span>
+<span class="sd">    search algorithms for blocking in record linkage and deduplication tasks.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    eval_metrics : pandas.Series or None</span>
+<span class="sd">        Evaluation metrics when true blocks are provided</span>
+<span class="sd">    confusion : pandas.DataFrame or None</span>
+<span class="sd">        Confusion matrix when true blocks are provided</span>
+<span class="sd">    x_colnames : list of str or None</span>
+<span class="sd">        Column names for reference dataset</span>
+<span class="sd">    y_colnames : list of str or None</span>
+<span class="sd">        Column names for query dataset</span>
+<span class="sd">    control_ann : dict</span>
+<span class="sd">        Control parameters for ANN algorithms</span>
+<span class="sd">    control_txt : dict</span>
+<span class="sd">        Control parameters for text processing</span>
+<span class="sd">    BLOCKER_MAP : dict</span>
+<span class="sd">        Mapping of blocking algorithm names to their implementations</span>
+
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Supported algorithms:</span>
+<span class="sd">    - Annoy (Spotify)</span>
+<span class="sd">    - HNSW (Hierarchical Navigable Small World)</span>
+<span class="sd">    - MLPack (LSH and k-d tree)</span>
+<span class="sd">    - NND (Nearest Neighbor Descent)</span>
+<span class="sd">    - Voyager (Spotify)</span>
+<span class="sd">    - FAISS (LSH, HNSW and Flat Indexes)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the Blocker instance.</span>
+
+<span class="sd">        Initializes empty state variables.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confusion</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BLOCKER_MAP</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;annoy&quot;</span><span class="p">:</span> <span class="n">AnnoyBlocker</span><span class="p">,</span>
+            <span class="s2">&quot;hnsw&quot;</span><span class="p">:</span> <span class="n">HNSWBlocker</span><span class="p">,</span>
+            <span class="s2">&quot;lsh&quot;</span><span class="p">:</span> <span class="n">MLPackBlocker</span><span class="p">,</span>
+            <span class="s2">&quot;kd&quot;</span><span class="p">:</span> <span class="n">MLPackBlocker</span><span class="p">,</span>
+            <span class="s2">&quot;nnd&quot;</span><span class="p">:</span> <span class="n">NNDBlocker</span><span class="p">,</span>
+            <span class="s2">&quot;voyager&quot;</span><span class="p">:</span> <span class="n">VoyagerBlocker</span><span class="p">,</span>
+            <span class="s2">&quot;faiss&quot;</span><span class="p">:</span> <span class="n">FaissBlocker</span><span class="p">,</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="Blocker.block">
+<a class="viewcode-back" href="../../api/blocker.html#blockingpy.blocker.Blocker.block">[docs]</a>
+    <span class="k">def</span> <span class="nf">block</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">deduplication</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">ann</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;faiss&quot;</span><span class="p">,</span>
+        <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">graph</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">control_txt</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">control_ann</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">x_colnames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">y_colnames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">2025</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BlockingResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform blocking using the specified algorithm.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : pandas.Series or scipy.sparse.csr_matrix or numpy.ndarray</span>
+<span class="sd">            Reference dataset for blocking</span>
+<span class="sd">        y : numpy.ndarray or pandas.Series or scipy.sparse.csr_matrix, optional</span>
+<span class="sd">            Query dataset (defaults to x for deduplication)</span>
+<span class="sd">        deduplication : bool, default True</span>
+<span class="sd">            Whether to perform deduplication instead of record linkage</span>
+<span class="sd">        ann : str, default &quot;faiss&quot;</span>
+<span class="sd">            Approximate Nearest Neighbor algorithm to use</span>
+<span class="sd">        true_blocks : pandas.DataFrame, optional</span>
+<span class="sd">            True blocking information for evaluation</span>
+<span class="sd">        verbose : int, default 0</span>
+<span class="sd">            Verbosity level (0-3). Controls logging level:</span>
+<span class="sd">            - 0: WARNING level</span>
+<span class="sd">            - 1-3: INFO level with increasing detail</span>
+<span class="sd">        graph : bool, default False</span>
+<span class="sd">            Whether to create a graph representation of blocks</span>
+<span class="sd">        control_txt : dict, default {}</span>
+<span class="sd">            Text processing parameters</span>
+<span class="sd">        control_ann : dict, default {}</span>
+<span class="sd">            ANN algorithm parameters</span>
+<span class="sd">        x_colnames : list of str, optional</span>
+<span class="sd">            Column names for reference dataset used with csr_matrix or np.ndarray</span>
+<span class="sd">        y_colnames : list of str, optional</span>
+<span class="sd">            Column names for query dataset used with csr_matrix or np.ndarray</span>
+<span class="sd">        random_seed : int, optional</span>
+<span class="sd">            Random seed for reproducibility (default is None)</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If one of the input validations fails</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        BlockingResult</span>
+<span class="sd">            Object containing blocking results and evaluation metrics</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The function supports three input types:</span>
+<span class="sd">        1. Text data (pandas.Series)</span>
+<span class="sd">        2. Sparse matrices (scipy.sparse.csr_matrix) as a Document-Term Matrix (DTM)</span>
+<span class="sd">        3. Dense matrices (numpy.ndarray) as a Document-Term Matrix (DTM)</span>
+
+<span class="sd">        For evaluation of larger datasets, we recommend using the separate eval() method</span>
+<span class="sd">        since it allows you to set the batch size for evaluation.</span>
+
+<span class="sd">        For text data, additional preprocessing is performed using</span>
+<span class="sd">        the parameters in control_txt.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        BlockingResult : Class containing blocking results</span>
+<span class="sd">        controls_ann : Function to create ANN control parameters</span>
+<span class="sd">        controls_txt : Function to create text control parameters</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span> <span class="k">if</span> <span class="n">verbose</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="o">=</span> <span class="n">x_colnames</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="o">=</span> <span class="n">y_colnames</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span> <span class="o">=</span> <span class="n">controls_ann</span><span class="p">(</span><span class="n">control_ann</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span> <span class="o">=</span> <span class="n">controls_txt</span><span class="p">(</span><span class="n">control_txt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">deduplication</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">[</span><span class="s2">&quot;random_seed&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">[</span><span class="s2">&quot;random_seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">random_seed</span>
+
+        <span class="k">if</span> <span class="n">ann</span> <span class="o">==</span> <span class="s2">&quot;nnd&quot;</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nnd&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metric&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ann</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;annoy&quot;</span><span class="p">,</span> <span class="s2">&quot;voyager&quot;</span><span class="p">,</span> <span class="s2">&quot;hnsw&quot;</span><span class="p">,</span> <span class="s2">&quot;faiss&quot;</span><span class="p">}:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ann</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">distance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;nnd&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;hnsw&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;annoy&quot;</span><span class="p">:</span> <span class="s2">&quot;angular&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;voyager&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;faiss&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;lsh&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;kd&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ann</span><span class="p">)</span>
+
+        <span class="n">InputValidator</span><span class="o">.</span><span class="n">validate_data</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">DistanceMetricValidator</span><span class="o">.</span><span class="n">validate_metric</span><span class="p">(</span><span class="n">ann</span><span class="p">,</span> <span class="n">distance</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">deduplication</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">len_y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">len_y</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">InputValidator</span><span class="o">.</span><span class="n">validate_true_blocks</span><span class="p">(</span><span class="n">true_blocks</span><span class="p">,</span> <span class="n">deduplication</span><span class="p">)</span>
+
+        <span class="n">len_x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">sparse</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input is sparse, but x_colnames is None.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input is sparse, but y_colnames is None.&quot;</span><span class="p">)</span>
+
+            <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">from_spmatrix</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span><span class="p">)</span>
+            <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">from_spmatrix</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input is np.ndarray, but x_colnames is None.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input is np.ndarray, but y_colnames is None.&quot;</span><span class="p">)</span>
+
+            <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+                <span class="n">pd</span><span class="o">.</span><span class="n">SparseDtype</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+                <span class="n">pd</span><span class="o">.</span><span class="n">SparseDtype</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== creating tokens: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;encoder&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Error&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> =====&quot;</span><span class="p">)</span>
+            <span class="n">transformer</span> <span class="o">=</span> <span class="n">TextTransformer</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span><span class="p">)</span>
+            <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="n">colnames_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">x_dtm</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">y_dtm</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;===== starting search (</span><span class="si">{</span><span class="n">ann</span><span class="si">}</span><span class="s2">, x, y: </span><span class="si">{</span><span class="n">x_dtm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">,&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">y_dtm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, t: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">colnames_xy</span><span class="p">)</span><span class="si">}</span><span class="s2">) =====&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">blocker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BLOCKER_MAP</span><span class="p">[</span><span class="n">ann</span><span class="p">]</span>
+        <span class="n">x_df</span> <span class="o">=</span> <span class="n">blocker</span><span class="p">()</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">x_dtm</span><span class="p">[</span><span class="n">colnames_xy</span><span class="p">],</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">y_dtm</span><span class="p">[</span><span class="n">colnames_xy</span><span class="p">],</span>
+            <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span> <span class="k">if</span> <span class="n">verbose</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">}</span> <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">controls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;===== creating graph =====&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">deduplication</span><span class="p">:</span>
+            <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;pair&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]])),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">x_df</span> <span class="o">=</span> <span class="n">x_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">x_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;pair&quot;</span><span class="p">)[</span><span class="s2">&quot;dist&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()]</span>
+            <span class="n">x_df</span> <span class="o">=</span> <span class="n">x_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;pair&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;q&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;index_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;q&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;q&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;index_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;i&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+
+        <span class="n">x_gr</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">from_pandas_edgelist</span><span class="p">(</span>
+            <span class="n">x_df</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;query_g&quot;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s2">&quot;index_g&quot;</span><span class="p">,</span> <span class="n">create_using</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">components</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">x_gr</span><span class="p">)</span>
+        <span class="n">x_block</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">component_id</span><span class="p">,</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">component</span><span class="p">:</span>
+                <span class="n">x_block</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">component_id</span>
+
+        <span class="n">unique_query_g</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="n">unique_index_g</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;index_g&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="n">combined_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">unique_query_g</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">unique_index_g</span> <span class="k">if</span> <span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unique_query_g</span>
+        <span class="p">]</span>
+
+        <span class="n">sorted_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">combined_keys</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">x_block</span><span class="p">:</span>
+                <span class="n">sorted_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_block</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x_block</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">x_block</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">true_blocks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;===== evaluating =====&quot;</span><span class="p">)</span>
+            <span class="n">total_tn</span> <span class="o">=</span> <span class="n">total_fp</span> <span class="o">=</span> <span class="n">total_fn</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1000</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">deduplication</span><span class="p">:</span>
+                <span class="n">unique_tb_x</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+                <span class="n">unique_tb_y</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+
+                <span class="n">true_x_blocks</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+                <span class="n">true_y_blocks</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+                <span class="n">pred_x_blocks</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+                <span class="n">pred_y_blocks</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+
+                <span class="n">total_batches_x</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
+                <span class="n">total_batches_y</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
+                <span class="n">total_batches</span> <span class="o">=</span> <span class="n">total_batches_x</span> <span class="o">*</span> <span class="n">total_batches_y</span>
+
+                <span class="k">for</span> <span class="n">start_idx_x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+
+                    <span class="n">current_batch_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_x</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+                    <span class="n">sub_x</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx_x</span> <span class="p">:</span> <span class="n">start_idx_x</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
+
+                    <span class="k">for</span> <span class="n">start_idx_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+                        <span class="n">current_batch_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_y</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="n">current_batch</span> <span class="o">=</span> <span class="p">((</span><span class="n">current_batch_x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">total_batches_y</span><span class="p">)</span> <span class="o">+</span> <span class="n">current_batch_y</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluating batch </span><span class="si">{</span><span class="n">current_batch</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                        <span class="n">sub_y</span> <span class="o">=</span> <span class="n">unique_tb_y</span><span class="p">[</span><span class="n">start_idx_y</span> <span class="p">:</span> <span class="n">start_idx_y</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
+
+                        <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_rl_batch</span><span class="p">(</span>
+                            <span class="n">sub_x</span><span class="p">,</span> <span class="n">sub_y</span><span class="p">,</span> <span class="n">true_x_blocks</span><span class="p">,</span> <span class="n">true_y_blocks</span><span class="p">,</span> <span class="n">pred_x_blocks</span><span class="p">,</span> <span class="n">pred_y_blocks</span>
+                        <span class="p">)</span>
+
+                        <span class="n">total_tp</span> <span class="o">+=</span> <span class="n">tp</span>
+                        <span class="n">total_fp</span> <span class="o">+=</span> <span class="n">fp</span>
+                        <span class="n">total_fn</span> <span class="o">+=</span> <span class="n">fn</span>
+                <span class="n">total_tn</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">)</span> <span class="o">-</span> <span class="n">total_tp</span> <span class="o">-</span> <span class="n">total_fp</span> <span class="o">-</span> <span class="n">total_fn</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x_df_long</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">x_df</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;block&quot;</span><span class="p">],</span> <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;x_x&quot;</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x_x&quot;</span><span class="p">])[[</span><span class="s2">&quot;x_x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span>
+                    <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;x_x&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">})</span>
+                <span class="p">)</span>
+                <span class="n">unique_tb_x</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+
+                <span class="n">total_batches_x</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
+                <span class="n">total_batches</span> <span class="o">=</span> <span class="n">total_batches_x</span> <span class="o">*</span> <span class="n">total_batches_x</span>
+
+                <span class="k">for</span> <span class="n">start_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+                    <span class="n">current_batch_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">sub_x</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">start_idx_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+                        <span class="n">current_batch_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_y</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="n">current_batch</span> <span class="o">=</span> <span class="p">((</span><span class="n">current_batch_x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">total_batches_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">current_batch_y</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluating batch </span><span class="si">{</span><span class="n">current_batch</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                        <span class="n">sub_y</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx_y</span> <span class="p">:</span> <span class="n">start_idx_y</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
+
+                        <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_dedup_batch</span><span class="p">(</span><span class="n">sub_x</span><span class="p">,</span> <span class="n">sub_y</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">,</span> <span class="n">x_df_long</span><span class="p">)</span>
+
+                        <span class="n">total_tp</span> <span class="o">+=</span> <span class="n">tp</span>
+                        <span class="n">total_fp</span> <span class="o">+=</span> <span class="n">fp</span>
+                        <span class="n">total_fn</span> <span class="o">+=</span> <span class="n">fn</span>
+                <span class="n">total_tn</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="o">-</span> <span class="n">total_tp</span>
+                    <span class="o">-</span> <span class="n">total_fp</span>
+                    <span class="o">-</span> <span class="n">total_fn</span>
+                <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">confusion</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="p">[</span><span class="n">total_tp</span><span class="p">,</span> <span class="n">total_fn</span><span class="p">],</span>
+                    <span class="p">[</span><span class="n">total_fp</span><span class="p">,</span> <span class="n">total_tn</span><span class="p">],</span>
+                <span class="p">],</span>
+                <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Actual Positive&quot;</span><span class="p">,</span> <span class="s2">&quot;Actual Negative&quot;</span><span class="p">],</span>
+                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Predicted Positive&quot;</span><span class="p">,</span> <span class="s2">&quot;Predicted Negative&quot;</span><span class="p">],</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+            <span class="n">recall</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">precision</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">f1_score</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">precision</span> <span class="o">*</span> <span class="n">recall</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="p">)</span>
+            <span class="n">accuracy</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_fn</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_fn</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
+                <span class="k">else</span> <span class="mi">0</span>
+            <span class="p">)</span>
+            <span class="n">specificity</span> <span class="o">=</span> <span class="n">total_tn</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">fpr</span> <span class="o">=</span> <span class="n">total_fp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">fnr</span> <span class="o">=</span> <span class="n">total_fn</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;recall&quot;</span><span class="p">:</span> <span class="n">recall</span><span class="p">,</span>
+                <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">precision</span><span class="p">,</span>
+                <span class="s2">&quot;fpr&quot;</span><span class="p">:</span> <span class="n">fpr</span><span class="p">,</span>
+                <span class="s2">&quot;fnr&quot;</span><span class="p">:</span> <span class="n">fnr</span><span class="p">,</span>
+                <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
+                <span class="s2">&quot;specificity&quot;</span><span class="p">:</span> <span class="n">specificity</span><span class="p">,</span>
+                <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="n">f1_score</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span><span class="p">)</span>
+
+        <span class="n">x_df</span> <span class="o">=</span> <span class="n">x_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">BlockingResult</span><span class="p">(</span>
+            <span class="n">x_df</span><span class="o">=</span><span class="n">x_df</span><span class="p">,</span>
+            <span class="n">ann</span><span class="o">=</span><span class="n">ann</span><span class="p">,</span>
+            <span class="n">deduplication</span><span class="o">=</span><span class="n">deduplication</span><span class="p">,</span>
+            <span class="n">n_original_records</span><span class="o">=</span><span class="p">(</span><span class="n">len_x</span><span class="p">,</span> <span class="n">len_y</span><span class="p">),</span>
+            <span class="n">true_blocks</span><span class="o">=</span><span class="n">true_blocks</span><span class="p">,</span>
+            <span class="n">eval_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span><span class="p">,</span>
+            <span class="n">confusion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">confusion</span><span class="p">,</span>
+            <span class="n">colnames_xy</span><span class="o">=</span><span class="n">colnames_xy</span><span class="p">,</span>
+            <span class="n">graph</span><span class="o">=</span><span class="n">graph</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Blocker.eval">
+<a class="viewcode-back" href="../../api/blocker.html#blockingpy.blocker.Blocker.eval">[docs]</a>
+    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">blocking_result</span><span class="p">:</span> <span class="n">BlockingResult</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BlockingResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluate blocking results against true block assignments and return new BlockingResult.</span>
+
+<span class="sd">        This method calculates evaluation metrics and confusion matrix</span>
+<span class="sd">        by comparing predicted blocks with known true blocks and returns</span>
+<span class="sd">        a new BlockingResult instance containing the evaluation results</span>
+<span class="sd">        along with the original blocking results. It allows you to set</span>
+<span class="sd">        the batch size for evaluation of larger datasets.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        blocking_result : BlockingResult</span>
+<span class="sd">            Original blocking result to evaluate</span>
+<span class="sd">        true_blocks : pandas.DataFrame</span>
+<span class="sd">            DataFrame with true block assignments</span>
+<span class="sd">            For deduplication: columns [&#39;x&#39;, &#39;block&#39;]</span>
+<span class="sd">            For record linkage: columns [&#39;x&#39;, &#39;y&#39;, &#39;block&#39;]</span>
+<span class="sd">        batch_size : int</span>
+<span class="sd">            Size of the batch for evaluation. This size if applied for both datasets</span>
+<span class="sd">            for record linkage. Defaults to 1,000.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        BlockingResult</span>
+<span class="sd">            A new BlockingResult instance with added evaluation results</span>
+<span class="sd">            and original blocking results</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; blocker = Blocker()</span>
+<span class="sd">        &gt;&gt;&gt; result = blocker.block(x, y)</span>
+<span class="sd">        &gt;&gt;&gt; evaluated = blocker.eval(result, true_blocks)</span>
+<span class="sd">        &gt;&gt;&gt; print(evaluated.metrics)</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        block : Main blocking method that includes evaluation</span>
+<span class="sd">        BlockingResult : Class for analyzing blocking results</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">blocking_result</span><span class="p">,</span> <span class="n">BlockingResult</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;blocking_result must be a BlockingResult instance obtained from `block` method.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">InputValidator</span><span class="o">.</span><span class="n">validate_true_blocks</span><span class="p">(</span><span class="n">true_blocks</span><span class="p">,</span> <span class="n">blocking_result</span><span class="o">.</span><span class="n">deduplication</span><span class="p">)</span>
+
+        <span class="n">total_tn</span> <span class="o">=</span> <span class="n">total_fp</span> <span class="o">=</span> <span class="n">total_fn</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">blocking_result</span><span class="o">.</span><span class="n">deduplication</span><span class="p">:</span>
+            <span class="n">unique_tb_x</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+            <span class="n">unique_tb_y</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+
+            <span class="n">true_x_blocks</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+            <span class="n">true_y_blocks</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+            <span class="n">pred_x_blocks</span> <span class="o">=</span> <span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+            <span class="n">pred_y_blocks</span> <span class="o">=</span> <span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+
+            <span class="n">total_batches_x</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
+            <span class="n">total_batches_y</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
+            <span class="n">total_batches</span> <span class="o">=</span> <span class="n">total_batches_x</span> <span class="o">*</span> <span class="n">total_batches_y</span>
+
+            <span class="k">for</span> <span class="n">start_idx_x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">current_batch_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_x</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">sub_x</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx_x</span> <span class="p">:</span> <span class="n">start_idx_x</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
+
+                <span class="k">for</span> <span class="n">start_idx_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+                    <span class="n">current_batch_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_y</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">current_batch</span> <span class="o">=</span> <span class="p">((</span><span class="n">current_batch_x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">total_batches_y</span><span class="p">)</span> <span class="o">+</span> <span class="n">current_batch_y</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluating batch </span><span class="si">{</span><span class="n">current_batch</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">sub_y</span> <span class="o">=</span> <span class="n">unique_tb_y</span><span class="p">[</span><span class="n">start_idx_y</span> <span class="p">:</span> <span class="n">start_idx_y</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
+
+                    <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_rl_batch</span><span class="p">(</span>
+                        <span class="n">sub_x</span><span class="p">,</span> <span class="n">sub_y</span><span class="p">,</span> <span class="n">true_x_blocks</span><span class="p">,</span> <span class="n">true_y_blocks</span><span class="p">,</span> <span class="n">pred_x_blocks</span><span class="p">,</span> <span class="n">pred_y_blocks</span>
+                    <span class="p">)</span>
+
+                    <span class="n">total_tp</span> <span class="o">+=</span> <span class="n">tp</span>
+                    <span class="n">total_fp</span> <span class="o">+=</span> <span class="n">fp</span>
+                    <span class="n">total_fn</span> <span class="o">+=</span> <span class="n">fn</span>
+            <span class="n">total_tn</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">)</span> <span class="o">-</span> <span class="n">total_tp</span> <span class="o">-</span> <span class="n">total_fp</span> <span class="o">-</span> <span class="n">total_fn</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x_df_long</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
+                    <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;block&quot;</span><span class="p">],</span> <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;x_x&quot;</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x_x&quot;</span><span class="p">])[[</span><span class="s2">&quot;x_x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span>
+                <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;x_x&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">})</span>
+            <span class="p">)</span>
+            <span class="n">unique_tb_x</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+
+            <span class="n">total_batches_x</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
+            <span class="n">total_batches</span> <span class="o">=</span> <span class="n">total_batches_x</span> <span class="o">*</span> <span class="n">total_batches_x</span>
+
+            <span class="k">for</span> <span class="n">start_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">current_batch_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">sub_x</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
+
+                <span class="k">for</span> <span class="n">start_idx_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+                    <span class="n">current_batch_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_y</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">current_batch</span> <span class="o">=</span> <span class="p">((</span><span class="n">current_batch_x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">total_batches_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">current_batch_y</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluating batch </span><span class="si">{</span><span class="n">current_batch</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                    <span class="n">sub_y</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx_y</span> <span class="p">:</span> <span class="n">start_idx_y</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
+
+                    <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_dedup_batch</span><span class="p">(</span><span class="n">sub_x</span><span class="p">,</span> <span class="n">sub_y</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">,</span> <span class="n">x_df_long</span><span class="p">)</span>
+
+                    <span class="n">total_tp</span> <span class="o">+=</span> <span class="n">tp</span>
+                    <span class="n">total_fp</span> <span class="o">+=</span> <span class="n">fp</span>
+                    <span class="n">total_fn</span> <span class="o">+=</span> <span class="n">fn</span>
+            <span class="n">total_tn</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">total_tp</span> <span class="o">-</span> <span class="n">total_fp</span> <span class="o">-</span> <span class="n">total_fn</span>
+            <span class="p">)</span>
+
+        <span class="n">confusion</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">[</span><span class="n">total_tp</span><span class="p">,</span> <span class="n">total_fn</span><span class="p">],</span>
+                <span class="p">[</span><span class="n">total_fp</span><span class="p">,</span> <span class="n">total_tn</span><span class="p">],</span>
+            <span class="p">],</span>
+            <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Actual Positive&quot;</span><span class="p">,</span> <span class="s2">&quot;Actual Negative&quot;</span><span class="p">],</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Predicted Positive&quot;</span><span class="p">,</span> <span class="s2">&quot;Predicted Negative&quot;</span><span class="p">],</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="n">recall</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">f1_score</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">precision</span> <span class="o">*</span> <span class="n">recall</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_fn</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_fn</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="n">specificity</span> <span class="o">=</span> <span class="n">total_tn</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">fpr</span> <span class="o">=</span> <span class="n">total_fp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">fnr</span> <span class="o">=</span> <span class="n">total_fn</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+
+        <span class="n">eval_metrics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;recall&quot;</span><span class="p">:</span> <span class="n">recall</span><span class="p">,</span>
+            <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">precision</span><span class="p">,</span>
+            <span class="s2">&quot;fpr&quot;</span><span class="p">:</span> <span class="n">fpr</span><span class="p">,</span>
+            <span class="s2">&quot;fnr&quot;</span><span class="p">:</span> <span class="n">fnr</span><span class="p">,</span>
+            <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
+            <span class="s2">&quot;specificity&quot;</span><span class="p">:</span> <span class="n">specificity</span><span class="p">,</span>
+            <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="n">f1_score</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">eval_metrics</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">eval_metrics</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">BlockingResult</span><span class="p">(</span>
+            <span class="n">x_df</span><span class="o">=</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="p">,</span>
+            <span class="n">ann</span><span class="o">=</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+            <span class="n">deduplication</span><span class="o">=</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">deduplication</span><span class="p">,</span>
+            <span class="n">n_original_records</span><span class="o">=</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">n_original_records</span><span class="p">,</span>
+            <span class="n">true_blocks</span><span class="o">=</span><span class="n">true_blocks</span><span class="p">,</span>
+            <span class="n">eval_metrics</span><span class="o">=</span><span class="n">eval_metrics</span><span class="p">,</span>
+            <span class="n">confusion</span><span class="o">=</span><span class="n">confusion</span><span class="p">,</span>
+            <span class="n">colnames_xy</span><span class="o">=</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">colnames</span><span class="p">,</span>
+            <span class="n">graph</span><span class="o">=</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">graph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_eval_dedup_batch</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sub_x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">sub_y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">x_df_long</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process a batch of candidate pairs for deduplication evaluation.</span>
+<span class="sd">        This method processes a subset of record pairs to compute confusion matrix elements</span>
+<span class="sd">        for evaluating blocking quality.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sub_x : numpy.ndarray</span>
+<span class="sd">            Subset of records from dataset X to evaluate</span>
+<span class="sd">        sub_y : numpy.ndarray</span>
+<span class="sd">            Subset of records from dataset X to evaluate, needed to create candidate pairs</span>
+<span class="sd">        true_blocks : pandas.DataFrame</span>
+<span class="sd">            DataFrame containing true block assignments with columns [&#39;x&#39;, &#39;y&#39;, &#39;block&#39;]</span>
+<span class="sd">        x_df_long : pandas.DataFrame</span>
+<span class="sd">            DataFrame containing predicted block assignments with columns [&#39;x&#39;, &#39;block&#39;]</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[int, int, int]</span>
+<span class="sd">            A tuple containing partial confusion matrix counts:</span>
+<span class="sd">            - tp (true positives): Pairs correctly blocked together</span>
+<span class="sd">            - fp (false positives): Pairs incorrectly blocked together</span>
+<span class="sd">            - fn (false negatives): Pairs incorrectly not blocked together</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sub_x</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">sub_y</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">true_blocks</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;true_block_x&quot;</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">true_blocks</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;_tb&quot;</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;true_block_y&quot;</span><span class="p">})</span>
+        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">x_df_long</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;pred_block_x&quot;</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">x_df_long</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;_pred&quot;</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;pred_block_y&quot;</span><span class="p">})</span>
+
+        <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_block_x&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_block_y&quot;</span><span class="p">]</span>
+        <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_block_x&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_block_y&quot;</span><span class="p">]</span>
+
+        <span class="n">tp</span> <span class="o">=</span> <span class="p">(</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="p">(</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span>
+
+    <span class="k">def</span> <span class="nf">_eval_rl_batch</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sub_x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">sub_y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">true_x_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">true_y_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">pred_x_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">pred_y_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process a batch of record pairs and compute confusion matrix counts.</span>
+<span class="sd">        This method processes a subset of record pairs for record linkage evaluation.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sub_x : numpy.ndarray</span>
+<span class="sd">            Subset of records from dataset X to evaluate</span>
+<span class="sd">        sub_y : numpy.ndarray</span>
+<span class="sd">            Subset of records from dataset Y to evaluate</span>
+<span class="sd">        true_x_blocks : pandas.DataFrame</span>
+<span class="sd">            DataFrame with true block assignments for X records with columns [&#39;x&#39;, &#39;block&#39;]</span>
+<span class="sd">        true_y_blocks : pandas.DataFrame</span>
+<span class="sd">            DataFrame with true block assignments for Y records with columns [&#39;y&#39;, &#39;block&#39;]</span>
+<span class="sd">        pred_x_blocks : pandas.DataFrame</span>
+<span class="sd">            DataFrame with predicted block assignments for X records with columns [&#39;x&#39;, &#39;block&#39;]</span>
+<span class="sd">        pred_y_blocks : pandas.DataFrame</span>
+<span class="sd">            DataFrame with predicted block assignments for Y records with columns [&#39;y&#39;, &#39;block&#39;]</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[int, int, int]</span>
+<span class="sd">            A tuple containing:</span>
+<span class="sd">            - tp (true positives): Number of pairs correctly assigned to same block</span>
+<span class="sd">            - fp (false positives): Number of pairs incorrectly assigned to same block</span>
+<span class="sd">            - fn (false negatives): Number of pairs incorrectly assigned to different blocks</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The method creates candidate pairs between records in sub_x and sub_y,</span>
+<span class="sd">        then compares their true and predicted block assignments to compute</span>
+<span class="sd">        confusion matrix counts.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">sub_x</span><span class="p">,</span> <span class="n">sub_y</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">])</span>
+        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pair_chunk</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">true_x_blocks</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;true_block_x&quot;</span><span class="p">})</span>
+            <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">true_y_blocks</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;true_block_y&quot;</span><span class="p">})</span>
+            <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">pred_x_blocks</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;pred_block_x&quot;</span><span class="p">})</span>
+            <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">pred_y_blocks</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;pred_block_y&quot;</span><span class="p">})</span>
+        <span class="p">)</span>
+
+        <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_block_x&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_block_y&quot;</span><span class="p">]</span>
+        <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_block_x&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_block_y&quot;</span><span class="p">]</span>
+
+        <span class="n">tp</span> <span class="o">=</span> <span class="p">(</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="p">(</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

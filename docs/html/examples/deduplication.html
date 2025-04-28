@@ -1,0 +1,399 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deduplication &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deduplication No. 2" href="deduplication_2.html" />
+    <link rel="prev" title="Record Linkage" href="record_linkage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="record_linkage.html">Record Linkage</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Deduplication</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-preparation">Data Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#basic-deduplication">Basic Deduplication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#evaluation-with-true-blocks">Evaluation with True Blocks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deduplication_2.html">Deduplication No. 2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_dedup.html">Deduplication with Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="recordlinkage_integration.html">Integration with recordlinkage package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splink_integration.html">Integration with splink package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples</a></li>
+      <li class="breadcrumb-item active">Deduplication</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/deduplication.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="deduplication">
+<h1>Deduplication<a class="headerlink" href="#deduplication" title="Link to this heading"></a></h1>
+<p>This example demonstrates how to use BlockingPy for deduplication of a dataset containing duplicate records. We’ll use example data generated with <a class="reference external" href="https://github.com/T-Strojny/geco3">geco3</a> package which allows for generating data from lookup files or functions and then modifying part of records to create “corrupted” duplicates. This dataset contains 10,000 records, 4,000 of which are duplicates. Original records have 0-2 “corrupted” duplicates and those have 3 modified attributes.</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
+<p>First, install BlockingPy:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">blockingpy</span>
+</pre></div>
+</div>
+<p>Import required packages:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">blockingpy</span> <span class="kn">import</span> <span class="n">Blocker</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+</pre></div>
+</div>
+</section>
+<section id="data-preparation">
+<h2>Data Preparation<a class="headerlink" href="#data-preparation" title="Link to this heading"></a></h2>
+<p>Load the example dataset:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;geco_2_dup_per_rec_3_mod.csv&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s take a look at the data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">40</span><span class="p">:</span><span class="mi">50</span><span class="p">,</span> <span class="p">:]</span>
+
+<span class="c1">#            rec-id  first_name second_name   last_name              region  \</span>
+<span class="c1"># 40    rec-024-org        MAJA        OLGA     LEWICKA  ZACHODNIOPOMORSKIE   </span>
+<span class="c1"># 41    rec-025-org        POLA    LEOKADIA   RUTKOWSKA  ZACHODNIOPOMORSKIE   </span>
+<span class="c1"># 42  rec-026-dup-0  ALEKSANDRA       RYBAK       ZÓFIA  KUJAWSKO-POMORSKIE   </span>
+<span class="c1"># 43  rec-026-dup-1  ALEKSANDRA       RYBAK       ZÓFIA  KUJAWSKO-POMORSKIE   </span>
+<span class="c1"># 44    rec-026-org       ZOFIA  ALEKSANDRA       RYBAK  KUJAWSKO-POMORSKIE   </span>
+<span class="c1"># 45  rec-027-dup-0       LAÓRA    JAGYEŁŁO      JOANNA       WIELKOPOLSKIE   </span>
+<span class="c1"># 46    rec-027-org       LAURA      JOANNA    JAGIEŁŁO       WIELKOPOLSKIE   </span>
+<span class="c1"># 47  rec-028-dup-0       MARIA        KOZA    WIKTÓRIA        DOLNOŚLĄSKIE   </span>
+<span class="c1"># 48    rec-028-org    WIKTORIA       MARIA        KOZA        DOLNOŚLĄSKIE   </span>
+<span class="c1"># 49    rec-029-org      NIKOLA  BRONISŁAWA  WIĘCKOWSKA             ŚLĄSKIE   </span>
+
+<span class="c1">#     birth_date personal_id  </span>
+<span class="c1"># 40  22/10/1935   DKK423341  </span>
+<span class="c1"># 41  29/11/1956   LJL907920  </span>
+<span class="c1"># 42         NaN   DAT77p499  </span>
+<span class="c1"># 43         NaN         NaN  </span>
+<span class="c1"># 44  24/03/1982   DAT770499  </span>
+<span class="c1"># 45  10/11/1984   LNRt57399  </span>
+<span class="c1"># 46  10/11/1984   LNR657399  </span>
+<span class="c1"># 47         NaN   HEH671979  </span>
+<span class="c1"># 48  09/09/1982   HEH671989  </span>
+<span class="c1"># 49  09/11/1992   JKR103426  </span>
+</pre></div>
+</div>
+<p>Preprocess data by concatenating all fields into a single text column:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;first_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;second_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;last_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> 
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;region&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;birth_date&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span>
+    <span class="n">data</span><span class="p">[</span><span class="s1">&#39;personal_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1"># 0	GÓRKAKARÓLINAMELANIIAŚWIĘTOKRZYSKIE25/07/2010S...</span>
+<span class="c1"># 1	MELANIAKAROLINAGÓRKAŚWIĘTOKRZYSKIE25/07/2001SG...</span>
+<span class="c1"># 2	MARTAMARTYNAMUSIAŁPODKARPACKIE23/04/1944TLS812403</span>
+<span class="c1"># 3	KAJAPATRYCJADROZDDOLNOŚLĄSKIE05/12/1950TJH243280</span>
+<span class="c1"># 4	HANNAKLARALIPSKAMAŁOPOLSKIE28/05/1991MTN763673</span>
+</pre></div>
+</div>
+</section>
+<section id="basic-deduplication">
+<h2>Basic Deduplication<a class="headerlink" href="#basic-deduplication" title="Link to this heading"></a></h2>
+<p>Initialize blocker instance and perform deduplication using the Voyager algorithm:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;voyager&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="s1">&#39;cosine&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;random_seed&#39;</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+        <span class="s1">&#39;M&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+        <span class="s1">&#39;ef_construction&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">blocker</span> <span class="o">=</span> <span class="n">Blocker</span><span class="p">()</span>
+<span class="n">dedup_result</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">],</span>
+    <span class="n">ann</span><span class="o">=</span><span class="s1">&#39;voyager&#39;</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">control_ann</span><span class="o">=</span><span class="n">control_ann</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span>
+<span class="p">)</span>
+
+<span class="c1"># ===== creating tokens: shingle =====</span>
+<span class="c1"># ===== starting search (voyager, x, y: 10000,10000, t: 1169) =====</span>
+<span class="c1"># ===== creating graph =====</span>
+</pre></div>
+</div>
+<p>Let’s examine the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dedup_result</span><span class="p">)</span>
+
+<span class="c1"># ========================================================</span>
+<span class="c1"># Blocking based on the voyager method.</span>
+<span class="c1"># Number of blocks: 2723</span>
+<span class="c1"># Number of columns created for blocking: 1169</span>
+<span class="c1"># Reduction ratio: 0.999564</span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Distribution of the size of the blocks:</span>
+<span class="c1"># Block Size | Number of Blocks</span>
+<span class="c1">#          2 | 926            </span>
+<span class="c1">#          3 | 883            </span>
+<span class="c1">#          4 | 363            </span>
+<span class="c1">#          5 | 211            </span>
+<span class="c1">#          6 | 100            </span>
+<span class="c1">#          7 | 78             </span>
+<span class="c1">#          8 | 41             </span>
+<span class="c1">#          9 | 26             </span>
+<span class="c1">#         10 | 21             </span>
+<span class="c1">#         11 | 15             </span>
+<span class="c1">#         12 | 13             </span>
+<span class="c1">#         13 | 7              </span>
+<span class="c1">#         14 | 7              </span>
+<span class="c1">#         15 | 9              </span>
+<span class="c1">#         16 | 9              </span>
+<span class="c1">#         17 | 5              </span>
+<span class="c1">#         18 | 2              </span>
+<span class="c1">#         19 | 2              </span>
+<span class="c1">#         20 | 1              </span>
+<span class="c1">#         23 | 1              </span>
+<span class="c1">#         24 | 1              </span>
+<span class="c1">#         27 | 1              </span>
+<span class="c1">#         32 | 1         </span>
+</pre></div>
+</div>
+<p>and:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">dedup_result</span><span class="o">.</span><span class="n">result</span><span class="p">)</span>
+
+<span class="c1">#          x     y  block      dist</span>
+<span class="c1"># 0        1     0      0  0.102041</span>
+<span class="c1"># 1     5974     2      1  0.390295</span>
+<span class="c1"># 2     7378     3      2  0.425410</span>
+<span class="c1"># 3     5562     4      3  0.396494</span>
+<span class="c1"># 4     1389     5      4  0.461184</span>
+<span class="c1"># ...    ...   ...    ...       ...</span>
+<span class="c1"># 7281  9995  9993   2722  0.241895</span>
+<span class="c1"># 7282  9995  9994   2722  0.135667</span>
+<span class="c1"># 7283  4029  9996   1561  0.386845</span>
+<span class="c1"># 7284  9998  9997     67  0.128579</span>
+<span class="c1"># 7285  9998  9999     67  0.128579</span>
+</pre></div>
+</div>
+<p>Let’s take a look at the pair in block <code class="docutils literal notranslate"><span class="pre">66</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[[</span><span class="mi">9998</span><span class="p">,</span><span class="mi">9999</span><span class="p">],</span> <span class="p">:</span> <span class="p">])</span>
+
+<span class="c1">#              rec-id first_name second_name   last_name               region        birth_date personal_id                                                       txt</span>
+<span class="c1"># 9998  rec-999-dup-1     RESŻKA    LILIANNA  MAŁGÓRZATA  WARMIŃSKO-MAZURSKIE         12/01/1978        NaN         RESŻKALILIANNAMAŁGÓRZATAWARMIŃSKO-MAZURSKIE12/...</span>
+<span class="c1"># 9999    rec-999-org   LILIANNA  MAŁGORZATA      RESZKA  WARMIŃSKO-MAZURSKIE         12/01/1978   TCX847483        LILIANNAMAŁGORZATARESZKAWARMIŃSKO-MAZURSKIE12/...</span>
+</pre></div>
+</div>
+<p>Even though records differ a lot, our package managed to get this pair right.</p>
+</section>
+<section id="evaluation-with-true-blocks">
+<h2>Evaluation with True Blocks<a class="headerlink" href="#evaluation-with-true-blocks" title="Link to this heading"></a></h2>
+<p>Since our dataset contains known duplicate information in the <code class="docutils literal notranslate"><span class="pre">rec-id</span></code> field, we can evaluate the blocking performance. First, we’ll prepare the true blocks information:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df_eval</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1"># Extract block numbers from rec-id</span>
+<span class="n">df_eval</span><span class="p">[</span><span class="s1">&#39;block&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_eval</span><span class="p">[</span><span class="s1">&#39;rec-id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;rec-(\d+)-&#39;</span><span class="p">)</span>
+<span class="n">df_eval</span><span class="p">[</span><span class="s1">&#39;block&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_eval</span><span class="p">[</span><span class="s1">&#39;block&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int&#39;</span><span class="p">)</span>
+
+<span class="c1"># Add sequential index</span>
+<span class="n">df_eval</span> <span class="o">=</span> <span class="n">df_eval</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;block&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">df_eval</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_eval</span><span class="p">))</span>
+
+<span class="c1"># Prepare true blocks dataframe</span>
+<span class="n">true_blocks_dedup</span> <span class="o">=</span> <span class="n">df_eval</span><span class="p">[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;block&#39;</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>Print <code class="docutils literal notranslate"><span class="pre">true_blocks_dedup</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">true_blocks_dedup</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="c1">#    x  block</span>
+<span class="c1"># 0  0      0</span>
+<span class="c1"># 1  1      0</span>
+<span class="c1"># 2  2      1</span>
+<span class="c1"># 3  3      2</span>
+<span class="c1"># 4  4      3</span>
+<span class="c1"># 5  5      4</span>
+<span class="c1"># 6  6      5</span>
+<span class="c1"># 7  7      6</span>
+<span class="c1"># 8  8      6</span>
+<span class="c1"># 9  9      7</span>
+</pre></div>
+</div>
+<p>Now we can perform blocking with evaluation using the HNSW algorithm:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;hnsw&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;distance&#39;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+        <span class="s1">&#39;M&#39;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+        <span class="s1">&#39;ef_c&#39;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+        <span class="s1">&#39;ef_s&#39;</span><span class="p">:</span> <span class="mi">500</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">blocker</span> <span class="o">=</span> <span class="n">Blocker</span><span class="p">()</span>
+<span class="n">eval_result</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">df_eval</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">],</span> 
+    <span class="n">ann</span><span class="o">=</span><span class="s1">&#39;hnsw&#39;</span><span class="p">,</span>
+    <span class="n">true_blocks</span><span class="o">=</span><span class="n">true_blocks_dedup</span><span class="p">,</span> 
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+    <span class="n">control_ann</span><span class="o">=</span><span class="n">control_ann</span><span class="p">,</span>
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span>
+<span class="p">)</span>
+<span class="c1"># We can also evaluate separately with `eval` method:</span>
+<span class="c1"># result = blocker.block(</span>
+<span class="c1">#     x=df_eval[&#39;txt&#39;], </span>
+<span class="c1">#     ann=&#39;hnsw&#39;, </span>
+<span class="c1">#     verbose=1, </span>
+<span class="c1">#     control_ann=control_ann,</span>
+<span class="c1">#     random_seed=42</span>
+<span class="c1"># )</span>
+<span class="c1"># eval_result = blocker.eval(</span>
+<span class="c1">#     blocking_result=result,</span>
+<span class="c1">#     true_blocks=true_blocs_dedup</span>
+<span class="c1"># ) </span>
+<span class="c1"># The rest stays the same in both cases</span>
+<span class="c1">#Note: We recommend using eval() method when evaluating larger datasets since it allows you to set the batch #size for currently evaluated record pairs.</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Blocking based on the hnsw method.</span>
+<span class="c1"># Number of blocks: 2972</span>
+<span class="c1"># Number of columns created for blocking: 1169</span>
+<span class="c1"># Reduction ratio: 0.999649</span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Distribution of the size of the blocks:</span>
+<span class="c1"># Block Size | Number of Blocks</span>
+<span class="c1">#          2 | 1113           </span>
+<span class="c1">#          3 | 997            </span>
+<span class="c1">#          4 | 391            </span>
+<span class="c1">#          5 | 200            </span>
+<span class="c1">#          6 | 88             </span>
+<span class="c1">#          7 | 65             </span>
+<span class="c1">#          8 | 39             </span>
+<span class="c1">#          9 | 19             </span>
+<span class="c1">#         10 | 16             </span>
+<span class="c1">#         11 | 13             </span>
+<span class="c1">#         12 | 9              </span>
+<span class="c1">#         13 | 8              </span>
+<span class="c1">#         14 | 4              </span>
+<span class="c1">#         15 | 1              </span>
+<span class="c1">#         16 | 3              </span>
+<span class="c1">#         17 | 1              </span>
+<span class="c1">#         18 | 2              </span>
+<span class="c1">#         19 | 1              </span>
+<span class="c1">#         22 | 1              </span>
+<span class="c1">#         25 | 1              </span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Evaluation metrics (standard):</span>
+<span class="c1"># recall : 99.0151</span>
+<span class="c1"># precision : 29.2353</span>
+<span class="c1"># fpr : 0.0248</span>
+<span class="c1"># fnr : 0.9849</span>
+<span class="c1"># accuracy : 99.9751</span>
+<span class="c1"># specificity : 99.9752</span>
+<span class="c1"># f1_score : 45.142</span>
+</pre></div>
+</div>
+<p>The results show:</p>
+<ul class="simple">
+<li><p>High reduction ratio (<code class="docutils literal notranslate"><span class="pre">0.9996</span></code>) indicating significant reduction in comparison space</p></li>
+<li><p>High recall (<code class="docutils literal notranslate"><span class="pre">99.02%</span></code>) showing most true duplicates are found</p></li>
+</ul>
+<p>The block size distribution shows most blocks contain 2-4 records, with a few larger blocks which could occur due to the fact that even records without duplicates will be grouped it to one of the blocks. This is not a problem since those pairs would not be matched when performing one-to-one comparison afterwards. This demonstrates BlockingPy’s effectiveness at identifying potential duplicates while drastically reducing the number of required comparisons.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="record_linkage.html" class="btn btn-neutral float-left" title="Record Linkage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="deduplication_2.html" class="btn btn-neutral float-right" title="Deduplication No. 2" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

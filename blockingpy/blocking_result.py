@@ -144,7 +144,7 @@ class BlockingResult:
         output.append("=" * 56)
         output.append(f"Blocking based on the {self.method} method.")
         output.append(f"Number of blocks: {len(block_sizes)}")
-        output.append(f"Number of columns used for blocking: {len(self.colnames)}")
+        output.append(f"Number of columns created for blocking: {len(self.colnames)}")
         output.append(f"Reduction ratio: {self.reduction_ratio:.6f}")
         output.append("=" * 56)
 

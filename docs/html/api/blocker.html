@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blocker &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BlockingResult" href="blocking_result.html" />
+    <link rel="prev" title="BlockingPy API" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">BlockingPy API</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Blocker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#blockingpy.blocker.Blocker"><code class="docutils literal notranslate"><span class="pre">Blocker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.eval_metrics"><code class="docutils literal notranslate"><span class="pre">Blocker.eval_metrics</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.confusion"><code class="docutils literal notranslate"><span class="pre">Blocker.confusion</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.x_colnames"><code class="docutils literal notranslate"><span class="pre">Blocker.x_colnames</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.y_colnames"><code class="docutils literal notranslate"><span class="pre">Blocker.y_colnames</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.control_ann"><code class="docutils literal notranslate"><span class="pre">Blocker.control_ann</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.control_txt"><code class="docutils literal notranslate"><span class="pre">Blocker.control_txt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.BLOCKER_MAP"><code class="docutils literal notranslate"><span class="pre">Blocker.BLOCKER_MAP</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.block"><code class="docutils literal notranslate"><span class="pre">Blocker.block()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.blocker.Blocker.eval"><code class="docutils literal notranslate"><span class="pre">Blocker.eval()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#more-information">More information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blocking_result.html">BlockingResult</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">BlockingPy API</a></li>
+      <li class="breadcrumb-item active">Blocker</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/blocker.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="blocker">
+<span id="id1"></span><h1>Blocker<a class="headerlink" href="#blocker" title="Link to this heading"></a></h1>
+<p id="module-blockingpy.blocker">Contains the main Blocker class for record linkage
+and deduplication blocking.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blockingpy.blocker.</span></span><span class="sig-name descname"><span class="pre">Blocker</span></span><a class="reference internal" href="../_modules/blockingpy/blocker.html#Blocker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.blocker.Blocker" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class implementing various blocking methods for record linkage and deduplication.</p>
+<p>This class provides a unified interface to multiple approximate nearest neighbor
+search algorithms for blocking in record linkage and deduplication tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker.eval_metrics">
+<span class="sig-name descname"><span class="pre">eval_metrics</span></span><a class="headerlink" href="#blockingpy.blocker.Blocker.eval_metrics" title="Link to this definition"></a></dt>
+<dd><p>Evaluation metrics when true blocks are provided</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.Series or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker.confusion">
+<span class="sig-name descname"><span class="pre">confusion</span></span><a class="headerlink" href="#blockingpy.blocker.Blocker.confusion" title="Link to this definition"></a></dt>
+<dd><p>Confusion matrix when true blocks are provided</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker.x_colnames">
+<span class="sig-name descname"><span class="pre">x_colnames</span></span><a class="headerlink" href="#blockingpy.blocker.Blocker.x_colnames" title="Link to this definition"></a></dt>
+<dd><p>Column names for reference dataset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker.y_colnames">
+<span class="sig-name descname"><span class="pre">y_colnames</span></span><a class="headerlink" href="#blockingpy.blocker.Blocker.y_colnames" title="Link to this definition"></a></dt>
+<dd><p>Column names for query dataset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker.control_ann">
+<span class="sig-name descname"><span class="pre">control_ann</span></span><a class="headerlink" href="#blockingpy.blocker.Blocker.control_ann" title="Link to this definition"></a></dt>
+<dd><p>Control parameters for ANN algorithms</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker.control_txt">
+<span class="sig-name descname"><span class="pre">control_txt</span></span><a class="headerlink" href="#blockingpy.blocker.Blocker.control_txt" title="Link to this definition"></a></dt>
+<dd><p>Control parameters for text processing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker.BLOCKER_MAP">
+<span class="sig-name descname"><span class="pre">BLOCKER_MAP</span></span><a class="headerlink" href="#blockingpy.blocker.Blocker.BLOCKER_MAP" title="Link to this definition"></a></dt>
+<dd><p>Mapping of blocking algorithm names to their implementations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Notes</p>
+<p>Supported algorithms:
+- Annoy (Spotify)
+- HNSW (Hierarchical Navigable Small World)
+- MLPack (LSH and k-d tree)
+- NND (Nearest Neighbor Descent)
+- Voyager (Spotify)
+- FAISS (LSH, HNSW and Flat Indexes)</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker.block">
+<span class="sig-name descname"><span class="pre">block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">csr_matrix</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Series</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">csr_matrix</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deduplication</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ann</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'faiss'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_txt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">control_ann</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_colnames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_colnames</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2025</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><span class="pre">BlockingResult</span></a></span></span><a class="reference internal" href="../_modules/blockingpy/blocker.html#Blocker.block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.blocker.Blocker.block" title="Link to this definition"></a></dt>
+<dd><p>Perform blocking using the specified algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>pandas.Series</em><em> or </em><em>scipy.sparse.csr_matrix</em><em> or </em><em>numpy.ndarray</em>) – Reference dataset for blocking</p></li>
+<li><p><strong>y</strong> (<em>numpy.ndarray</em><em> or </em><em>pandas.Series</em><em> or </em><em>scipy.sparse.csr_matrix</em><em>, </em><em>optional</em>) – Query dataset (defaults to x for deduplication)</p></li>
+<li><p><strong>deduplication</strong> (<em>bool</em><em>, </em><em>default True</em>) – Whether to perform deduplication instead of record linkage</p></li>
+<li><p><strong>ann</strong> (<em>str</em><em>, </em><em>default &quot;faiss&quot;</em>) – Approximate Nearest Neighbor algorithm to use</p></li>
+<li><p><strong>true_blocks</strong> (<em>pandas.DataFrame</em><em>, </em><em>optional</em>) – True blocking information for evaluation</p></li>
+<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>default 0</em>) – Verbosity level (0-3). Controls logging level:
+- 0: WARNING level
+- 1-3: INFO level with increasing detail</p></li>
+<li><p><strong>graph</strong> (<em>bool</em><em>, </em><em>default False</em>) – Whether to create a graph representation of blocks</p></li>
+<li><p><strong>control_txt</strong> (<em>dict</em><em>, </em><em>default {}</em>) – Text processing parameters</p></li>
+<li><p><strong>control_ann</strong> (<em>dict</em><em>, </em><em>default {}</em>) – ANN algorithm parameters</p></li>
+<li><p><strong>x_colnames</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Column names for reference dataset used with csr_matrix or np.ndarray</p></li>
+<li><p><strong>y_colnames</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Column names for query dataset used with csr_matrix or np.ndarray</p></li>
+<li><p><strong>random_seed</strong> (<em>int</em><em>, </em><em>optional</em>) – Random seed for reproducibility (default is None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If one of the input validations fails</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Object containing blocking results and evaluation metrics</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult">BlockingResult</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function supports three input types:
+1. Text data (pandas.Series)
+2. Sparse matrices (scipy.sparse.csr_matrix) as a Document-Term Matrix (DTM)
+3. Dense matrices (numpy.ndarray) as a Document-Term Matrix (DTM)</p>
+<p>For evaluation of larger datasets, we recommend using the separate eval() method
+since it allows you to set the batch size for evaluation.</p>
+<p>For text data, additional preprocessing is performed using
+the parameters in control_txt.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockingResult</span></code></dt><dd><p>Class containing blocking results</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">controls_ann</span></code></dt><dd><p>Function to create ANN control parameters</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">controls_txt</span></code></dt><dd><p>Function to create text control parameters</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blockingpy.blocker.Blocker.eval">
+<span class="sig-name descname"><span class="pre">eval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocking_result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><span class="pre">BlockingResult</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><span class="pre">BlockingResult</span></a></span></span><a class="reference internal" href="../_modules/blockingpy/blocker.html#Blocker.eval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.blocker.Blocker.eval" title="Link to this definition"></a></dt>
+<dd><p>Evaluate blocking results against true block assignments and return new BlockingResult.</p>
+<p>This method calculates evaluation metrics and confusion matrix
+by comparing predicted blocks with known true blocks and returns
+a new BlockingResult instance containing the evaluation results
+along with the original blocking results. It allows you to set
+the batch size for evaluation of larger datasets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>blocking_result</strong> (<a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult"><em>BlockingResult</em></a>) – Original blocking result to evaluate</p></li>
+<li><p><strong>true_blocks</strong> (<em>pandas.DataFrame</em>) – DataFrame with true block assignments
+For deduplication: columns [‘x’, ‘block’]
+For record linkage: columns [‘x’, ‘y’, ‘block’]</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>) – Size of the batch for evaluation. This size if applied for both datasets
+for record linkage. Defaults to 1,000.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new BlockingResult instance with added evaluation results
+and original blocking results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="blocking_result.html#blockingpy.blocking_result.BlockingResult" title="blockingpy.blocking_result.BlockingResult">BlockingResult</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">blocker</span> <span class="o">=</span> <span class="n">Blocker</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluated</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">evaluated</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#blockingpy.blocker.Blocker.block" title="blockingpy.blocker.Blocker.block"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block</span></code></a></dt><dd><p>Main blocking method that includes evaluation</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockingResult</span></code></dt><dd><p>Class for analyzing blocking results</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="more-information">
+<span id="more-info-api"></span><h1>More information<a class="headerlink" href="#more-information" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><strong>For details about  <code class="docutils literal notranslate"><span class="pre">control_ann</span></code> and <code class="docutils literal notranslate"><span class="pre">control_txt</span></code> see <a class="reference internal" href="../user_guide/configuration_tuning.html#configuration-tuning"><span class="std std-ref">Configuration and Tuning</span></a>.</strong></p></li>
+<li><p><strong>For other details see <a class="reference internal" href="../user_guide/index.html#user-guide"><span class="std std-ref">User Guide</span></a>.</strong></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="BlockingPy API" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="blocking_result.html" class="btn btn-neutral float-right" title="BlockingResult" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

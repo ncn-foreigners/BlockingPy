@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Record Linkage &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Deduplication" href="deduplication.html" />
+    <link rel="prev" title="Examples" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Record Linkage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-preparation">Data Preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#perform-record-linkage">Perform record linkage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#evaluate-results">Evaluate Results</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="deduplication.html">Deduplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deduplication_2.html">Deduplication No. 2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_dedup.html">Deduplication with Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="recordlinkage_integration.html">Integration with recordlinkage package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="splink_integration.html">Integration with splink package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples</a></li>
+      <li class="breadcrumb-item active">Record Linkage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/record_linkage.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="record-linkage">
+<span id="id1"></span><h1>Record Linkage<a class="headerlink" href="#record-linkage" title="Link to this heading"></a></h1>
+<p>This example demonstrates how to use BlockingPy for record linkage between two datasets. We’ll use example data created by Paula McLeod, Dick Heasman and Ian Forbes, ONS,
+for the ESSnet DI on-the-job training course, Southampton,
+25-28 January 2011:</p>
+<ul class="simple">
+<li><p>Census: A fictional dataset representing observations from a decennial Census</p></li>
+<li><p>CIS: Fictional observations from Customer Information System (combined administrative data from tax and benefit systems)</p></li>
+</ul>
+<p>Some records in the CIS dataset contain Census person IDs, which we’ll use to evaluate our blocking performance.</p>
+<p>This datasets come with the <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> package and can be accesed via <code class="docutils literal notranslate"><span class="pre">load_census_cis_data</span></code> function from <code class="docutils literal notranslate"><span class="pre">blockingpy.datasets</span></code>.</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
+<p>First, install BlockingPy:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>blockingpy
+</pre></div>
+</div>
+<p>Import required packages:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">blockingpy</span> <span class="kn">import</span> <span class="n">Blocker</span>
+<span class="kn">from</span> <span class="nn">blockingpy.datasets</span> <span class="kn">import</span> <span class="n">load_census_cis_data</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+</pre></div>
+</div>
+</section>
+<section id="data-preparation">
+<h2>Data Preparation<a class="headerlink" href="#data-preparation" title="Link to this heading"></a></h2>
+<p>Download example data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">census</span><span class="p">,</span> <span class="n">cis</span> <span class="o">=</span> <span class="n">load_census_cis_data</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Firstly, we need to filter only those columns which we’ll need:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">census</span> <span class="o">=</span> <span class="n">census</span><span class="p">[[</span><span class="s2">&quot;PERSON_ID&quot;</span><span class="p">,</span> <span class="s2">&quot;PERNAME1&quot;</span><span class="p">,</span> <span class="s2">&quot;PERNAME2&quot;</span><span class="p">,</span> <span class="s2">&quot;SEX&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_DAY&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_MON&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_YEAR&quot;</span><span class="p">,</span> <span class="s2">&quot;ENUMCAP&quot;</span><span class="p">,</span> <span class="s2">&quot;ENUMPC&quot;</span><span class="p">]]</span>
+<span class="n">cis</span> <span class="o">=</span> <span class="n">cis</span><span class="p">[[</span><span class="s2">&quot;PERSON_ID&quot;</span><span class="p">,</span> <span class="s2">&quot;PERNAME1&quot;</span><span class="p">,</span> <span class="s2">&quot;PERNAME2&quot;</span><span class="p">,</span> <span class="s2">&quot;SEX&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_DAY&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_MON&quot;</span><span class="p">,</span> <span class="s2">&quot;DOB_YEAR&quot;</span><span class="p">,</span> <span class="s2">&quot;ENUMCAP&quot;</span><span class="p">,</span> <span class="s2">&quot;ENUMPC&quot;</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>Let’s take a look at the data:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">census</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1">#       PERSON_ID PERNAME1 PERNAME2 SEX  DOB_DAY  DOB_MON  DOB_YEAR  \</span>
+<span class="c1"># 0  DE03US001001    COUIE    PRICE   M      1.0        6    1960.0   </span>
+<span class="c1"># 1  DE03US001002    ABBIE    PVICE   F      9.0       11    1961.0   </span>
+<span class="c1"># 2  DE03US001003    LACEY    PRICE   F      7.0        2    1999.0   </span>
+<span class="c1"># 3  DE03US001004   SAMUEL    PRICE   M     13.0        4    1990.0   </span>
+<span class="c1"># 4  DE03US001005   JOSEPH    PRICE   M     20.0        4    1986.0   </span>
+
+<span class="c1">#           ENUMCAP  ENUMPC  </span>
+<span class="c1"># 0  1 WINDSOR ROAD  DE03US  </span>
+<span class="c1"># 1  1 WINDSOR ROAD  DE03US  </span>
+<span class="c1"># 2  1 WINDSOR ROAD  DE03US  </span>
+<span class="c1"># 3  1 WINDSOR ROAD  DE03US  </span>
+<span class="c1"># 4  1 WINDSOR ROAD  DE03US</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">cis</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1">#        PERSON_ID  PERNAME1  PERNAME2 SEX  DOB_DAY  DOB_MON  DOB_YEAR  \</span>
+<span class="c1"># 0  PO827ER091001    HAYDEN      HALL   M      NaN        1       NaN   </span>
+<span class="c1"># 1  LS992DB024001     SEREN  ANDERSON   F      1.0        1       NaN   </span>
+<span class="c1"># 2   M432ZZ053003     LEWIS     LEWIS   M      1.0        1       NaN   </span>
+<span class="c1"># 3   SW75TQ018001  HARRISON    POSTER   M      5.0        1       NaN   </span>
+<span class="c1"># 4  EX527TR017006  MUHAMMED    WATSUN   M      7.0        1       NaN   </span>
+
+<span class="c1">#               ENUMCAP   ENUMPC  </span>
+<span class="c1"># 0    91 CLARENCE ROAD  PO827ER  </span>
+<span class="c1"># 1      24 CHURCH LANE  LS992DB  </span>
+<span class="c1"># 2      53 CHURCH ROAD   M432ZZ  </span>
+<span class="c1"># 3   19 HIGHFIELD ROAD   SW75TG  </span>
+<span class="c1"># 4  17 VICTORIA STREET      NaN  </span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">census</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1"># (25343, 9)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">cis</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1"># (24613, 9)</span>
+</pre></div>
+</div>
+<p>Preprocess data and create column <code class="docutils literal notranslate"><span class="pre">txt</span></code> containing concatenated variables:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Convert numeric fields to strings</span>
+<span class="n">census</span><span class="p">[[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_MON&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">census</span><span class="p">[[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_MON&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;Int64&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&lt;NA&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="n">cis</span><span class="p">[[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_MON&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cis</span><span class="p">[[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_MON&#39;</span><span class="p">,</span> <span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;Int64&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&lt;NA&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Fill NAs with empty strings</span>
+<span class="n">census</span> <span class="o">=</span> <span class="n">census</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+<span class="n">cis</span> <span class="o">=</span> <span class="n">cis</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Concatenate fields</span>
+<span class="n">census</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;PERNAME1&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;PERNAME2&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;SEX&#39;</span><span class="p">]</span> <span class="o">+</span> \
+                <span class="n">census</span><span class="p">[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;DOB_MON&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]</span> <span class="o">+</span> \
+                <span class="n">census</span><span class="p">[</span><span class="s1">&#39;ENUMCAP&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">census</span><span class="p">[</span><span class="s1">&#39;ENUMPC&#39;</span><span class="p">]</span>
+
+<span class="n">cis</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;PERNAME1&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;PERNAME2&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;SEX&#39;</span><span class="p">]</span> <span class="o">+</span> \
+             <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;DOB_DAY&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;DOB_MON&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;DOB_YEAR&#39;</span><span class="p">]</span> <span class="o">+</span> \
+             <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;ENUMCAP&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cis</span><span class="p">[</span><span class="s1">&#39;ENUMPC&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Let’s see how the new column looks like:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">census</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1"># txt</span>
+<span class="c1"># 0      COUIEPRICEM1619601 WINDSOR ROADDE03US</span>
+<span class="c1"># 1     ABBIEPVICEF91119611 WINDSOR ROADDE03US</span>
+<span class="c1"># 2      LACEYPRICEF7219991 WINDSOR ROADDE03US</span>
+<span class="c1"># 3    SAMUELPRICEM13419901 WINDSOR ROADDE03US</span>
+<span class="c1"># 4    JOSEPHPRICEM20419861 WINDSOR ROADDE03US</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">cis</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1"># 	txt</span>
+<span class="c1"># 0         HAYDENHALLM191 CLARENCE ROADPO827ER</span>
+<span class="c1"># 1       SERENANDERSONF1124 CHURCH LANELS992DB</span>
+<span class="c1"># 2           LEWISLEWISM1153 CHURCH ROADM432ZZ</span>
+<span class="c1"># 3    HARRISONPOSTERM5119 HIGHFIELD ROADSW75TG</span>
+<span class="c1"># 4         MUHAMMEDWATSUNM7117 VICTORIA STREET</span>
+
+</pre></div>
+</div>
+</section>
+<section id="perform-record-linkage">
+<h2>Perform record linkage<a class="headerlink" href="#perform-record-linkage" title="Link to this heading"></a></h2>
+<p>Initialize blocker instance and perform blocking with <code class="docutils literal notranslate"><span class="pre">hnsw</span></code> algorithm and default parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">blocker</span> <span class="o">=</span> <span class="n">Blocker</span><span class="p">()</span>
+
+<span class="n">rec_lin_result</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">census</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">],</span>
+    <span class="n">y</span><span class="o">=</span><span class="n">cis</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">],</span>   
+    <span class="n">ann</span><span class="o">=</span><span class="s1">&#39;hnsw&#39;</span><span class="p">,</span>    
+    <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>      
+    <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span>
+<span class="p">)</span>
+
+<span class="c1"># Output:</span>
+
+<span class="c1"># ===== creating tokens: shingle =====</span>
+<span class="c1"># ===== starting search (hnsw, x, y: 25343,24613, t: 1072) =====</span>
+<span class="c1"># ===== creating graph =====</span>
+</pre></div>
+</div>
+<p>Let’s take a look at the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">rec_lin_result</span><span class="p">)</span>
+
+<span class="c1"># ========================================================</span>
+<span class="c1"># Blocking based on the hnsw method.</span>
+<span class="c1"># Number of blocks: 23993</span>
+<span class="c1"># Number of columns created for blocking: 1072</span>
+<span class="c1"># Reduction ratio: 0.999961</span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Distribution of the size of the blocks:</span>
+<span class="c1"># Block Size | Number of Blocks</span>
+        <span class="c1">#  2 | 23388          </span>
+        <span class="c1">#  3 | 591            </span>
+        <span class="c1">#  4 | 13             </span>
+        <span class="c1">#  5 | 1    </span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">rec_lin_result</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+
+<span class="c1">#      x      y  block      dist</span>
+<span class="c1"># 0    17339  0      0  0.134151</span>
+<span class="c1"># 1    9567   1      1  0.064307</span>
+<span class="c1"># 2    10389  2      2  0.044183</span>
+<span class="c1"># 3    24258  3      3  0.182125</span>
+<span class="c1"># 4    3714   4      4  0.288487</span>
+</pre></div>
+</div>
+<p>Let’s take a look at the pair in block <code class="docutils literal notranslate"><span class="pre">0</span></code> :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">cis</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">census</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">17339</span><span class="p">,</span> <span class="p">:])</span>
+
+<span class="c1"># PERSON_ID                          PO827ER091001</span>
+<span class="c1"># PERNAME1                                  HAYDEN</span>
+<span class="c1"># PERNAME2                                    HALL</span>
+<span class="c1"># SEX                                            M</span>
+<span class="c1"># DOB_DAY                                         </span>
+<span class="c1"># DOB_MON                                        1</span>
+<span class="c1"># DOB_YEAR                                        </span>
+<span class="c1"># ENUMCAP                         91 CLARENCE ROAD</span>
+<span class="c1"># ENUMPC                                   PO827ER</span>
+<span class="c1"># txt          HAYDENHALLM191 CLARENCE ROADPO827ER</span>
+<span class="c1"># Name: 0, dtype: object</span>
+
+<span class="c1"># PERSON_ID                               PO827ER091001</span>
+<span class="c1"># PERNAME1                                       HAYDEM</span>
+<span class="c1"># PERNAME2                                         HALL</span>
+<span class="c1"># SEX                                                 M</span>
+<span class="c1"># DOB_DAY                                             1</span>
+<span class="c1"># DOB_MON                                             1</span>
+<span class="c1"># DOB_YEAR                                         1957</span>
+<span class="c1"># ENUMCAP                              91 CLARENCE ROAD</span>
+<span class="c1"># ENUMPC                                        PO827ER</span>
+<span class="c1"># txt          HAYDEMHALLM11195791 CLARENCE ROADPO827ER</span>
+<span class="c1"># Name: 17339, dtype: object</span>
+
+</pre></div>
+</div>
+</section>
+<section id="evaluate-results">
+<h2>Evaluate Results<a class="headerlink" href="#evaluate-results" title="Link to this heading"></a></h2>
+<p>Firstly, we need to prepare <code class="docutils literal notranslate"><span class="pre">true_blocks</span></code> DataFrame from our data (using known <code class="docutils literal notranslate"><span class="pre">person_id</span></code> in both datasets):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create x and y indices</span>
+<span class="n">census</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">census</span><span class="p">))</span>
+<span class="n">cis</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cis</span><span class="p">))</span>
+
+<span class="c1"># Find true matches using person_id</span>
+<span class="n">true_blocks</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+    <span class="n">left</span><span class="o">=</span><span class="n">census</span><span class="p">[[</span><span class="s1">&#39;PERSON_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">]],</span>
+    <span class="n">right</span><span class="o">=</span><span class="n">cis</span><span class="p">[[</span><span class="s1">&#39;PERSON_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">]],</span>
+    <span class="n">on</span><span class="o">=</span><span class="s1">&#39;PERSON_ID&#39;</span>
+<span class="p">)</span>
+
+<span class="c1"># Add block numbers</span>
+<span class="n">true_blocks</span><span class="p">[</span><span class="s1">&#39;block&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">true_blocks</span><span class="p">))</span>
+
+<span class="n">true_blocks</span><span class="o">.</span><span class="n">shape</span>
+<span class="c1"># (24043, 4)</span>
+</pre></div>
+</div>
+<p>Let’s sample 1000 pairs for which we will evaluate:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">matches</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we can evaluate the algorithm:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">eval_result</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">rec_lin_result</span><span class="p">,</span> <span class="n">matches</span><span class="p">[[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;block&#39;</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>and print the evaluation metrics:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">eval_result</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+<span class="c1"># recall         0.997000</span>
+<span class="c1"># precision      1.000000</span>
+<span class="c1"># fpr            0.000000</span>
+<span class="c1"># fnr            0.003000</span>
+<span class="c1"># accuracy       0.999997</span>
+<span class="c1"># specificity    1.000000</span>
+<span class="c1"># f1_score       0.998498</span>
+</pre></div>
+</div>
+<p><strong>NOTE:</strong> Keep in mind that the metrics shown above are based only on the records that appear in <code class="docutils literal notranslate"><span class="pre">true_blocks</span></code>.
+We assume that we have no knowledge
+about the other records and their true blocks.</p>
+<p>For this example, using <code class="docutils literal notranslate"><span class="pre">hnsw</span></code> we achieve:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">99.7%</span></code> recall and <code class="docutils literal notranslate"><span class="pre">100%</span></code> precision</p></li>
+<li><p>close to <code class="docutils literal notranslate"><span class="pre">100%</span></code> accuracy</p></li>
+<li><p>Great reduction ratio of <code class="docutils literal notranslate"><span class="pre">0.999961</span></code></p></li>
+<li><p>Most blocks contain just 2-3 records</p></li>
+</ul>
+<p>This demonstrates BlockingPy’s effectiveness at finding matching records while drastically reducing the number of required comparisons.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="deduplication.html" class="btn btn-neutral float-right" title="Deduplication" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

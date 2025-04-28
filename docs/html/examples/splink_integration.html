@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Integration with splink package &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BlockingPy API" href="../api/index.html" />
+    <link rel="prev" title="Integration with recordlinkage package" href="recordlinkage_integration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="record_linkage.html">Record Linkage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deduplication.html">Deduplication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deduplication_2.html">Deduplication No. 2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embedding_dedup.html">Deduplication with Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="recordlinkage_integration.html">Integration with recordlinkage package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Integration with splink package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-preparation">Data preparation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#blocking">Blocking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#results-integration">Results integration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#splink-settings">Splink settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#training-the-splink-model">Training the Splink model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#comparing-different-blocking-strategies">Comparing Different Blocking Strategies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy-only">BlockingPy only</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#splink-only">Splink only</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#splink-blockingpy">Splink + BlockingPy</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#conclusion">Conclusion</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Examples</a></li>
+      <li class="breadcrumb-item active">Integration with splink package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/splink_integration.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="integration-with-splink-package">
+<h1>Integration with splink package<a class="headerlink" href="#integration-with-splink-package" title="Link to this heading"></a></h1>
+<p>In this example, we demonstrate how to integrate <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> with the <code class="docutils literal notranslate"><span class="pre">Splink</span></code> package for probabilistic record linkage. <code class="docutils literal notranslate"><span class="pre">Splink</span></code> provides a powerful framework for entity resolution, and <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> can enhance its performance by providing another blocking approach.
+This example will show how to deduplicate the <code class="docutils literal notranslate"><span class="pre">fake_1000</span></code> dataset included with <code class="docutils literal notranslate"><span class="pre">Splink</span></code> using <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> for the blocking phase improvement and <code class="docutils literal notranslate"><span class="pre">Splink</span></code> for the matching phase. We aim to follow the example available in the <code class="docutils literal notranslate"><span class="pre">Splink</span></code> documentation and modify the blocking procedure. The original can be foud <a class="reference external" href="https://moj-analytical-services.github.io/splink/demos/examples/duckdb/accuracy_analysis_from_labels_column.html">here</a>.</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
+<p>First, we need to install <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> and <code class="docutils literal notranslate"><span class="pre">Splink</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>blockingpy<span class="w"> </span>splink
+</pre></div>
+</div>
+<p>Import necessary components:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">splink</span> <span class="kn">import</span> <span class="n">splink_datasets</span><span class="p">,</span> <span class="n">SettingsCreator</span><span class="p">,</span> <span class="n">Linker</span><span class="p">,</span> <span class="n">block_on</span><span class="p">,</span> <span class="n">DuckDBAPI</span>
+<span class="kn">import</span> <span class="nn">splink.comparison_library</span> <span class="k">as</span> <span class="nn">cl</span>
+<span class="kn">from</span> <span class="nn">blockingpy</span> <span class="kn">import</span> <span class="n">Blocker</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="data-preparation">
+<h2>Data preparation<a class="headerlink" href="#data-preparation" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">fake_1000</span></code> dataset contains 1000 records with personal information like names, dates of birth, and email addresses. The dataset consists of 251 unique entities (clusters), with each entity having one original record and various duplicates.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">splink_datasets</span><span class="o">.</span><span class="n">fake_1000</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+<span class="c1">#    unique_id first_name surname         dob    city                    email    cluster  </span>
+<span class="c1"># 0          0     Robert    Alan  1971-06-24     NaN      robert255@smith.net          0</span>
+<span class="c1"># 1          1     Robert   Allen  1971-05-24     NaN      roberta25@smith.net          0</span>
+<span class="c1"># 2          2        Rob   Allen  1971-06-24  London      roberta25@smith.net          0</span>
+<span class="c1"># 3          3     Robert    Alen  1971-06-24   Lonon                      NaN          0</span>
+<span class="c1"># 4          4      Grace     NaN  1997-04-26    Hull  grace.kelly52@jones.com          1</span>
+</pre></div>
+</div>
+<p>For BlockingPy, we’ll create a text field combining multiple columns to allow blocking on overall record similarity:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;first_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> \
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;surname&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> \
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;dob&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> \
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;city&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> \
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>   
+</pre></div>
+</div>
+</section>
+<section id="blocking">
+<h2>Blocking<a class="headerlink" href="#blocking" title="Link to this heading"></a></h2>
+<p>Now we can obtain blocks from <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">blocker</span> <span class="o">=</span> <span class="n">Blocker</span><span class="p">()</span>
+
+<span class="n">res</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">],</span>
+        <span class="n">ann</span><span class="o">=</span><span class="s1">&#39;hnsw&#39;</span><span class="p">,</span>
+        <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Blocking based on the hnsw method.</span>
+<span class="c1"># Number of blocks: 252</span>
+<span class="c1"># Number of columns created for blocking: 906</span>
+<span class="c1"># Reduction ratio: 0.996306</span>
+<span class="c1"># ========================================================</span>
+<span class="c1"># Distribution of the size of the blocks:</span>
+<span class="c1"># Block Size | Number of Blocks</span>
+<span class="c1">#          2 | 62             </span>
+<span class="c1">#          3 | 53             </span>
+<span class="c1">#          4 | 51             </span>
+<span class="c1">#          5 | 36             </span>
+<span class="c1">#          6 | 26             </span>
+<span class="c1">#          7 | 16             </span>
+<span class="c1">#          8 | 7              </span>
+<span class="c1">#          9 | 1     </span>
+<span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<span class="c1">#      x  y  block      dist</span>
+<span class="c1"># 0    1  0      0  0.142391</span>
+<span class="c1"># 1    1  2      0  0.208361</span>
+<span class="c1"># 2    2  3      0  0.230678</span>
+<span class="c1"># 3    5  4      1  0.145114</span>
+<span class="c1"># 4  814  6      2  0.584251</span>
+</pre></div>
+</div>
+</section>
+<section id="results-integration">
+<h2>Results integration<a class="headerlink" href="#results-integration" title="Link to this heading"></a></h2>
+<p>To integrate our results, we can add a <code class="docutils literal notranslate"><span class="pre">block</span></code> column to the original dataframe, which we can with the help of <code class="docutils literal notranslate"><span class="pre">add_block_column</span></code> method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">add_block_column</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="splink-settings">
+<h2>Splink settings<a class="headerlink" href="#splink-settings" title="Link to this heading"></a></h2>
+<p>Now we can configure and run <code class="docutils literal notranslate"><span class="pre">Splink</span></code> using our <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> results. The following steps are adapted from the <code class="docutils literal notranslate"><span class="pre">Splink</span></code> documentation example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">settings</span> <span class="o">=</span> <span class="n">SettingsCreator</span><span class="p">(</span>
+    <span class="n">link_type</span><span class="o">=</span><span class="s2">&quot;dedupe_only&quot;</span><span class="p">,</span>
+    <span class="n">blocking_rules_to_generate_predictions</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;block&quot;</span><span class="p">),</span> <span class="c1"># BlockingPy integration</span>
+        <span class="c1"># block_on(&quot;first_name&quot;),</span>
+        <span class="c1"># block_on(&quot;surname&quot;),</span>
+        <span class="c1"># block_on(&quot;dob&quot;),</span>
+        <span class="c1"># block_on(&quot;email&quot;),</span>
+    <span class="p">],</span>
+    <span class="n">comparisons</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">cl</span><span class="o">.</span><span class="n">ForenameSurnameComparison</span><span class="p">(</span><span class="s2">&quot;first_name&quot;</span><span class="p">,</span> <span class="s2">&quot;surname&quot;</span><span class="p">),</span>
+        <span class="n">cl</span><span class="o">.</span><span class="n">DateOfBirthComparison</span><span class="p">(</span>
+            <span class="s2">&quot;dob&quot;</span><span class="p">,</span>
+            <span class="n">input_is_string</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">cl</span><span class="o">.</span><span class="n">ExactMatch</span><span class="p">(</span><span class="s2">&quot;city&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">term_frequency_adjustments</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">cl</span><span class="o">.</span><span class="n">EmailComparison</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">retain_intermediate_calculation_columns</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">db_api</span> <span class="o">=</span> <span class="n">DuckDBAPI</span><span class="p">()</span>
+<span class="n">linker</span> <span class="o">=</span> <span class="n">Linker</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">db_api</span><span class="o">=</span><span class="n">db_api</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="training-the-splink-model">
+<h2>Training the Splink model<a class="headerlink" href="#training-the-splink-model" title="Link to this heading"></a></h2>
+<p>Let’s train the <code class="docutils literal notranslate"><span class="pre">Splink</span></code> model to learn the parameters for record comparison:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">deterministic_rules</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;l.first_name = r.first_name and levenshtein(r.dob, l.dob) &lt;= 1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;l.surname = r.surname and levenshtein(r.dob, l.dob) &lt;= 1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;l.first_name = r.first_name and levenshtein(r.surname, l.surname) &lt;= 2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;l.email = r.email&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">linker</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">estimate_probability_two_random_records_match</span><span class="p">(</span>
+    <span class="n">deterministic_rules</span><span class="p">,</span> <span class="n">recall</span><span class="o">=</span><span class="mf">0.7</span>
+<span class="p">)</span>
+
+<span class="n">linker</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">estimate_u_using_random_sampling</span><span class="p">(</span><span class="n">max_pairs</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="n">session_dob</span> <span class="o">=</span> <span class="n">linker</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">estimate_parameters_using_expectation_maximisation</span><span class="p">(</span>
+    <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;dob&quot;</span><span class="p">),</span> <span class="n">estimate_without_term_frequencies</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">linker</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">estimate_parameters_using_expectation_maximisation</span><span class="p">(</span>
+    <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">),</span> <span class="n">estimate_without_term_frequencies</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="n">linker</span><span class="o">.</span><span class="n">training</span><span class="o">.</span><span class="n">estimate_parameters_using_expectation_maximisation</span><span class="p">(</span>
+    <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;first_name&quot;</span><span class="p">,</span> <span class="s2">&quot;surname&quot;</span><span class="p">),</span> <span class="n">estimate_without_term_frequencies</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The above example shows how to inegrate <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> with <code class="docutils literal notranslate"><span class="pre">Splink</span></code>. In the following section, we will compare several blocking approaches using this dataset.</p>
+</section>
+<section id="comparing-different-blocking-strategies">
+<h2>Comparing Different Blocking Strategies<a class="headerlink" href="#comparing-different-blocking-strategies" title="Link to this heading"></a></h2>
+<p>We can compare three ways to handle blocking:</p>
+<ol class="arabic simple">
+<li><p><strong>Using only Splink</strong> (from the original example)</p></li>
+<li><p><strong>Using only BlockingPy</strong></p></li>
+<li><p><strong>Combining both approaches</strong></p></li>
+</ol>
+<p>To test these approaches, we simply modify the <code class="docutils literal notranslate"><span class="pre">block_on</span></code> parameters in <code class="docutils literal notranslate"><span class="pre">SettingsCreator</span></code> while keeping everything else the same. This lets us see how each blocking strategy affects match quality.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. BlockingPy only</span>
+<span class="n">blocking_rules_to_generate_predictions</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;block&quot;</span><span class="p">),</span>
+<span class="p">],</span>
+<span class="c1"># 2. Splink only</span>
+<span class="n">blocking_rules_to_generate_predictions</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;first_name&quot;</span><span class="p">),</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;surname&quot;</span><span class="p">),</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;dob&quot;</span><span class="p">),</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">),</span>
+<span class="p">],</span>
+<span class="c1"># 3. Splink + BlockingPy</span>
+<span class="n">blocking_rules_to_generate_predictions</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;block&quot;</span><span class="p">),</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;first_name&quot;</span><span class="p">),</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;surname&quot;</span><span class="p">),</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;dob&quot;</span><span class="p">),</span>
+        <span class="n">block_on</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">),</span>
+<span class="p">],</span>    
+</pre></div>
+</div>
+<p>Ater training each model, we can evaluate the results using the <code class="docutils literal notranslate"><span class="pre">accuracy_analysis_from_labels_column</span></code> method from <code class="docutils literal notranslate"><span class="pre">Splink</span></code>, which will visialize the results. Below we present the results of the three models:</p>
+<section id="blockingpy-only">
+<h3>BlockingPy only<a class="headerlink" href="#blockingpy-only" title="Link to this heading"></a></h3>
+<p><img alt="BlockingPy only" src="../_images/voyager.svg" /></p>
+</section>
+<section id="splink-only">
+<h3>Splink only<a class="headerlink" href="#splink-only" title="Link to this heading"></a></h3>
+<p><img alt="Splink only" src="../_images/splink_only_2.svg" /></p>
+</section>
+<section id="splink-blockingpy">
+<h3>Splink + BlockingPy<a class="headerlink" href="#splink-blockingpy" title="Link to this heading"></a></h3>
+<p><img alt="Splink + BlockingPy" src="../_images/combined.svg" /></p>
+</section>
+</section>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading"></a></h2>
+<p>In this example, we demonstrated how to integrate <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> with <code class="docutils literal notranslate"><span class="pre">Splink</span></code> for probabilistic record linkage. The comparsion between traditional methods, <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> and the combination of both shows that when using both approaches we were able to significantly improve the performance metrics by capturing comparison pairs that would otherwise be missed. The integration allows for efficient blocking and accurate matching, making it a powerful combination for entity resolution tasks.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="recordlinkage_integration.html" class="btn btn-neutral float-left" title="Integration with recordlinkage package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api/index.html" class="btn btn-neutral float-right" title="BlockingPy API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
