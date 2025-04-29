@@ -3,7 +3,6 @@ Contains the main Blocker class for record linkage
 and deduplication blocking.
 """
 
-import itertools
 import logging
 from collections import OrderedDict
 from typing import Any
@@ -158,8 +157,7 @@ class Blocker:
         2. Sparse matrices (scipy.sparse.csr_matrix) as a Document-Term Matrix (DTM)
         3. Dense matrices (numpy.ndarray) as a Document-Term Matrix (DTM)
 
-        For evaluation of larger datasets, we recommend using the separate eval() method
-        since it allows you to set the batch size for evaluation.
+        Evaluation of larger datasets can be done separately using the `eval` method.
 
         For text data, additional preprocessing is performed using
         the parameters in control_txt.
@@ -294,111 +292,13 @@ class Blocker:
         x_df["block"] = x_df["query_g"].apply(lambda x: x_block[x] if x in x_block else None)
 
         if true_blocks is not None:
-            logger.info("===== evaluating =====")
-            total_tn = total_fp = total_fn = total_tp = 0
-            batch_size = 1000
-
             if not deduplication:
-                unique_tb_x = true_blocks["x"].unique()
-                unique_tb_y = true_blocks["y"].unique()
-
-                true_x_blocks = true_blocks[["x", "block"]].drop_duplicates()
-                true_y_blocks = true_blocks[["y", "block"]].drop_duplicates()
-                pred_x_blocks = x_df[["x", "block"]].drop_duplicates()
-                pred_y_blocks = x_df[["y", "block"]].drop_duplicates()
-
-                total_batches_x = (len(unique_tb_x) + batch_size - 1) // batch_size
-                total_batches_y = (len(unique_tb_y) + batch_size - 1) // batch_size
-                total_batches = total_batches_x * total_batches_y
-
-                for start_idx_x in range(0, len(unique_tb_x), batch_size):
-
-                    current_batch_x = (start_idx_x // batch_size) + 1
-
-                    sub_x = unique_tb_x[start_idx_x : start_idx_x + batch_size]
-
-                    for start_idx_y in range(0, len(unique_tb_y), batch_size):
-                        current_batch_y = (start_idx_y // batch_size) + 1
-                        current_batch = ((current_batch_x - 1) * total_batches_y) + current_batch_y
-                        logger.info(f"Evaluating batch {current_batch} of {total_batches}")
-
-                        sub_y = unique_tb_y[start_idx_y : start_idx_y + batch_size]
-
-                        tp, fp, fn = self._eval_rl_batch(
-                            sub_x, sub_y, true_x_blocks, true_y_blocks, pred_x_blocks, pred_y_blocks
-                        )
-
-                        total_tp += tp
-                        total_fp += fp
-                        total_fn += fn
-                total_tn = len(unique_tb_x) * len(unique_tb_y) - total_tp - total_fp - total_fn
-
+                TP, FP, FN, TN = self._eval_rl(x_df, true_blocks)
             else:
-                x_df_long = (
-                    x_df.melt(id_vars=["block"], value_vars=["x", "y"], value_name="x_x")
-                    .drop_duplicates(subset=["x_x"])[["x_x", "block"]]
-                    .rename(columns={"x_x": "x"})
-                )
-                unique_tb_x = true_blocks["x"].unique()
+                TP, FP, FN, TN = self._eval_dedup(x_df, true_blocks)
 
-                total_batches_x = (len(unique_tb_x) + batch_size - 1) // batch_size
-                total_batches = total_batches_x * total_batches_x
-
-                for start_idx in range(0, len(unique_tb_x), batch_size):
-                    current_batch_x = (start_idx // batch_size) + 1
-                    sub_x = unique_tb_x[start_idx : start_idx + batch_size]
-                    for start_idx_y in range(0, len(unique_tb_x), batch_size):
-                        current_batch_y = (start_idx_y // batch_size) + 1
-                        current_batch = ((current_batch_x - 1) * total_batches_x) + current_batch_y
-                        logger.info(f"Evaluating batch {current_batch} of {total_batches}")
-
-                        sub_y = unique_tb_x[start_idx_y : start_idx_y + batch_size]
-
-                        tp, fp, fn = self._eval_dedup_batch(sub_x, sub_y, true_blocks, x_df_long)
-
-                        total_tp += tp
-                        total_fp += fp
-                        total_fn += fn
-                total_tn = (
-                    ((len(unique_tb_x) * (len(unique_tb_x) - 1)) / 2)
-                    - total_tp
-                    - total_fp
-                    - total_fn
-                )
-
-            self.confusion = pd.DataFrame(
-                [
-                    [total_tp, total_fn],
-                    [total_fp, total_tn],
-                ],
-                index=["Actual Positive", "Actual Negative"],
-                columns=["Predicted Positive", "Predicted Negative"],
-            ).astype(int)
-
-            recall = total_tp / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
-            precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) != 0 else 0
-            f1_score = (
-                2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
-            )
-            accuracy = (
-                (total_tp + total_tn) / (total_tp + total_tn + total_fp + total_fn)
-                if (total_tp + total_tn + total_fp + total_fn) != 0
-                else 0
-            )
-            specificity = total_tn / (total_tn + total_fp) if (total_tn + total_fp) != 0 else 0
-            fpr = total_fp / (total_fp + total_tn) if (total_fp + total_tn) != 0 else 0
-            fnr = total_fn / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
-
-            self.eval_metrics = {
-                "recall": recall,
-                "precision": precision,
-                "fpr": fpr,
-                "fnr": fnr,
-                "accuracy": accuracy,
-                "specificity": specificity,
-                "f1_score": f1_score,
-            }
-            self.eval_metrics = pd.Series(self.eval_metrics)
+            self.confusion = self._get_confusion(TP, FP, FN, TN)
+            self.eval_metrics = self._get_metrics(TP, FP, FN, TN)
 
         x_df = x_df.sort_values(["y", "x", "block"]).reset_index(drop=True)
 
@@ -414,17 +314,14 @@ class Blocker:
             graph=graph,
         )
 
-    def eval(
-        self, blocking_result: BlockingResult, true_blocks: pd.DataFrame, batch_size: int = 1_000
-    ) -> BlockingResult:
+    def eval(self, blocking_result: BlockingResult, true_blocks: pd.DataFrame) -> BlockingResult:
         """
         Evaluate blocking results against true block assignments and return new BlockingResult.
 
         This method calculates evaluation metrics and confusion matrix
         by comparing predicted blocks with known true blocks and returns
         a new BlockingResult instance containing the evaluation results
-        along with the original blocking results. It allows you to set
-        the batch size for evaluation of larger datasets.
+        along with the original blocking results.
 
         Parameters
         ----------
@@ -434,9 +331,6 @@ class Blocker:
             DataFrame with true block assignments
             For deduplication: columns ['x', 'block']
             For record linkage: columns ['x', 'y', 'block']
-        batch_size : int
-            Size of the batch for evaluation. This size if applied for both datasets
-            for record linkage. Defaults to 1,000.
 
         Returns
         -------
@@ -463,106 +357,13 @@ class Blocker:
             )
         InputValidator.validate_true_blocks(true_blocks, blocking_result.deduplication)
 
-        total_tn = total_fp = total_fn = total_tp = 0
-
         if not blocking_result.deduplication:
-            unique_tb_x = true_blocks["x"].unique()
-            unique_tb_y = true_blocks["y"].unique()
-
-            true_x_blocks = true_blocks[["x", "block"]].drop_duplicates()
-            true_y_blocks = true_blocks[["y", "block"]].drop_duplicates()
-            pred_x_blocks = blocking_result.result[["x", "block"]].drop_duplicates()
-            pred_y_blocks = blocking_result.result[["y", "block"]].drop_duplicates()
-
-            total_batches_x = (len(unique_tb_x) + batch_size - 1) // batch_size
-            total_batches_y = (len(unique_tb_y) + batch_size - 1) // batch_size
-            total_batches = total_batches_x * total_batches_y
-
-            for start_idx_x in range(0, len(unique_tb_x), batch_size):
-                current_batch_x = (start_idx_x // batch_size) + 1
-                sub_x = unique_tb_x[start_idx_x : start_idx_x + batch_size]
-
-                for start_idx_y in range(0, len(unique_tb_y), batch_size):
-                    current_batch_y = (start_idx_y // batch_size) + 1
-                    current_batch = ((current_batch_x - 1) * total_batches_y) + current_batch_y
-                    logger.info(f"Evaluating batch {current_batch} of {total_batches}")
-                    sub_y = unique_tb_y[start_idx_y : start_idx_y + batch_size]
-
-                    tp, fp, fn = self._eval_rl_batch(
-                        sub_x, sub_y, true_x_blocks, true_y_blocks, pred_x_blocks, pred_y_blocks
-                    )
-
-                    total_tp += tp
-                    total_fp += fp
-                    total_fn += fn
-            total_tn = len(unique_tb_x) * len(unique_tb_y) - total_tp - total_fp - total_fn
-
+            TP, FP, FN, TN = self._eval_rl(blocking_result.result, true_blocks)
         else:
-            x_df_long = (
-                blocking_result.result.melt(
-                    id_vars=["block"], value_vars=["x", "y"], value_name="x_x"
-                )
-                .drop_duplicates(subset=["x_x"])[["x_x", "block"]]
-                .rename(columns={"x_x": "x"})
-            )
-            unique_tb_x = true_blocks["x"].unique()
+            TP, FP, FN, TN = self._eval_dedup(blocking_result.result, true_blocks)
 
-            total_batches_x = (len(unique_tb_x) + batch_size - 1) // batch_size
-            total_batches = total_batches_x * total_batches_x
-
-            for start_idx in range(0, len(unique_tb_x), batch_size):
-                current_batch_x = (start_idx // batch_size) + 1
-                sub_x = unique_tb_x[start_idx : start_idx + batch_size]
-
-                for start_idx_y in range(0, len(unique_tb_x), batch_size):
-                    current_batch_y = (start_idx_y // batch_size) + 1
-                    current_batch = ((current_batch_x - 1) * total_batches_x) + current_batch_y
-                    logger.info(f"Evaluating batch {current_batch} of {total_batches}")
-
-                    sub_y = unique_tb_x[start_idx_y : start_idx_y + batch_size]
-
-                    tp, fp, fn = self._eval_dedup_batch(sub_x, sub_y, true_blocks, x_df_long)
-
-                    total_tp += tp
-                    total_fp += fp
-                    total_fn += fn
-            total_tn = (
-                ((len(unique_tb_x) * (len(unique_tb_x) - 1)) / 2) - total_tp - total_fp - total_fn
-            )
-
-        confusion = pd.DataFrame(
-            [
-                [total_tp, total_fn],
-                [total_fp, total_tn],
-            ],
-            index=["Actual Positive", "Actual Negative"],
-            columns=["Predicted Positive", "Predicted Negative"],
-        ).astype(int)
-
-        recall = total_tp / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
-        precision = total_tp / (total_tp + total_fp) if (total_tp + total_fp) != 0 else 0
-        f1_score = (
-            2 * (precision * recall) / (precision + recall) if (precision + recall) != 0 else 0
-        )
-        accuracy = (
-            (total_tp + total_tn) / (total_tp + total_tn + total_fp + total_fn)
-            if (total_tp + total_tn + total_fp + total_fn) != 0
-            else 0
-        )
-        specificity = total_tn / (total_tn + total_fp) if (total_tn + total_fp) != 0 else 0
-        fpr = total_fp / (total_fp + total_tn) if (total_fp + total_tn) != 0 else 0
-        fnr = total_fn / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0
-
-        eval_metrics = {
-            "recall": recall,
-            "precision": precision,
-            "fpr": fpr,
-            "fnr": fnr,
-            "accuracy": accuracy,
-            "specificity": specificity,
-            "f1_score": f1_score,
-        }
-        eval_metrics = pd.Series(eval_metrics)
+        confusion = self._get_confusion(TP, FP, FN, TN)
+        eval_metrics = self._get_metrics(TP, FP, FN, TN)
 
         return BlockingResult(
             x_df=blocking_result.result,
@@ -576,124 +377,218 @@ class Blocker:
             graph=blocking_result.graph is not None,
         )
 
-    def _eval_dedup_batch(
+    def _eval_rl(
         self,
-        sub_x: np.ndarray,
-        sub_y: np.ndarray,
+        pred_df: pd.DataFrame,
+        true_df: pd.DataFrame,
+    ) -> tuple[int, int, int, int]:
+        """
+        Get confusion matrix from *record linkage*.
+
+        Parameters
+        ----------
+        pred_df : pd.DataFrame
+            output from the algorithm (or BlockingResult.result)
+        true_df : pd.DataFrame
+            ground-truth links (may be subset)
+
+        Returns
+        -------
+        TP, FP, FN, TN   (pair counts, integers)
+
+        """
+        pred_x_map = pred_df[["x", "block"]].drop_duplicates().set_index("x")["block"]
+        pred_y_map = pred_df[["y", "block"]].drop_duplicates().set_index("y")["block"]
+
+        true_x = true_df[["x", "block"]].drop_duplicates().set_index("x")["block"]
+        true_y = true_df[["y", "block"]].drop_duplicates().set_index("y")["block"]
+
+        pred_x = pred_x_map.reindex(true_x.index)
+        pred_y = pred_y_map.reindex(true_y.index)
+
+        n_missing = pred_x.isna().sum() + pred_y.isna().sum()
+        if n_missing:
+            start = (pred_df["block"].max() + 1) if len(pred_df) else 0
+            fresh_ids = pd.Series(
+                np.arange(start, start + n_missing, dtype="int64"),
+                index=pred_x[pred_x.isna()].index.tolist() + pred_y[pred_y.isna()].index.tolist(),
+            )
+            pred_x = pred_x.fillna(fresh_ids)
+            pred_y = pred_y.fillna(fresh_ids)
+
+        pred_x = pred_x.astype("int64")
+        pred_y = pred_y.astype("int64")
+
+        all_pred = pd.concat([pred_x, pred_y], ignore_index=True)
+        codes_pred, uniq_pred = pd.factorize(all_pred, sort=False)
+
+        all_true = pd.concat([true_x, true_y], ignore_index=True)
+        codes_true, uniq_true = pd.factorize(all_true, sort=False)
+
+        n_pred = len(uniq_pred)
+        n_true = len(uniq_true)
+
+        cp_x = codes_pred[: len(pred_x)]
+        cp_y = codes_pred[len(pred_x) :]
+        ct_x = codes_true[: len(true_x)]
+        ct_y = codes_true[len(true_x) :]
+
+        cx = sparse.coo_matrix(
+            (np.ones_like(cp_x, dtype=np.int64), (cp_x, ct_x)),
+            shape=(n_pred, n_true),
+        ).tocsr()
+
+        cy = sparse.coo_matrix(
+            (np.ones_like(cp_y, dtype=np.int64), (cp_y, ct_y)),
+            shape=(n_pred, n_true),
+        ).tocsr()
+
+        TP = int(cx.multiply(cy).sum())
+
+        row_sum_x = np.asarray(cx.sum(axis=1)).ravel()
+        row_sum_y = np.asarray(cy.sum(axis=1)).ravel()
+        pred_pairs = int((row_sum_x * row_sum_y).sum())
+
+        col_sum_x = np.asarray(cx.sum(axis=0)).ravel()
+        col_sum_y = np.asarray(cy.sum(axis=0)).ravel()
+        true_pairs = int((col_sum_x * col_sum_y).sum())
+
+        FP = pred_pairs - TP
+        FN = true_pairs - TP
+        NX, NY = len(true_x), len(true_y)
+        TN = NX * NY - TP - FP - FN
+
+        return TP, FP, FN, TN
+
+    def _eval_dedup(
+        self,
+        pred_pairs_df: pd.DataFrame,
         true_blocks: pd.DataFrame,
-        x_df_long: pd.DataFrame,
-    ) -> tuple[int, int, int]:
+    ) -> tuple[int, int, int, int]:
         """
-        Process a batch of candidate pairs for deduplication evaluation.
-        This method processes a subset of record pairs to compute confusion matrix elements
-        for evaluating blocking quality.
+        Get confusion matrix from *deduplication*.
 
         Parameters
         ----------
-        sub_x : numpy.ndarray
-            Subset of records from dataset X to evaluate
-        sub_y : numpy.ndarray
-            Subset of records from dataset X to evaluate, needed to create candidate pairs
-        true_blocks : pandas.DataFrame
-            DataFrame containing true block assignments with columns ['x', 'y', 'block']
-        x_df_long : pandas.DataFrame
-            DataFrame containing predicted block assignments with columns ['x', 'block']
+        pred_pairs_df : pd.DataFrame
+            output from the algorithm or BlockingResult.result
+        true_blocks : pd.DataFrame
+            ground-truth links (may be subset)
 
         Returns
         -------
-        tuple[int, int, int]
-            A tuple containing partial confusion matrix counts:
-            - tp (true positives): Pairs correctly blocked together
-            - fp (false positives): Pairs incorrectly blocked together
-            - fn (false negatives): Pairs incorrectly not blocked together
+        TP, FP, FN, TN    (pair counts, ints)
 
         """
-        pair_chunk = pd.DataFrame(
-            [(i, j) for i in sub_x for j in sub_y if i < j], columns=["x", "y"]
+        pred_lbl = (
+            pred_pairs_df.melt(id_vars="block", value_vars=["x", "y"], value_name="rec")
+            .drop_duplicates("rec")
+            .set_index("rec")["block"]
+            .astype("int64")
         )
 
-        pair_chunk = pair_chunk.merge(true_blocks, on="x", how="left").rename(
-            columns={"block": "true_block_x"}
-        )
-        pair_chunk = pair_chunk.merge(
-            true_blocks, left_on="y", right_on="x", how="left", suffixes=(None, "_tb")
-        ).rename(columns={"block": "true_block_y"})
-        pair_chunk = pair_chunk.merge(x_df_long, on="x", how="left").rename(
-            columns={"block": "pred_block_x"}
-        )
-        pair_chunk = pair_chunk.merge(
-            x_df_long, left_on="y", right_on="x", how="left", suffixes=(None, "_pred")
-        ).rename(columns={"block": "pred_block_y"})
+        true_lbl = true_blocks.drop_duplicates("x").set_index("x")["block"].astype("int64")
 
-        pair_chunk["true_link"] = pair_chunk["true_block_x"] == pair_chunk["true_block_y"]
-        pair_chunk["pred_link"] = pair_chunk["pred_block_x"] == pair_chunk["pred_block_y"]
+        pred_lbl = pred_lbl.reindex(true_lbl.index)
 
-        tp = (pair_chunk["true_link"] & pair_chunk["pred_link"]).sum()
-        fp = (~pair_chunk["true_link"] & pair_chunk["pred_link"]).sum()
-        fn = (pair_chunk["true_link"] & ~pair_chunk["pred_link"]).sum()
+        if pred_lbl.isna().any():
+            start = pred_pairs_df["block"].max() + 1 if len(pred_pairs_df) else 0
+            n_miss = pred_lbl.isna().sum()
+            pred_lbl.loc[pred_lbl.isna()] = np.arange(start, start + n_miss, dtype="int64")
+            pred_lbl = pred_lbl.astype("int64")
 
-        return tp, fp, fn
+        both_df = pd.DataFrame({"pred": pred_lbl.values, "true": true_lbl.values})
 
-    def _eval_rl_batch(
-        self,
-        sub_x: np.ndarray,
-        sub_y: np.ndarray,
-        true_x_blocks: pd.DataFrame,
-        true_y_blocks: pd.DataFrame,
-        pred_x_blocks: pd.DataFrame,
-        pred_y_blocks: pd.DataFrame,
-    ) -> tuple[int, int, int]:
+        g = both_df.groupby(["pred", "true"]).size().astype("int64")
+
+        TP = int((g * (g - 1) // 2).sum())
+
+        row_sum = g.groupby(level=0).sum()
+        col_sum = g.groupby(level=1).sum()
+
+        pred_pairs = int((row_sum * (row_sum - 1) // 2).sum())
+        true_pairs = int((col_sum * (col_sum - 1) // 2).sum())
+
+        FP = pred_pairs - TP
+        FN = true_pairs - TP
+
+        N = len(both_df)
+        total_pairs = N * (N - 1) // 2
+        TN = total_pairs - TP - FP - FN
+
+        return TP, FP, FN, TN
+
+    def _get_confusion(self, tp: int, fp: int, fn: int, tn: int) -> pd.DataFrame:
         """
-        Process a batch of record pairs and compute confusion matrix counts.
-        This method processes a subset of record pairs for record linkage evaluation.
+        Build a confusion matrix DataFrame from raw counts.
 
         Parameters
         ----------
-        sub_x : numpy.ndarray
-            Subset of records from dataset X to evaluate
-        sub_y : numpy.ndarray
-            Subset of records from dataset Y to evaluate
-        true_x_blocks : pandas.DataFrame
-            DataFrame with true block assignments for X records with columns ['x', 'block']
-        true_y_blocks : pandas.DataFrame
-            DataFrame with true block assignments for Y records with columns ['y', 'block']
-        pred_x_blocks : pandas.DataFrame
-            DataFrame with predicted block assignments for X records with columns ['x', 'block']
-        pred_y_blocks : pandas.DataFrame
-            DataFrame with predicted block assignments for Y records with columns ['y', 'block']
+        tp : int
+            True positives.
+        fp : int
+            False positives.
+        fn : int
+            False negatives.
+        tn : int
+            True negatives.
 
         Returns
         -------
-        tuple[int, int, int]
-            A tuple containing:
-            - tp (true positives): Number of pairs correctly assigned to same block
-            - fp (false positives): Number of pairs incorrectly assigned to same block
-            - fn (false negatives): Number of pairs incorrectly assigned to different blocks
-
-        Notes
-        -----
-        The method creates candidate pairs between records in sub_x and sub_y,
-        then compares their true and predicted block assignments to compute
-        confusion matrix counts.
+        pd.DataFrame
+            2 x 2 confusion matrix with
+             - rows = Actual Positive / Actual Negative
+             - columns = Predicted Positive / Predicted Negative
 
         """
-        pair_chunk = pd.DataFrame(itertools.product(sub_x, sub_y), columns=["x", "y"])
-        pair_chunk = (
-            pair_chunk.merge(true_x_blocks, on="x", how="left")
-            .rename(columns={"block": "true_block_x"})
-            .merge(true_y_blocks, on="y", how="left")
-            .rename(columns={"block": "true_block_y"})
-            .merge(pred_x_blocks, on="x", how="left")
-            .rename(columns={"block": "pred_block_x"})
-            .merge(pred_y_blocks, on="y", how="left")
-            .rename(columns={"block": "pred_block_y"})
+        cm = pd.DataFrame(
+            [
+                [tp, fn],
+                [fp, tn],
+            ],
+            index=["Actual Positive", "Actual Negative"],
+            columns=["Predicted Positive", "Predicted Negative"],
+        ).astype(int)
+        return cm
+
+    def _get_metrics(self, tp: int, fp: int, fn: int, tn: int) -> pd.Series:
+        """
+        Compute standard evaluation metrics from raw counts.
+
+        Parameters
+        ----------
+        tp : int
+            True positives.
+        fp : int
+            False positives.
+        fn : int
+            False negatives.
+        tn : int
+            True negatives.
+
+        Returns
+        -------
+        pd.Series
+            Series with index
+            ['recall', 'precision', 'fpr', 'fnr', 'accuracy', 'specificity', 'f1_score']
+
+        """
+        recall = tp / (tp + fn) if (tp + fn) else 0.0
+        precision = tp / (tp + fp) if (tp + fp) else 0.0
+        fpr = fp / (fp + tn) if (fp + tn) else 0.0
+        fnr = fn / (fn + tp) if (fn + tp) else 0.0
+        accuracy = (tp + tn) / (tp + fp + fn + tn) if (tp + fp + fn + tn) else 0.0
+        specificity = tn / (tn + fp) if (tn + fp) else 0.0
+        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) else 0.0
+
+        return pd.Series(
+            {
+                "recall": recall,
+                "precision": precision,
+                "fpr": fpr,
+                "fnr": fnr,
+                "accuracy": accuracy,
+                "specificity": specificity,
+                "f1_score": f1_score,
+            }
         )
-
-        pair_chunk["true_link"] = pair_chunk["true_block_x"] == pair_chunk["true_block_y"]
-        pair_chunk["pred_link"] = pair_chunk["pred_block_x"] == pair_chunk["pred_block_y"]
-
-        tp = (pair_chunk["true_link"] & pair_chunk["pred_link"]).sum()
-        fp = (~pair_chunk["true_link"] & pair_chunk["pred_link"]).sum()
-        fn = (pair_chunk["true_link"] & ~pair_chunk["pred_link"]).sum()
-
-        return tp, fp, fn
