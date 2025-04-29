@@ -190,7 +190,10 @@ class FaissBlocker(BlockingMethod):
             self.index = faiss.IndexLSH(x.shape[1], nbits, rotate_data)
 
         logger.info("Building index...")
-        self.index.add(x=x)
+        if distance == "cosine":
+            self.index.add(x=x_arr)
+        else:
+            self.index.add(x=x)
 
         logger.info("Querying index...")
 
@@ -202,10 +205,13 @@ class FaissBlocker(BlockingMethod):
                 f"({x.shape[0]}). Adjusted k_search to {k_search}."
             )
 
-        distances, indices = self.index.search(x=y, k=k_search)
+        if distance == "cosine":
+            distances, indices = self.index.search(x=y_arr, k=k_search)
+        else:
+            distances, indices = self.index.search(x=y, k=k_search)
 
         if distance == "cosine" and index_type != "lsh":
-            distances = 1 - distances
+            distances = (1 - distances) / 2
 
         if k == 2:
             indices, distances = rearrange_array(indices, distances)
