@@ -173,6 +173,7 @@ class Blocker:
 
         self.x_colnames = x_colnames
         self.y_colnames = y_colnames
+        InputValidator.validate_controls_txt(control_txt)
         self.control_ann = controls_ann(control_ann)
         self.control_txt = controls_txt(control_txt)
 

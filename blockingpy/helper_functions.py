@@ -3,6 +3,7 @@ Contains helper functions for blocking operations such as input validation, metr
 algorithm validation and Document Term Matrix (DTM) creation.
 """
 
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -158,6 +159,48 @@ class InputValidator:
                 col in true_blocks.columns for col in ["x", "block"]
             ):
                 raise ValueError("`true blocks` should be a DataFrame with columns: " "x, block")
+
+    @staticmethod
+    def validate_controls_txt(control_txt: dict[str, Any] | None) -> None:
+        """
+        Validate a user-supplied `control_txt` dict before it is merged with
+        package defaults.
+        """
+        if control_txt is None:
+            return
+
+        if not isinstance(control_txt, dict):
+            raise ValueError("`control_txt` must be a dictionary.")
+
+        encoder = control_txt.get("encoder", "shingle")
+        allowed_encoders = {"shingle", "embedding"}
+        if encoder not in allowed_encoders:
+            raise ValueError(
+                f"Unknown encoder '{encoder}'. " f"Supported encoders: {sorted(allowed_encoders)}"
+            )
+
+        allowed_top = {"encoder", "shingle", "embedding"}
+        unknown_top = set(control_txt) - allowed_top
+        if unknown_top:
+            raise ValueError(f"Unknown keys at top level of `control_txt`: {unknown_top}")
+
+        known_specs = {
+            "shingle": {"n_shingles", "lowercase", "strip_non_alphanum", "max_features"},
+            "embedding": {
+                "model",
+                "normalize",
+                "max_length",
+                "emb_batch_size",
+                "show_progress_bar",
+                "use_multiprocessing",
+                "multiprocessing_threshold",
+            },
+        }
+        for section, allowed_keys in known_specs.items():
+            if section in control_txt:
+                unknown = set(control_txt[section]) - allowed_keys
+                if unknown:
+                    raise ValueError(f"Unknown keys in control_txt['{section}']: {unknown}")
 
 
 def rearrange_array(indices: np.ndarray, distances: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
