@@ -153,7 +153,7 @@ class HNSWBlocker(BlockingMethod):
                 f"({x.shape[0]}). Adjusted k_search to {k_search}."
             )
 
-        l_1nn = self.index.knn_query(y, k=k_search)
+        l_1nn = self.index.knn_query(y, k=k_search, num_threads=n_threads)
         indices = l_1nn[0]
         distances = l_1nn[1]
 
