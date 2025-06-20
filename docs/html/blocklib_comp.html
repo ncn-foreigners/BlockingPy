@@ -1,0 +1,272 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlockingPy vs blocklib - comparison &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="prev" title="BlockingResult" href="api/blocking_result.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">BlockingPy vs blocklib - comparison</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#why-blockingpy-outperforms-blocklib">Why <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> outperforms blocklib</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#where-is-blocklib-better">Where is <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> better</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">BlockingPy vs blocklib - comparison</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/blocklib_comp.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="blockingpy-vs-blocklib-comparison">
+<span id="blocklib-comp"></span><h1>BlockingPy vs blocklib - comparison<a class="headerlink" href="#blockingpy-vs-blocklib-comparison" title="Link to this heading"></a></h1>
+<p>Below we compare BlockingPy with blocklib, a similar library for blocking. We present results obtained by running algorithms from both libraries on 3 generated datasets. The datasets were generated using the <code class="docutils literal notranslate"><span class="pre">geco3</span></code> tool, which allows for controlled generation of datasets with duplicates. The datasets  resemble real-world personal information data with the fields such as name, 2nd name, surname, 2nd surname, dob, municipality, and country of origin. There are 1k, 10k and 100k records respectively, with 500, 5k and 50k duplicates in each dataset. For each original record, there are 0, 1, or 2 duplicates.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Dataset size</p></th>
+<th class="head"><p>Algorithm</p></th>
+<th class="head text-center"><p>Recall</p></th>
+<th class="head text-center"><p>Reduction Ratio</p></th>
+<th class="head text-center"><p>Blocking time (s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1 500</p></td>
+<td><p>P-Sig (blocklib)</p></td>
+<td class="text-center"><p>0.459</p></td>
+<td class="text-center"><p>0.996</p></td>
+<td class="text-center"><p>0.36</p></td>
+</tr>
+<tr class="row-odd"><td><p>1 500</p></td>
+<td><p>λ-fold LSH (blocklib)</p></td>
+<td class="text-center"><p>0.427</p></td>
+<td class="text-center"><p>0.993</p></td>
+<td class="text-center"><p>0.40</p></td>
+</tr>
+<tr class="row-even"><td><p>1 500</p></td>
+<td><p><strong>BlockingPy (faiss_hnsw)</strong></p></td>
+<td class="text-center"><p><strong>0.960</strong></p></td>
+<td class="text-center"><p><strong>0.998</strong></p></td>
+<td class="text-center"><p>2.16</p></td>
+</tr>
+<tr class="row-odd"><td><p>1 500</p></td>
+<td><p><strong>BlockingPy (faiss_lsh)</strong></p></td>
+<td class="text-center"><p><strong>0.961</strong></p></td>
+<td class="text-center"><p><strong>0.997</strong></p></td>
+<td class="text-center"><p><strong>0.53</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>1 500</p></td>
+<td><p><strong>BlockingPy (voyager)</strong></p></td>
+<td class="text-center"><p><strong>0.954</strong></p></td>
+<td class="text-center"><p><strong>0.997</strong></p></td>
+<td class="text-center"><p>1.20</p></td>
+</tr>
+<tr class="row-odd"><td><p>15 000</p></td>
+<td><p>P-Sig (blocklib)</p></td>
+<td class="text-center"><p>0.452</p></td>
+<td class="text-center"><p>0.997</p></td>
+<td class="text-center"><p>0.64</p></td>
+</tr>
+<tr class="row-even"><td><p>15 000</p></td>
+<td><p>λ-fold LSH (blocklib)</p></td>
+<td class="text-center"><p>0.420</p></td>
+<td class="text-center"><p>0.994</p></td>
+<td class="text-center"><p>2.94</p></td>
+</tr>
+<tr class="row-odd"><td><p>15 000</p></td>
+<td><p><strong>BlockingPy (faiss_hnsw)</strong></p></td>
+<td class="text-center"><p><strong>0.913</strong></p></td>
+<td class="text-center"><p><strong>0.999</strong></p></td>
+<td class="text-center"><p>51.70</p></td>
+</tr>
+<tr class="row-even"><td><p>15 000</p></td>
+<td><p><strong>BlockingPy (faiss_lsh)</strong></p></td>
+<td class="text-center"><p><strong>0.901</strong></p></td>
+<td class="text-center"><p><strong>0.999</strong></p></td>
+<td class="text-center"><p><strong>11.34</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>15 000</p></td>
+<td><p><strong>BlockingPy (voyager)</strong></p></td>
+<td class="text-center"><p><strong>0.895</strong></p></td>
+<td class="text-center"><p><strong>0.999</strong></p></td>
+<td class="text-center"><p>28.76</p></td>
+</tr>
+<tr class="row-even"><td><p>150 000</p></td>
+<td><p>P-Sig (blocklib)</p></td>
+<td class="text-center"><p>0.450</p></td>
+<td class="text-center"><p>0.997</p></td>
+<td class="text-center"><p>6.93</p></td>
+</tr>
+<tr class="row-odd"><td><p>150 000</p></td>
+<td><p>λ-fold LSH (blocklib)</p></td>
+<td class="text-center"><p>0.413</p></td>
+<td class="text-center"><p>0.994</p></td>
+<td class="text-center"><p>32.03</p></td>
+</tr>
+<tr class="row-even"><td><p>150 000</p></td>
+<td><p><strong>BlockingPy (faiss_hnsw)</strong></p></td>
+<td class="text-center"><p><strong>0.836</strong></p></td>
+<td class="text-center"><p><strong>0.99996</strong></p></td>
+<td class="text-center"><p>1 020.05</p></td>
+</tr>
+<tr class="row-odd"><td><p>150 000</p></td>
+<td><p><strong>BlockingPy (faiss_lsh)</strong></p></td>
+<td class="text-center"><p><strong>0.818</strong></p></td>
+<td class="text-center"><p><strong>0.99996</strong></p></td>
+<td class="text-center"><p><strong>865.63</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>150 000</p></td>
+<td><p><strong>BlockingPy (voyager)</strong></p></td>
+<td class="text-center"><p><strong>0.762</strong></p></td>
+<td class="text-center"><p><strong>0.99995</strong></p></td>
+<td class="text-center"><p>648.07</p></td>
+</tr>
+</tbody>
+</table>
+<section id="why-blockingpy-outperforms-blocklib">
+<h2>Why <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> outperforms blocklib<a class="headerlink" href="#why-blockingpy-outperforms-blocklib" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Much higher recall</strong></p></li>
+</ol>
+<p>Across all datasets, <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> achieves higher recall then <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> algorithms. (~0.45 for <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> vs ~0.9 for <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code>).</p>
+<ol class="arabic simple" start="2">
+<li><p><strong>Better reduction ratio</strong></p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> achieves better reduction ratio than <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> algorithms, while maintaining higher recall. For instance on a dataset of size 150_000 records the difference in number of pairs between RR of 0.994 ( λ-fold LSH) and RR of 0.99995 (voyager) is a difference of 66.5 milion pairs vs. 560 thousand pairs requiring comparison.</p>
+<ol class="arabic simple" start="3">
+<li><p><strong>Minimal setup versus manual tuning</strong></p></li>
+</ol>
+<p>Results shown for BlockingPy can be obtained with just a few lines of code, e.g., <code class="docutils literal notranslate"><span class="pre">blocklib</span></code>’s p-sig algorithm requires manual setup of blocking features, filters, bloom-filter parameters and signature specifications, which could require significant time and effort to tune.</p>
+<ol class="arabic simple" start="4">
+<li><p><strong>Scalability</strong></p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> algorithms allow for <code class="docutils literal notranslate"><span class="pre">n_threads</span></code> selection and most algorithms allow for on-disk index building, where <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> is missing both of these fetures.</p>
+</section>
+<section id="where-is-blocklib-better">
+<h2>Where is <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> better<a class="headerlink" href="#where-is-blocklib-better" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Privacy preserving blocking</strong></p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">blocklib</span></code> implements privacy preserving blocking algorithms, which are not available in <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code>.</p>
+<ol class="arabic simple" start="2">
+<li><p><strong>Time</strong></p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">blocklib</span></code> finishes the <em>blocking</em> phase sooner, but the extra minutes that <strong>BlockingPy</strong> spends are quickly repaid in the <em>matching</em> phase.<br />
+In our benchmark (150k dataset) <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> left <strong>≈ 66 million</strong> candidate pairs, whereas BlockingPy left <strong>≈ 0.56 million</strong>, that’s a <strong>~120 ×</strong> reduction.<br />
+Even though BlockingPy’s blocking step is <strong>~20 ×</strong> slower, the downstream classifier now has <strong>120 ×</strong> less work, so the end-to-end pipeline could still be faster, while achieving much higher recall (0.76 vs. 0.41).</p>
+<p>Additionally, we can tune the <code class="docutils literal notranslate"><span class="pre">voyager</span></code> algorithm to achieve similar recall as blocklib’s algorithms. On those settings the time difference is only 7x, while still getting 30x less candidate pairs (66 million vs. 2.7 million).</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Dataset size</p></th>
+<th class="head"><p>Algorithm</p></th>
+<th class="head text-center"><p>Recall</p></th>
+<th class="head text-center"><p>Reduction Ratio</p></th>
+<th class="head text-center"><p>Blocking time (s)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>150000</p></td>
+<td><p><strong>BlockingPy (voyager)</strong></p></td>
+<td class="text-center"><p>0.401</p></td>
+<td class="text-center"><p>0.9997</p></td>
+<td class="text-center"><p>228</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api/blocking_result.html" class="btn btn-neutral float-left" title="BlockingResult" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

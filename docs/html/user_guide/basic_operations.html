@@ -224,13 +224,11 @@
 <span class="n">evals</span> <span class="o">=</span> <span class="n">blocker</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span>
     <span class="n">blocking_result</span><span class="o">=</span><span class="n">result</span><span class="p">,</span>
     <span class="n">true_blocks</span><span class="o">=</span><span class="n">true_blocks</span><span class="p">,</span>
-    <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span> <span class="c1"># (default is 10,000)</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">evals</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">evals</span><span class="o">.</span><span class="n">confusion</span><span class="p">)</span> 
 </pre></div>
 </div>
-<p>Note: We recommend using eval() method when evaluating larger datasets since it allows you to set the batch size for currently evaluated record pairs.</p>
 </section>
 <section id="example-ground-truth-for-record-linkage">
 <h3>Example ground truth for record linkage<a class="headerlink" href="#example-ground-truth-for-record-linkage" title="Link to this heading"></a></h3>

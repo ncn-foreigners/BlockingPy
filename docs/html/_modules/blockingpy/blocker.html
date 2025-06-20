@@ -78,7 +78,6 @@
 <span class="sd">and deduplication blocking.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
@@ -237,8 +236,7 @@
 <span class="sd">        2. Sparse matrices (scipy.sparse.csr_matrix) as a Document-Term Matrix (DTM)</span>
 <span class="sd">        3. Dense matrices (numpy.ndarray) as a Document-Term Matrix (DTM)</span>
 
-<span class="sd">        For evaluation of larger datasets, we recommend using the separate eval() method</span>
-<span class="sd">        since it allows you to set the batch size for evaluation.</span>
+<span class="sd">        Evaluation of larger datasets can be done separately using the `eval` method.</span>
 
 <span class="sd">        For text data, additional preprocessing is performed using</span>
 <span class="sd">        the parameters in control_txt.</span>
@@ -254,6 +252,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="o">=</span> <span class="n">x_colnames</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="o">=</span> <span class="n">y_colnames</span>
+        <span class="n">InputValidator</span><span class="o">.</span><span class="n">validate_controls_txt</span><span class="p">(</span><span class="n">control_txt</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span> <span class="o">=</span> <span class="n">controls_ann</span><span class="p">(</span><span class="n">control_ann</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span> <span class="o">=</span> <span class="n">controls_txt</span><span class="p">(</span><span class="n">control_txt</span><span class="p">)</span>
 
@@ -373,111 +372,13 @@
         <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x_block</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">x_block</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">true_blocks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;===== evaluating =====&quot;</span><span class="p">)</span>
-            <span class="n">total_tn</span> <span class="o">=</span> <span class="n">total_fp</span> <span class="o">=</span> <span class="n">total_fn</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1000</span>
-
             <span class="k">if</span> <span class="ow">not</span> <span class="n">deduplication</span><span class="p">:</span>
-                <span class="n">unique_tb_x</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-                <span class="n">unique_tb_y</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-
-                <span class="n">true_x_blocks</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
-                <span class="n">true_y_blocks</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
-                <span class="n">pred_x_blocks</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
-                <span class="n">pred_y_blocks</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
-
-                <span class="n">total_batches_x</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
-                <span class="n">total_batches_y</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
-                <span class="n">total_batches</span> <span class="o">=</span> <span class="n">total_batches_x</span> <span class="o">*</span> <span class="n">total_batches_y</span>
-
-                <span class="k">for</span> <span class="n">start_idx_x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
-
-                    <span class="n">current_batch_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_x</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-
-                    <span class="n">sub_x</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx_x</span> <span class="p">:</span> <span class="n">start_idx_x</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
-
-                    <span class="k">for</span> <span class="n">start_idx_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
-                        <span class="n">current_batch_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_y</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-                        <span class="n">current_batch</span> <span class="o">=</span> <span class="p">((</span><span class="n">current_batch_x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">total_batches_y</span><span class="p">)</span> <span class="o">+</span> <span class="n">current_batch_y</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluating batch </span><span class="si">{</span><span class="n">current_batch</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-                        <span class="n">sub_y</span> <span class="o">=</span> <span class="n">unique_tb_y</span><span class="p">[</span><span class="n">start_idx_y</span> <span class="p">:</span> <span class="n">start_idx_y</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
-
-                        <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_rl_batch</span><span class="p">(</span>
-                            <span class="n">sub_x</span><span class="p">,</span> <span class="n">sub_y</span><span class="p">,</span> <span class="n">true_x_blocks</span><span class="p">,</span> <span class="n">true_y_blocks</span><span class="p">,</span> <span class="n">pred_x_blocks</span><span class="p">,</span> <span class="n">pred_y_blocks</span>
-                        <span class="p">)</span>
-
-                        <span class="n">total_tp</span> <span class="o">+=</span> <span class="n">tp</span>
-                        <span class="n">total_fp</span> <span class="o">+=</span> <span class="n">fp</span>
-                        <span class="n">total_fn</span> <span class="o">+=</span> <span class="n">fn</span>
-                <span class="n">total_tn</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">)</span> <span class="o">-</span> <span class="n">total_tp</span> <span class="o">-</span> <span class="n">total_fp</span> <span class="o">-</span> <span class="n">total_fn</span>
-
+                <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_rl</span><span class="p">(</span><span class="n">x_df</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">x_df_long</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">x_df</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;block&quot;</span><span class="p">],</span> <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;x_x&quot;</span><span class="p">)</span>
-                    <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x_x&quot;</span><span class="p">])[[</span><span class="s2">&quot;x_x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span>
-                    <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;x_x&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">})</span>
-                <span class="p">)</span>
-                <span class="n">unique_tb_x</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+                <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_dedup</span><span class="p">(</span><span class="n">x_df</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">)</span>
 
-                <span class="n">total_batches_x</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
-                <span class="n">total_batches</span> <span class="o">=</span> <span class="n">total_batches_x</span> <span class="o">*</span> <span class="n">total_batches_x</span>
-
-                <span class="k">for</span> <span class="n">start_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
-                    <span class="n">current_batch_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-                    <span class="n">sub_x</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
-                    <span class="k">for</span> <span class="n">start_idx_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
-                        <span class="n">current_batch_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_y</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-                        <span class="n">current_batch</span> <span class="o">=</span> <span class="p">((</span><span class="n">current_batch_x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">total_batches_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">current_batch_y</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluating batch </span><span class="si">{</span><span class="n">current_batch</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-                        <span class="n">sub_y</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx_y</span> <span class="p">:</span> <span class="n">start_idx_y</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
-
-                        <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_dedup_batch</span><span class="p">(</span><span class="n">sub_x</span><span class="p">,</span> <span class="n">sub_y</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">,</span> <span class="n">x_df_long</span><span class="p">)</span>
-
-                        <span class="n">total_tp</span> <span class="o">+=</span> <span class="n">tp</span>
-                        <span class="n">total_fp</span> <span class="o">+=</span> <span class="n">fp</span>
-                        <span class="n">total_fn</span> <span class="o">+=</span> <span class="n">fn</span>
-                <span class="n">total_tn</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
-                    <span class="o">-</span> <span class="n">total_tp</span>
-                    <span class="o">-</span> <span class="n">total_fp</span>
-                    <span class="o">-</span> <span class="n">total_fn</span>
-                <span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">confusion</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="p">[</span><span class="n">total_tp</span><span class="p">,</span> <span class="n">total_fn</span><span class="p">],</span>
-                    <span class="p">[</span><span class="n">total_fp</span><span class="p">,</span> <span class="n">total_tn</span><span class="p">],</span>
-                <span class="p">],</span>
-                <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Actual Positive&quot;</span><span class="p">,</span> <span class="s2">&quot;Actual Negative&quot;</span><span class="p">],</span>
-                <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Predicted Positive&quot;</span><span class="p">,</span> <span class="s2">&quot;Predicted Negative&quot;</span><span class="p">],</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-
-            <span class="n">recall</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-            <span class="n">precision</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-            <span class="n">f1_score</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">precision</span> <span class="o">*</span> <span class="n">recall</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-            <span class="p">)</span>
-            <span class="n">accuracy</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_fn</span><span class="p">)</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_fn</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
-                <span class="k">else</span> <span class="mi">0</span>
-            <span class="p">)</span>
-            <span class="n">specificity</span> <span class="o">=</span> <span class="n">total_tn</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-            <span class="n">fpr</span> <span class="o">=</span> <span class="n">total_fp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-            <span class="n">fnr</span> <span class="o">=</span> <span class="n">total_fn</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;recall&quot;</span><span class="p">:</span> <span class="n">recall</span><span class="p">,</span>
-                <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">precision</span><span class="p">,</span>
-                <span class="s2">&quot;fpr&quot;</span><span class="p">:</span> <span class="n">fpr</span><span class="p">,</span>
-                <span class="s2">&quot;fnr&quot;</span><span class="p">:</span> <span class="n">fnr</span><span class="p">,</span>
-                <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
-                <span class="s2">&quot;specificity&quot;</span><span class="p">:</span> <span class="n">specificity</span><span class="p">,</span>
-                <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="n">f1_score</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">confusion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_confusion</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_metrics</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span><span class="p">)</span>
 
         <span class="n">x_df</span> <span class="o">=</span> <span class="n">x_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -496,17 +397,14 @@
 
 <div class="viewcode-block" id="Blocker.eval">
 <a class="viewcode-back" href="../../api/blocker.html#blockingpy.blocker.Blocker.eval">[docs]</a>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">blocking_result</span><span class="p">:</span> <span class="n">BlockingResult</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1_000</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BlockingResult</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blocking_result</span><span class="p">:</span> <span class="n">BlockingResult</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BlockingResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluate blocking results against true block assignments and return new BlockingResult.</span>
 
 <span class="sd">        This method calculates evaluation metrics and confusion matrix</span>
 <span class="sd">        by comparing predicted blocks with known true blocks and returns</span>
 <span class="sd">        a new BlockingResult instance containing the evaluation results</span>
-<span class="sd">        along with the original blocking results. It allows you to set</span>
-<span class="sd">        the batch size for evaluation of larger datasets.</span>
+<span class="sd">        along with the original blocking results.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -516,9 +414,6 @@
 <span class="sd">            DataFrame with true block assignments</span>
 <span class="sd">            For deduplication: columns [&#39;x&#39;, &#39;block&#39;]</span>
 <span class="sd">            For record linkage: columns [&#39;x&#39;, &#39;y&#39;, &#39;block&#39;]</span>
-<span class="sd">        batch_size : int</span>
-<span class="sd">            Size of the batch for evaluation. This size if applied for both datasets</span>
-<span class="sd">            for record linkage. Defaults to 1,000.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -545,106 +440,13 @@
             <span class="p">)</span>
         <span class="n">InputValidator</span><span class="o">.</span><span class="n">validate_true_blocks</span><span class="p">(</span><span class="n">true_blocks</span><span class="p">,</span> <span class="n">blocking_result</span><span class="o">.</span><span class="n">deduplication</span><span class="p">)</span>
 
-        <span class="n">total_tn</span> <span class="o">=</span> <span class="n">total_fp</span> <span class="o">=</span> <span class="n">total_fn</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">=</span> <span class="mi">0</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="n">blocking_result</span><span class="o">.</span><span class="n">deduplication</span><span class="p">:</span>
-            <span class="n">unique_tb_x</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-            <span class="n">unique_tb_y</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-
-            <span class="n">true_x_blocks</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
-            <span class="n">true_y_blocks</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
-            <span class="n">pred_x_blocks</span> <span class="o">=</span> <span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
-            <span class="n">pred_y_blocks</span> <span class="o">=</span> <span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
-
-            <span class="n">total_batches_x</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
-            <span class="n">total_batches_y</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
-            <span class="n">total_batches</span> <span class="o">=</span> <span class="n">total_batches_x</span> <span class="o">*</span> <span class="n">total_batches_y</span>
-
-            <span class="k">for</span> <span class="n">start_idx_x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
-                <span class="n">current_batch_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_x</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-                <span class="n">sub_x</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx_x</span> <span class="p">:</span> <span class="n">start_idx_x</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
-
-                <span class="k">for</span> <span class="n">start_idx_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
-                    <span class="n">current_batch_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_y</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-                    <span class="n">current_batch</span> <span class="o">=</span> <span class="p">((</span><span class="n">current_batch_x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">total_batches_y</span><span class="p">)</span> <span class="o">+</span> <span class="n">current_batch_y</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluating batch </span><span class="si">{</span><span class="n">current_batch</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">sub_y</span> <span class="o">=</span> <span class="n">unique_tb_y</span><span class="p">[</span><span class="n">start_idx_y</span> <span class="p">:</span> <span class="n">start_idx_y</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
-
-                    <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_rl_batch</span><span class="p">(</span>
-                        <span class="n">sub_x</span><span class="p">,</span> <span class="n">sub_y</span><span class="p">,</span> <span class="n">true_x_blocks</span><span class="p">,</span> <span class="n">true_y_blocks</span><span class="p">,</span> <span class="n">pred_x_blocks</span><span class="p">,</span> <span class="n">pred_y_blocks</span>
-                    <span class="p">)</span>
-
-                    <span class="n">total_tp</span> <span class="o">+=</span> <span class="n">tp</span>
-                    <span class="n">total_fp</span> <span class="o">+=</span> <span class="n">fp</span>
-                    <span class="n">total_fn</span> <span class="o">+=</span> <span class="n">fn</span>
-            <span class="n">total_tn</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_y</span><span class="p">)</span> <span class="o">-</span> <span class="n">total_tp</span> <span class="o">-</span> <span class="n">total_fp</span> <span class="o">-</span> <span class="n">total_fn</span>
-
+            <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_rl</span><span class="p">(</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">x_df_long</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
-                    <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;block&quot;</span><span class="p">],</span> <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;x_x&quot;</span>
-                <span class="p">)</span>
-                <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x_x&quot;</span><span class="p">])[[</span><span class="s2">&quot;x_x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span>
-                <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;x_x&quot;</span><span class="p">:</span> <span class="s2">&quot;x&quot;</span><span class="p">})</span>
-            <span class="p">)</span>
-            <span class="n">unique_tb_x</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+            <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_dedup</span><span class="p">(</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">)</span>
 
-            <span class="n">total_batches_x</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">batch_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
-            <span class="n">total_batches</span> <span class="o">=</span> <span class="n">total_batches_x</span> <span class="o">*</span> <span class="n">total_batches_x</span>
-
-            <span class="k">for</span> <span class="n">start_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
-                <span class="n">current_batch_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-                <span class="n">sub_x</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx</span> <span class="p">:</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
-
-                <span class="k">for</span> <span class="n">start_idx_y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
-                    <span class="n">current_batch_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_idx_y</span> <span class="o">//</span> <span class="n">batch_size</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-                    <span class="n">current_batch</span> <span class="o">=</span> <span class="p">((</span><span class="n">current_batch_x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">total_batches_x</span><span class="p">)</span> <span class="o">+</span> <span class="n">current_batch_y</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Evaluating batch </span><span class="si">{</span><span class="n">current_batch</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_batches</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-                    <span class="n">sub_y</span> <span class="o">=</span> <span class="n">unique_tb_x</span><span class="p">[</span><span class="n">start_idx_y</span> <span class="p">:</span> <span class="n">start_idx_y</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
-
-                    <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_dedup_batch</span><span class="p">(</span><span class="n">sub_x</span><span class="p">,</span> <span class="n">sub_y</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">,</span> <span class="n">x_df_long</span><span class="p">)</span>
-
-                    <span class="n">total_tp</span> <span class="o">+=</span> <span class="n">tp</span>
-                    <span class="n">total_fp</span> <span class="o">+=</span> <span class="n">fp</span>
-                    <span class="n">total_fn</span> <span class="o">+=</span> <span class="n">fn</span>
-            <span class="n">total_tn</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_tb_x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">total_tp</span> <span class="o">-</span> <span class="n">total_fp</span> <span class="o">-</span> <span class="n">total_fn</span>
-            <span class="p">)</span>
-
-        <span class="n">confusion</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-            <span class="p">[</span>
-                <span class="p">[</span><span class="n">total_tp</span><span class="p">,</span> <span class="n">total_fn</span><span class="p">],</span>
-                <span class="p">[</span><span class="n">total_fp</span><span class="p">,</span> <span class="n">total_tn</span><span class="p">],</span>
-            <span class="p">],</span>
-            <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Actual Positive&quot;</span><span class="p">,</span> <span class="s2">&quot;Actual Negative&quot;</span><span class="p">],</span>
-            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Predicted Positive&quot;</span><span class="p">,</span> <span class="s2">&quot;Predicted Negative&quot;</span><span class="p">],</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-
-        <span class="n">recall</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">precision</span> <span class="o">=</span> <span class="n">total_tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">f1_score</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">precision</span> <span class="o">*</span> <span class="n">recall</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="p">)</span>
-        <span class="n">accuracy</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_fn</span><span class="p">)</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">total_tp</span> <span class="o">+</span> <span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_fn</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
-            <span class="k">else</span> <span class="mi">0</span>
-        <span class="p">)</span>
-        <span class="n">specificity</span> <span class="o">=</span> <span class="n">total_tn</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_tn</span> <span class="o">+</span> <span class="n">total_fp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">fpr</span> <span class="o">=</span> <span class="n">total_fp</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fp</span> <span class="o">+</span> <span class="n">total_tn</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">fnr</span> <span class="o">=</span> <span class="n">total_fn</span> <span class="o">/</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">total_fn</span> <span class="o">+</span> <span class="n">total_tp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-
-        <span class="n">eval_metrics</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;recall&quot;</span><span class="p">:</span> <span class="n">recall</span><span class="p">,</span>
-            <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">precision</span><span class="p">,</span>
-            <span class="s2">&quot;fpr&quot;</span><span class="p">:</span> <span class="n">fpr</span><span class="p">,</span>
-            <span class="s2">&quot;fnr&quot;</span><span class="p">:</span> <span class="n">fnr</span><span class="p">,</span>
-            <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
-            <span class="s2">&quot;specificity&quot;</span><span class="p">:</span> <span class="n">specificity</span><span class="p">,</span>
-            <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="n">f1_score</span><span class="p">,</span>
-        <span class="p">}</span>
-        <span class="n">eval_metrics</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">eval_metrics</span><span class="p">)</span>
+        <span class="n">confusion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_confusion</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span><span class="p">)</span>
+        <span class="n">eval_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_metrics</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">BlockingResult</span><span class="p">(</span>
             <span class="n">x_df</span><span class="o">=</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">result</span><span class="p">,</span>
@@ -659,127 +461,221 @@
         <span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_eval_dedup_batch</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">_eval_rl</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">sub_x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-        <span class="n">sub_y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pred_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">true_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get confusion matrix from *record linkage*.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pred_df : pd.DataFrame</span>
+<span class="sd">            output from the algorithm (or BlockingResult.result)</span>
+<span class="sd">        true_df : pd.DataFrame</span>
+<span class="sd">            ground-truth links (may be subset)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        TP, FP, FN, TN   (pair counts, integers)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pred_x_map</span> <span class="o">=</span> <span class="n">pred_df</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span>
+        <span class="n">pred_y_map</span> <span class="o">=</span> <span class="n">pred_df</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span>
+
+        <span class="n">true_x</span> <span class="o">=</span> <span class="n">true_df</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span>
+        <span class="n">true_y</span> <span class="o">=</span> <span class="n">true_df</span><span class="p">[[</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span>
+
+        <span class="n">pred_x</span> <span class="o">=</span> <span class="n">pred_x_map</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">true_x</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">pred_y</span> <span class="o">=</span> <span class="n">pred_y_map</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">true_y</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="n">n_missing</span> <span class="o">=</span> <span class="n">pred_x</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">+</span> <span class="n">pred_y</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">n_missing</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="p">(</span><span class="n">pred_df</span><span class="p">[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_df</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">fresh_ids</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="n">n_missing</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int64&quot;</span><span class="p">),</span>
+                <span class="n">index</span><span class="o">=</span><span class="n">pred_x</span><span class="p">[</span><span class="n">pred_x</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="o">+</span> <span class="n">pred_y</span><span class="p">[</span><span class="n">pred_y</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="p">)</span>
+            <span class="n">pred_x</span> <span class="o">=</span> <span class="n">pred_x</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">fresh_ids</span><span class="p">)</span>
+            <span class="n">pred_y</span> <span class="o">=</span> <span class="n">pred_y</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">fresh_ids</span><span class="p">)</span>
+
+        <span class="n">pred_x</span> <span class="o">=</span> <span class="n">pred_x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+        <span class="n">pred_y</span> <span class="o">=</span> <span class="n">pred_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+
+        <span class="n">all_pred</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">pred_x</span><span class="p">,</span> <span class="n">pred_y</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">codes_pred</span><span class="p">,</span> <span class="n">uniq_pred</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">factorize</span><span class="p">(</span><span class="n">all_pred</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">all_true</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">true_x</span><span class="p">,</span> <span class="n">true_y</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">codes_true</span><span class="p">,</span> <span class="n">uniq_true</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">factorize</span><span class="p">(</span><span class="n">all_true</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">n_pred</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniq_pred</span><span class="p">)</span>
+        <span class="n">n_true</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uniq_true</span><span class="p">)</span>
+
+        <span class="n">cp_x</span> <span class="o">=</span> <span class="n">codes_pred</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_x</span><span class="p">)]</span>
+        <span class="n">cp_y</span> <span class="o">=</span> <span class="n">codes_pred</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">pred_x</span><span class="p">)</span> <span class="p">:]</span>
+        <span class="n">ct_x</span> <span class="o">=</span> <span class="n">codes_true</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_x</span><span class="p">)]</span>
+        <span class="n">ct_y</span> <span class="o">=</span> <span class="n">codes_true</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">true_x</span><span class="p">)</span> <span class="p">:]</span>
+
+        <span class="n">cx</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">coo_matrix</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">cp_x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span> <span class="p">(</span><span class="n">cp_x</span><span class="p">,</span> <span class="n">ct_x</span><span class="p">)),</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n_pred</span><span class="p">,</span> <span class="n">n_true</span><span class="p">),</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
+
+        <span class="n">cy</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">coo_matrix</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">cp_y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span> <span class="p">(</span><span class="n">cp_y</span><span class="p">,</span> <span class="n">ct_y</span><span class="p">)),</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n_pred</span><span class="p">,</span> <span class="n">n_true</span><span class="p">),</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">tocsr</span><span class="p">()</span>
+
+        <span class="n">TP</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cx</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">cy</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="n">row_sum_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cx</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">row_sum_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">pred_pairs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">row_sum_x</span> <span class="o">*</span> <span class="n">row_sum_y</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="n">col_sum_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cx</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">col_sum_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">true_pairs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">col_sum_x</span> <span class="o">*</span> <span class="n">col_sum_y</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="n">FP</span> <span class="o">=</span> <span class="n">pred_pairs</span> <span class="o">-</span> <span class="n">TP</span>
+        <span class="n">FN</span> <span class="o">=</span> <span class="n">true_pairs</span> <span class="o">-</span> <span class="n">TP</span>
+        <span class="n">NX</span><span class="p">,</span> <span class="n">NY</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_y</span><span class="p">)</span>
+        <span class="n">TN</span> <span class="o">=</span> <span class="n">NX</span> <span class="o">*</span> <span class="n">NY</span> <span class="o">-</span> <span class="n">TP</span> <span class="o">-</span> <span class="n">FP</span> <span class="o">-</span> <span class="n">FN</span>
+
+        <span class="k">return</span> <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span>
+
+    <span class="k">def</span> <span class="nf">_eval_dedup</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">pred_pairs_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
         <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-        <span class="n">x_df_long</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Process a batch of candidate pairs for deduplication evaluation.</span>
-<span class="sd">        This method processes a subset of record pairs to compute confusion matrix elements</span>
-<span class="sd">        for evaluating blocking quality.</span>
+<span class="sd">        Get confusion matrix from *deduplication*.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        sub_x : numpy.ndarray</span>
-<span class="sd">            Subset of records from dataset X to evaluate</span>
-<span class="sd">        sub_y : numpy.ndarray</span>
-<span class="sd">            Subset of records from dataset X to evaluate, needed to create candidate pairs</span>
-<span class="sd">        true_blocks : pandas.DataFrame</span>
-<span class="sd">            DataFrame containing true block assignments with columns [&#39;x&#39;, &#39;y&#39;, &#39;block&#39;]</span>
-<span class="sd">        x_df_long : pandas.DataFrame</span>
-<span class="sd">            DataFrame containing predicted block assignments with columns [&#39;x&#39;, &#39;block&#39;]</span>
+<span class="sd">        pred_pairs_df : pd.DataFrame</span>
+<span class="sd">            output from the algorithm or BlockingResult.result</span>
+<span class="sd">        true_blocks : pd.DataFrame</span>
+<span class="sd">            ground-truth links (may be subset)</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        tuple[int, int, int]</span>
-<span class="sd">            A tuple containing partial confusion matrix counts:</span>
-<span class="sd">            - tp (true positives): Pairs correctly blocked together</span>
-<span class="sd">            - fp (false positives): Pairs incorrectly blocked together</span>
-<span class="sd">            - fn (false negatives): Pairs incorrectly not blocked together</span>
+<span class="sd">        TP, FP, FN, TN    (pair counts, ints)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-            <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sub_x</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">sub_y</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]</span>
+        <span class="n">pred_lbl</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">pred_pairs_df</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span><span class="n">id_vars</span><span class="o">=</span><span class="s2">&quot;block&quot;</span><span class="p">,</span> <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">value_name</span><span class="o">=</span><span class="s2">&quot;rec&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="s2">&quot;rec&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;rec&quot;</span><span class="p">)[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span>
+            <span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
         <span class="p">)</span>
 
-        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">true_blocks</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-            <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;true_block_x&quot;</span><span class="p">}</span>
-        <span class="p">)</span>
-        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-            <span class="n">true_blocks</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;_tb&quot;</span><span class="p">)</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;true_block_y&quot;</span><span class="p">})</span>
-        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">x_df_long</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-            <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;pred_block_x&quot;</span><span class="p">}</span>
-        <span class="p">)</span>
-        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
-            <span class="n">x_df_long</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;_pred&quot;</span><span class="p">)</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;pred_block_y&quot;</span><span class="p">})</span>
+        <span class="n">true_lbl</span> <span class="o">=</span> <span class="n">true_blocks</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
 
-        <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_block_x&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_block_y&quot;</span><span class="p">]</span>
-        <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_block_x&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_block_y&quot;</span><span class="p">]</span>
+        <span class="n">pred_lbl</span> <span class="o">=</span> <span class="n">pred_lbl</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">true_lbl</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
-        <span class="n">tp</span> <span class="o">=</span> <span class="p">(</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="n">fp</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="n">fn</span> <span class="o">=</span> <span class="p">(</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pred_lbl</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">pred_pairs_df</span><span class="p">[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_pairs_df</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span>
+            <span class="n">n_miss</span> <span class="o">=</span> <span class="n">pred_lbl</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">pred_lbl</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">pred_lbl</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="n">n_miss</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+            <span class="n">pred_lbl</span> <span class="o">=</span> <span class="n">pred_lbl</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span>
+        <span class="n">both_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;pred&quot;</span><span class="p">:</span> <span class="n">pred_lbl</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">:</span> <span class="n">true_lbl</span><span class="o">.</span><span class="n">values</span><span class="p">})</span>
 
-    <span class="k">def</span> <span class="nf">_eval_rl_batch</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">sub_x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-        <span class="n">sub_y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-        <span class="n">true_x_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-        <span class="n">true_y_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-        <span class="n">pred_x_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-        <span class="n">pred_y_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">both_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;pred&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+
+        <span class="n">TP</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">g</span> <span class="o">*</span> <span class="p">(</span><span class="n">g</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="n">row_sum</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">col_sum</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="n">pred_pairs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">row_sum</span> <span class="o">*</span> <span class="p">(</span><span class="n">row_sum</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="n">true_pairs</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">col_sum</span> <span class="o">*</span> <span class="p">(</span><span class="n">col_sum</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="n">FP</span> <span class="o">=</span> <span class="n">pred_pairs</span> <span class="o">-</span> <span class="n">TP</span>
+        <span class="n">FN</span> <span class="o">=</span> <span class="n">true_pairs</span> <span class="o">-</span> <span class="n">TP</span>
+
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">both_df</span><span class="p">)</span>
+        <span class="n">total_pairs</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="n">N</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">TN</span> <span class="o">=</span> <span class="n">total_pairs</span> <span class="o">-</span> <span class="n">TP</span> <span class="o">-</span> <span class="n">FP</span> <span class="o">-</span> <span class="n">FN</span>
+
+        <span class="k">return</span> <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span>
+
+    <span class="k">def</span> <span class="nf">_get_confusion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">tn</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Process a batch of record pairs and compute confusion matrix counts.</span>
-<span class="sd">        This method processes a subset of record pairs for record linkage evaluation.</span>
+<span class="sd">        Build a confusion matrix DataFrame from raw counts.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        sub_x : numpy.ndarray</span>
-<span class="sd">            Subset of records from dataset X to evaluate</span>
-<span class="sd">        sub_y : numpy.ndarray</span>
-<span class="sd">            Subset of records from dataset Y to evaluate</span>
-<span class="sd">        true_x_blocks : pandas.DataFrame</span>
-<span class="sd">            DataFrame with true block assignments for X records with columns [&#39;x&#39;, &#39;block&#39;]</span>
-<span class="sd">        true_y_blocks : pandas.DataFrame</span>
-<span class="sd">            DataFrame with true block assignments for Y records with columns [&#39;y&#39;, &#39;block&#39;]</span>
-<span class="sd">        pred_x_blocks : pandas.DataFrame</span>
-<span class="sd">            DataFrame with predicted block assignments for X records with columns [&#39;x&#39;, &#39;block&#39;]</span>
-<span class="sd">        pred_y_blocks : pandas.DataFrame</span>
-<span class="sd">            DataFrame with predicted block assignments for Y records with columns [&#39;y&#39;, &#39;block&#39;]</span>
+<span class="sd">        tp : int</span>
+<span class="sd">            True positives.</span>
+<span class="sd">        fp : int</span>
+<span class="sd">            False positives.</span>
+<span class="sd">        fn : int</span>
+<span class="sd">            False negatives.</span>
+<span class="sd">        tn : int</span>
+<span class="sd">            True negatives.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        tuple[int, int, int]</span>
-<span class="sd">            A tuple containing:</span>
-<span class="sd">            - tp (true positives): Number of pairs correctly assigned to same block</span>
-<span class="sd">            - fp (false positives): Number of pairs incorrectly assigned to same block</span>
-<span class="sd">            - fn (false negatives): Number of pairs incorrectly assigned to different blocks</span>
-
-<span class="sd">        Notes</span>
-<span class="sd">        -----</span>
-<span class="sd">        The method creates candidate pairs between records in sub_x and sub_y,</span>
-<span class="sd">        then compares their true and predicted block assignments to compute</span>
-<span class="sd">        confusion matrix counts.</span>
+<span class="sd">        pd.DataFrame</span>
+<span class="sd">            2 x 2 confusion matrix with</span>
+<span class="sd">             - rows = Actual Positive / Actual Negative</span>
+<span class="sd">             - columns = Predicted Positive / Predicted Negative</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">sub_x</span><span class="p">,</span> <span class="n">sub_y</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">])</span>
-        <span class="n">pair_chunk</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">pair_chunk</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">true_x_blocks</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;true_block_x&quot;</span><span class="p">})</span>
-            <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">true_y_blocks</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;true_block_y&quot;</span><span class="p">})</span>
-            <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">pred_x_blocks</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;pred_block_x&quot;</span><span class="p">})</span>
-            <span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">pred_y_blocks</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;block&quot;</span><span class="p">:</span> <span class="s2">&quot;pred_block_y&quot;</span><span class="p">})</span>
-        <span class="p">)</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="p">[</span><span class="n">tp</span><span class="p">,</span> <span class="n">fn</span><span class="p">],</span>
+                <span class="p">[</span><span class="n">fp</span><span class="p">,</span> <span class="n">tn</span><span class="p">],</span>
+            <span class="p">],</span>
+            <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Actual Positive&quot;</span><span class="p">,</span> <span class="s2">&quot;Actual Negative&quot;</span><span class="p">],</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Predicted Positive&quot;</span><span class="p">,</span> <span class="s2">&quot;Predicted Negative&quot;</span><span class="p">],</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
 
-        <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_block_x&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_block_y&quot;</span><span class="p">]</span>
-        <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_block_x&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_block_y&quot;</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">_get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">tn</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute standard evaluation metrics from raw counts.</span>
 
-        <span class="n">tp</span> <span class="o">=</span> <span class="p">(</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="n">fp</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="n">fn</span> <span class="o">=</span> <span class="p">(</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;true_link&quot;</span><span class="p">]</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">pair_chunk</span><span class="p">[</span><span class="s2">&quot;pred_link&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tp : int</span>
+<span class="sd">            True positives.</span>
+<span class="sd">        fp : int</span>
+<span class="sd">            False positives.</span>
+<span class="sd">        fn : int</span>
+<span class="sd">            False negatives.</span>
+<span class="sd">        tn : int</span>
+<span class="sd">            True negatives.</span>
 
-        <span class="k">return</span> <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">fn</span></div>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.Series</span>
+<span class="sd">            Series with index</span>
+<span class="sd">            [&#39;recall&#39;, &#39;precision&#39;, &#39;fpr&#39;, &#39;fnr&#39;, &#39;accuracy&#39;, &#39;specificity&#39;, &#39;f1_score&#39;]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fn</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="n">tp</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">fpr</span> <span class="o">=</span> <span class="n">fp</span> <span class="o">/</span> <span class="p">(</span><span class="n">fp</span> <span class="o">+</span> <span class="n">tn</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">fp</span> <span class="o">+</span> <span class="n">tn</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">fnr</span> <span class="o">=</span> <span class="n">fn</span> <span class="o">/</span> <span class="p">(</span><span class="n">fn</span> <span class="o">+</span> <span class="n">tp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">fn</span> <span class="o">+</span> <span class="n">tp</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">tn</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span> <span class="o">+</span> <span class="n">tn</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">tp</span> <span class="o">+</span> <span class="n">fp</span> <span class="o">+</span> <span class="n">fn</span> <span class="o">+</span> <span class="n">tn</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">specificity</span> <span class="o">=</span> <span class="n">tn</span> <span class="o">/</span> <span class="p">(</span><span class="n">tn</span> <span class="o">+</span> <span class="n">fp</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">tn</span> <span class="o">+</span> <span class="n">fp</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">f1_score</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">precision</span> <span class="o">*</span> <span class="n">recall</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;recall&quot;</span><span class="p">:</span> <span class="n">recall</span><span class="p">,</span>
+                <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">precision</span><span class="p">,</span>
+                <span class="s2">&quot;fpr&quot;</span><span class="p">:</span> <span class="n">fpr</span><span class="p">,</span>
+                <span class="s2">&quot;fnr&quot;</span><span class="p">:</span> <span class="n">fnr</span><span class="p">,</span>
+                <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="n">accuracy</span><span class="p">,</span>
+                <span class="s2">&quot;specificity&quot;</span><span class="p">:</span> <span class="n">specificity</span><span class="p">,</span>
+                <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="n">f1_score</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span></div>
 
 </pre></div>
 

@@ -19,6 +19,7 @@ getting_started/index
 user_guide/index
 examples/index
 api/index
+blocklib_comp
 changelog
 ```
 

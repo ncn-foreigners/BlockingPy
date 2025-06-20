@@ -4,6 +4,8 @@
 - added embedding-based encoding support via `model2vec` library
 - fix `lowercase=False` bug
 - added `add_block_column` method to `BlockingResult` class
+- optimized evaluation
+- added `controls_txt` validation
 
 ## v0.1.14
 - changed defaul `lsh_nbits` from 8 to 2
