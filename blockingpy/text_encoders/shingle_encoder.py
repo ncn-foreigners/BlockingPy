@@ -1,4 +1,5 @@
 """Module containing the NgramEncoder class."""
+
 import re
 
 import pandas as pd

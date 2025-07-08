@@ -41,7 +41,7 @@ class TextTransformer(TextEncoder):
         specific = control_txt.get(encoder_key, {})
         self.encoder: TextEncoder = encoder_cls(**specific)
 
-    def fit(self, X: pd.Series, y: pd.Series|None = None) -> "TextTransformer":
+    def fit(self, X: pd.Series, y: pd.Series | None = None) -> "TextTransformer":
         """Learn encoder-specific state (e.g., vocabulary)."""
         self.encoder.fit(X, y)
         return self
@@ -50,6 +50,6 @@ class TextTransformer(TextEncoder):
         """Transform input texts into a feature matrix."""
         return self.encoder.transform(X)
 
-    def fit_transform(self, X: pd.Series, y: pd.Series | None=None) -> pd.DataFrame:
+    def fit_transform(self, X: pd.Series, y: pd.Series | None = None) -> pd.DataFrame:
         """Fit on X then transform X."""
         return self.encoder.fit(X, y).transform(X)

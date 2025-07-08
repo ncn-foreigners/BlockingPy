@@ -1,4 +1,5 @@
 """Module containing the EmbeddingEncoder class."""
+
 import pandas as pd
 from model2vec import StaticModel
 

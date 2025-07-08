@@ -1,4 +1,5 @@
 """base class for text-to-matrix transformers."""
+
 from abc import ABC, abstractmethod
 
 import pandas as pd
