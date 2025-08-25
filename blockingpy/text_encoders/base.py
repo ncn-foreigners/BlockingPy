@@ -12,23 +12,20 @@ from ..data_handler import DataHandler
 class TextEncoder(ABC):
 
     """
-    Abstract base class for text‑to‑matrix transformers.
+    Abstract base class for text-to-matrix transformers.
 
     Concrete subclasses turn a :class:`pandas.Series` of raw strings into a
     numeric feature matrix packaged in a :class:`DataHandler`.  The actual
     container may be a dense ``np.ndarray`` (e.g. embeddings) or a sparse
-    ``scipy.sparse.csr_matrix`` (e.g. n‑gram token counts), but that detail is
+    ``scipy.sparse.csr_matrix`` (e.g. n-gram token counts), but that detail is
     hidden behind the common :class:`DataHandler` interface.
     """
 
-    # ------------------------------------------------------------------ #
-    # Fitting                                                            #
-    # ------------------------------------------------------------------ #
     def fit(self, X: Series, y: Series | None = None) -> TextEncoder:
         """
         Learn stateful parameters from *X*.
 
-        The default implementation is a no‑op that returns *self*; override in
+        The default implementation is a no-op that returns *self*; override in
         subclasses that need to build a vocabulary or train a model.
 
         Parameters
@@ -36,7 +33,7 @@ class TextEncoder(ABC):
         X
             Series of input strings to learn from.
         y
-            Ignored. Present for scikit‑learn API compatibility.
+            Ignored. Present for scikit-learn API compatibility.
 
         Returns
         -------
@@ -46,9 +43,6 @@ class TextEncoder(ABC):
         """
         return self
 
-    # ------------------------------------------------------------------ #
-    # Fit‑and‑transform                                                  #
-    # ------------------------------------------------------------------ #
     def fit_transform(self, X: Series, y: Series | None = None) -> DataHandler:
         """
         Fit the encoder on *X* and return the transformed matrix.
@@ -70,9 +64,6 @@ class TextEncoder(ABC):
         """
         return self.fit(X, y).transform(X)
 
-    # ------------------------------------------------------------------ #
-    # Transform                                                          #
-    # ------------------------------------------------------------------ #
     @abstractmethod
     def transform(self, X: Series) -> DataHandler:
         """
