@@ -7,6 +7,9 @@ import pandas as pd
 import pytest
 
 
+pytestmark = pytest.mark.requires_mlpack
+pytest.importorskip("mlpack", reason="mlpack not installed")
+
 @pytest.fixture
 def mlpack_controls():
     """Provides controls dict."""

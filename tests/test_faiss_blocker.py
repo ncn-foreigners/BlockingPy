@@ -4,6 +4,8 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 
+from blockingpy.data_handler import DataHandler
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -35,7 +37,7 @@ def test_basic_blocking(faiss_blocker, small_sparse_data, faiss_controls):
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()
 
 
@@ -101,13 +103,13 @@ def test_k_search_warning(faiss_blocker, small_sparse_data, faiss_controls, capl
     """Test warning when k_search is larger than reference points."""
     x, y = small_sparse_data
 
-    faiss_controls["faiss"]["k_search"] = len(x) + 10
+    faiss_controls["faiss"]["k_search"] = x.shape[0] + 10
     with caplog.at_level(logging.WARNING):
         faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=faiss_controls)
 
     warning_message = (
-        f"k_search ({len(x) + 10}) is larger than the number of reference points "
-        f"({len(x)}). Adjusted k_search to {len(x)}."
+        f"k_search ({faiss_controls['faiss']['k_search']}) is larger than the number of reference points "
+        f"({x.shape[0]}). Adjusted k_search to {x.shape[0]}."
     )
     assert warning_message in caplog.text
 
@@ -146,8 +148,8 @@ def test_single_point(faiss_blocker, single_sparse_point, faiss_controls):
 def test_empty_data_handling(faiss_blocker, faiss_controls):
     """Test handling of empty data."""
     rng = np.random.default_rng()
-    x = pd.DataFrame(columns=["col1", "col2", "col3"])
-    y = pd.DataFrame(rng.random((5, 3)))
+    x = DataHandler(data=rng.random((0, 3)), cols=[f"x_col_{i}" for i in range(3)])
+    y = DataHandler(data=rng.random((5, 3)), cols=[f"y_col_{i}" for i in range(3)])
 
     with pytest.raises(AssertionError):
         faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=faiss_controls)
@@ -161,14 +163,13 @@ def test_large_input(faiss_blocker, large_sparse_data, faiss_controls):
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()
 
 
 def test_save_index(faiss_blocker, small_sparse_data, faiss_controls):
     """Test saving the FAISS index and colnames."""
     x, y = small_sparse_data
-    x.columns = x.columns.astype(str)
 
     with TemporaryDirectory() as temp_dir:
         controls = faiss_controls.copy()
@@ -211,7 +212,7 @@ def test_index_types(faiss_blocker, small_sparse_data, faiss_controls, index_typ
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()
 
 
@@ -227,7 +228,7 @@ def test_hnsw_parameters(faiss_blocker, small_sparse_data, faiss_controls):
         controls["faiss"]["hnsw_ef_search"] = 50
 
         result = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
-        assert len(result) == len(y)
+        assert len(result) == y.shape[0]
 
     for ef in [50, 100, 200]:
         controls = faiss_controls.copy()
@@ -237,7 +238,7 @@ def test_hnsw_parameters(faiss_blocker, small_sparse_data, faiss_controls):
         controls["faiss"]["hnsw_ef_search"] = 50
 
         result = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
-        assert len(result) == len(y)
+        assert len(result) == y.shape[0]
 
 
 def test_lsh_parameters(faiss_blocker, small_sparse_data, faiss_controls):
@@ -251,7 +252,7 @@ def test_lsh_parameters(faiss_blocker, small_sparse_data, faiss_controls):
         controls["faiss"]["lsh_rotate_data"] = True
 
         result = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
-        assert len(result) == len(y)
+        assert len(result) == y.shape[0]
 
     for rotate in [True, False]:
         controls = faiss_controls.copy()
@@ -260,7 +261,7 @@ def test_lsh_parameters(faiss_blocker, small_sparse_data, faiss_controls):
         controls["faiss"]["lsh_rotate_data"] = rotate
 
         result = faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
-        assert len(result) == len(y)
+        assert len(result) == y.shape[0]
 
 
 def test_index_type_reproducibility(faiss_blocker, small_sparse_data, faiss_controls):

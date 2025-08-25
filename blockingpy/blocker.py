@@ -4,18 +4,19 @@ and deduplication blocking.
 """
 
 import logging
-from collections import OrderedDict
 from typing import Any
 
-import networkx as nx
 import numpy as np
 import pandas as pd
+from igraph import Graph
 from scipy import sparse
 
 from .annoy_blocker import AnnoyBlocker
 from .blocking_result import BlockingResult
 from .controls import controls_ann, controls_txt
+from .data_handler import DataHandler
 from .faiss_blocker import FaissBlocker
+from .gpu_faiss_blocker import GPUFaissBlocker
 from .helper_functions import (
     DistanceMetricValidator,
     InputValidator,
@@ -33,54 +34,14 @@ class Blocker:
 
     """
     A class implementing various blocking methods for record linkage and deduplication.
-
-    This class provides a unified interface to multiple approximate nearest neighbor
-    search algorithms for blocking in record linkage and deduplication tasks.
-
-    Parameters
-    ----------
-    None
-
-    Attributes
-    ----------
-    eval_metrics : pandas.Series or None
-        Evaluation metrics when true blocks are provided
-    confusion : pandas.DataFrame or None
-        Confusion matrix when true blocks are provided
-    x_colnames : list of str or None
-        Column names for reference dataset
-    y_colnames : list of str or None
-        Column names for query dataset
-    control_ann : dict
-        Control parameters for ANN algorithms
-    control_txt : dict
-        Control parameters for text processing
-    BLOCKER_MAP : dict
-        Mapping of blocking algorithm names to their implementations
-
-
-    Notes
-    -----
-    Supported algorithms:
-    - Annoy (Spotify)
-    - HNSW (Hierarchical Navigable Small World)
-    - MLPack (LSH and k-d tree)
-    - NND (Nearest Neighbor Descent)
-    - Voyager (Spotify)
-    - FAISS (LSH, HNSW and Flat Indexes)
-
     """
 
     def __init__(self) -> None:
-        """
-        Initialize the Blocker instance.
-
-        Initializes empty state variables.
-        """
         self.eval_metrics = None
         self.confusion = None
         self.x_colnames = None
         self.y_colnames = None
+        self.reduction_ratio = None
         self.control_ann: dict[str, Any] = {}
         self.control_txt: dict[str, Any] = {}
         self.BLOCKER_MAP = {
@@ -91,6 +52,7 @@ class Blocker:
             "nnd": NNDBlocker,
             "voyager": VoyagerBlocker,
             "faiss": FaissBlocker,
+            "gpu_faiss": GPUFaissBlocker,
         }
 
     def block(
@@ -127,8 +89,6 @@ class Blocker:
             Verbosity level (0-3). Controls logging level:
             - 0: WARNING level
             - 1-3: INFO level with increasing detail
-        graph : bool, default False
-            Whether to create a graph representation of blocks
         control_txt : dict, default {}
             Text processing parameters
         control_ann : dict, default {}
@@ -179,17 +139,15 @@ class Blocker:
 
         if deduplication:
             self.y_colnames = self.x_colnames
-
         if self.control_ann["random_seed"] is None:
             self.control_ann["random_seed"] = random_seed
 
         if ann == "nnd":
             distance = self.control_ann.get("nnd").get("metric")
-        elif ann in {"annoy", "voyager", "hnsw", "faiss"}:
+        elif ann in {"annoy", "voyager", "hnsw", "faiss", "gpu_faiss"}:
             distance = self.control_ann.get(ann).get("distance")
         else:
             distance = None
-
         if distance is None:
             distance = {
                 "nnd": "cosine",
@@ -197,6 +155,7 @@ class Blocker:
                 "annoy": "angular",
                 "voyager": "cosine",
                 "faiss": "cosine",
+                "gpu_faiss": "cosine",
                 "lsh": None,
                 "kd": None,
             }.get(ann)
@@ -212,92 +171,72 @@ class Blocker:
             y = x
             k = 2
             len_y = None
-
         InputValidator.validate_true_blocks(true_blocks, deduplication)
-
         len_x = x.shape[0]
+
         if sparse.issparse(x):
-            if self.x_colnames is None:
-                raise ValueError("Input is sparse, but x_colnames is None.")
-            if self.y_colnames is None:
-                raise ValueError("Input is sparse, but y_colnames is None.")
-
-            x_dtm = pd.DataFrame.sparse.from_spmatrix(x, columns=self.x_colnames)
-            y_dtm = pd.DataFrame.sparse.from_spmatrix(y, columns=self.y_colnames)
+            if self.x_colnames is None or self.y_colnames is None:
+                raise ValueError("Column names must be provided for sparse input.")
+            x_dtm = DataHandler(x, self.x_colnames)
+            y_dtm = DataHandler(y, self.y_colnames)
         elif isinstance(x, np.ndarray):
-            if self.x_colnames is None:
-                raise ValueError("Input is np.ndarray, but x_colnames is None.")
-            if self.y_colnames is None:
-                raise ValueError("Input is np.ndarray, but y_colnames is None.")
-
-            x_dtm = pd.DataFrame(x, columns=self.x_colnames).astype(
-                pd.SparseDtype("int", fill_value=0)
-            )
-            y_dtm = pd.DataFrame(y, columns=self.y_colnames).astype(
-                pd.SparseDtype("int", fill_value=0)
-            )
+            if self.x_colnames is None or self.y_colnames is None:
+                raise ValueError("Column names must be provided for ndarray input.")
+            x_dtm = DataHandler(np.ascontiguousarray(x, dtype=np.float32), self.x_colnames)
+            y_dtm = DataHandler(np.ascontiguousarray(y, dtype=np.float32), self.y_colnames)
         else:
-            logger.info(f"===== creating tokens: {self.control_txt.get('encoder', 'Error')} =====")
             transformer = TextTransformer(**self.control_txt)
             x_dtm = transformer.transform(x)
             y_dtm = transformer.transform(y)
 
-        colnames_xy = np.intersect1d(x_dtm.columns, y_dtm.columns)
-
-        logger.info(
-            f"===== starting search ({ann}, x, y: {x_dtm.shape[0]},"
-            f"{y_dtm.shape[0]}, t: {len(colnames_xy)}) ====="
+        colnames_xy, ix, iy = np.intersect1d(
+            np.asarray(x_dtm.cols), np.asarray(y_dtm.cols), return_indices=True
         )
+        x_sub = DataHandler(x_dtm.data[:, ix], colnames_xy.tolist())
+        y_sub = DataHandler(y_dtm.data[:, iy], colnames_xy.tolist())
 
-        blocker = self.BLOCKER_MAP[ann]
-        x_df = blocker().block(
-            x=x_dtm[colnames_xy],
-            y=y_dtm[colnames_xy],
+        blocker_cls = self.BLOCKER_MAP.get(ann)
+        if blocker_cls is None:
+            raise ValueError(f"Unsupported algorithm: {ann}")
+        x_df = blocker_cls().block(
+            x=x_sub,
+            y=y_sub,
             k=k,
-            verbose=True if verbose in {2, 3} else False,
+            verbose=(verbose >= 2),
             controls=self.control_ann,
         )
-        logger.info("===== creating graph =====")
 
-        if deduplication:
-            x_df["pair"] = x_df.apply(lambda row: tuple(sorted([row["y"], row["x"]])), axis=1)
-            x_df = x_df.loc[x_df.groupby("pair")["dist"].idxmin()]
-            x_df = x_df.drop("pair", axis=1)
-
-            x_df["query_g"] = "q" + x_df["y"].astype(str)
-            x_df["index_g"] = "q" + x_df["x"].astype(str)
-        else:
-            x_df["query_g"] = "q" + x_df["y"].astype(str)
-            x_df["index_g"] = "i" + x_df["x"].astype(str)
-
-        x_gr = nx.from_pandas_edgelist(
-            x_df, source="query_g", target="index_g", create_using=nx.Graph()
+        x_df["query_g"] = "q" + x_df["y"].astype(str)
+        x_df["index_g"] = np.where(
+            deduplication,
+            "q" + x_df["x"].astype(str),
+            "i" + x_df["x"].astype(str),
         )
-        components = nx.connected_components(x_gr)
-        x_block = {}
-        for component_id, component in enumerate(components):
-            for node in component:
-                x_block[node] = component_id
 
-        unique_query_g = x_df["query_g"].unique()
-        unique_index_g = x_df["index_g"].unique()
-        combined_keys = list(unique_query_g) + [
-            node for node in unique_index_g if node not in unique_query_g
-        ]
+        edges = list(zip(x_df["query_g"].to_numpy(), x_df["index_g"].to_numpy(), strict=False))
+        g = Graph.TupleList(edges=edges, directed=False, vertex_name_attr="name")
 
-        sorted_dict = OrderedDict()
-        for key in combined_keys:
-            if key in x_block:
-                sorted_dict[key] = x_block[key]
+        comp = g.components(mode="weak")
+        membership = np.asarray(comp.membership, dtype=np.int64)
+        names = g.vs["name"]
 
-        x_df["block"] = x_df["query_g"].apply(lambda x: x_block[x] if x in x_block else None)
+        node_to_comp = dict(zip(names, membership, strict=False))
+        x_df["block"] = x_df["query_g"].map(node_to_comp).astype("int64")
+
+        is_q = np.fromiter((n.startswith("q") for n in names), dtype=bool, count=len(names))
+        self.reduction_ratio = self._get_reduction_ratio(
+            n_x=len_x,
+            n_y=None if deduplication else len_y,
+            deduplication=deduplication,
+            membership=membership,
+            is_query_mask=None if deduplication else is_q,
+        )
 
         if true_blocks is not None:
             if not deduplication:
                 TP, FP, FN, TN = self._eval_rl(x_df, true_blocks)
             else:
                 TP, FP, FN, TN = self._eval_dedup(x_df, true_blocks)
-
             self.confusion = self._get_confusion(TP, FP, FN, TN)
             self.eval_metrics = self._get_metrics(TP, FP, FN, TN)
 
@@ -312,7 +251,7 @@ class Blocker:
             eval_metrics=self.eval_metrics,
             confusion=self.confusion,
             colnames_xy=colnames_xy,
-            graph=graph,
+            reduction_ratio=self.reduction_ratio,
         )
 
     def eval(self, blocking_result: BlockingResult, true_blocks: pd.DataFrame) -> BlockingResult:
@@ -375,7 +314,7 @@ class Blocker:
             eval_metrics=eval_metrics,
             confusion=confusion,
             colnames_xy=blocking_result.colnames,
-            graph=blocking_result.graph is not None,
+            reduction_ratio=blocking_result.reduction_ratio,
         )
 
     def _eval_rl(
@@ -593,3 +532,63 @@ class Blocker:
                 "f1_score": f1_score,
             }
         )
+
+    @staticmethod
+    def _get_reduction_ratio(
+        n_x: int,
+        n_y: int | None,
+        *,
+        deduplication: bool,
+        membership: np.ndarray,
+        is_query_mask: np.ndarray | None = None,
+    ) -> float:
+        """
+        Compute Reduction Ratio (RR) from component membership.
+
+        RR = 1 - (#candidate_pairs / #all_possible_pairs)
+
+        Parameters
+        ----------
+        n_x : int
+            Number of records on the X/query side.
+        n_y : Optional[int]
+            Number of records on the Y/index side (None for dedup).
+        deduplication : bool
+            True for dedup; False for record linkage (X vs Y).
+        membership : np.ndarray[int]
+            Component id per node (length = n_x for dedup, else n_x + n_y).
+        is_query_mask : Optional[np.ndarray[bool]]
+            For RL only: boolean mask marking which nodes belong to X (query).
+            Length must equal len(membership). Ignored for dedup.
+
+        Returns
+        -------
+        float
+            Reduction ratio.
+
+        """
+        m = np.asarray(membership, dtype=np.int64).ravel()
+        if m.size == 0:
+            return 1.0
+
+        if deduplication:
+            n_comp = int(m.max()) + 1
+            comp_sizes = np.bincount(m, minlength=n_comp)
+            cand = int((comp_sizes * (comp_sizes - 1) // 2).sum())
+            denom = n_x * (n_x - 1) // 2
+        else:
+            if n_y is None or is_query_mask is None:
+                raise ValueError("For RL, pass n_y and is_query_mask.")
+            is_q = np.asarray(is_query_mask, dtype=bool).ravel()
+            if is_q.size != m.size:
+                raise ValueError(
+                    f"membership (len={m.size}) and is_query_mask (len={is_q.size}) must match."
+                )
+            n_comp = int(m.max()) + 1
+            comp_x = np.bincount(m[is_q], minlength=n_comp)
+            comp_y = np.bincount(m[~is_q], minlength=n_comp)
+            cand = int((comp_x * comp_y).sum())
+            denom = n_x * int(n_y)
+
+        rr = 1.0 - (cand / denom if denom else 0.0)
+        return float(min(1.0, max(0.0, rr)))

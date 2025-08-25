@@ -1,4 +1,4 @@
-"""Cotains the NNDBlocker class for blocking using the Nearest Neighbor Descent algorithm."""
+"""Contains the NNDBlocker class for blocking using the Nearest Neighbor Descent algorithm."""
 
 import logging
 from typing import Any
@@ -8,6 +8,7 @@ import pandas as pd
 import pynndescent
 
 from .base import BlockingMethod
+from .data_handler import DataHandler
 from .helper_functions import rearrange_array
 
 logger = logging.getLogger(__name__)
@@ -53,8 +54,8 @@ class NNDBlocker(BlockingMethod):
 
     def block(
         self,
-        x: pd.DataFrame,
-        y: pd.DataFrame,
+        x: DataHandler,
+        y: DataHandler,
         k: int,
         verbose: bool | None,
         controls: dict[str, Any],
@@ -120,18 +121,21 @@ class NNDBlocker(BlockingMethod):
         distance = controls["nnd"].get("metric")
         k_search = controls["nnd"].get("k_search")
 
-        if k_search > x.shape[0]:
+        X = x.data
+        Y = y.data
+
+        if k_search > X.shape[0]:
             original_k_search = k_search
-            k_search = min(k_search, x.shape[0])
+            k_search = min(k_search, X.shape[0])
             logger.warning(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({x.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}."
             )
 
         logger.info(f"Initializing NND index with {distance} metric.")
 
         self.index = pynndescent.NNDescent(
-            data=x,
+            data=X,
             n_neighbors=k_search,
             metric=distance,
             metric_kwds=controls["nnd"].get("metric_kwds"),
@@ -157,7 +161,7 @@ class NNDBlocker(BlockingMethod):
 
         logger.info("Querying index...")
 
-        l_1nn = self.index.query(query_data=y, k=k_search, epsilon=controls["nnd"].get("epsilon"))
+        l_1nn = self.index.query(query_data=Y, k=k_search, epsilon=controls["nnd"].get("epsilon"))
         indices = l_1nn[0]
         distances = l_1nn[1]
 
@@ -166,7 +170,7 @@ class NNDBlocker(BlockingMethod):
 
         result = pd.DataFrame(
             {
-                "y": np.arange(y.shape[0]),
+                "y": np.arange(Y.shape[0]),
                 "x": indices[:, k - 1],
                 "dist": distances[:, k - 1],
             }

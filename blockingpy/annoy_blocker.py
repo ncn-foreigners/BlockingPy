@@ -1,7 +1,6 @@
-"""
-Contains AnnnoyBlocker class for blocking using
-Annoy algorithm from Spotify.
-"""
+"""Annoy-based ANN blocker compatible with DataHandler."""
+
+from __future__ import annotations
 
 import logging
 import os
@@ -13,6 +12,7 @@ import pandas as pd
 from annoy import AnnoyIndex
 
 from .base import BlockingMethod
+from .data_handler import DataHandler
 from .helper_functions import rearrange_array
 
 logger = logging.getLogger(__name__)
@@ -21,36 +21,7 @@ MetricType = Literal["angular", "euclidean", "manhattan", "hamming", "dot"]
 
 class AnnoyBlocker(BlockingMethod):
 
-    """
-    A class for performing blocking using the Annoy algorithm.
-
-    This class implements blocking functionality using Spotify's
-    Annoy (Approximate Nearest Neighbors Oh Yeah) algorithm
-    for efficient similarity search.
-
-    Parameters
-    ----------
-    None
-
-    Attributes
-    ----------
-    index : AnnoyIndex or None
-        The Annoy index used for nearest neighbor search
-    x_columns : array-like or None
-        Column names of the reference dataset
-    METRIC_MAP : dict
-        Mapping of distance metric names to their Annoy implementations
-
-    See Also
-    --------
-    BlockingMethod : Abstract base class defining the blocking interface
-
-    Notes
-    -----
-    For more details about the Annoy algorithm, see:
-    https://github.com/spotify/annoy
-
-    """
+    """Blocking with Spotify *Annoy* (Approximate Nearest Neighbors Oh Yeah)."""
 
     METRIC_MAP: dict[str, MetricType] = {
         "euclidean": "euclidean",
@@ -61,18 +32,13 @@ class AnnoyBlocker(BlockingMethod):
     }
 
     def __init__(self) -> None:
-        """
-        Initialize the AnnoyBlocker instance.
-
-        Creates a new AnnoyBlocker with empty index and default column storage.
-        """
-        self.index: AnnoyIndex
-        self.x_columns: list[str]
+        self.index: AnnoyIndex | None = None
+        self.x_columns: list[str] | None = None
 
     def block(
         self,
-        x: pd.DataFrame,
-        y: pd.DataFrame,
+        x: DataHandler,
+        y: DataHandler,
         k: int,
         verbose: bool | None,
         controls: dict[str, Any],
@@ -82,9 +48,9 @@ class AnnoyBlocker(BlockingMethod):
 
         Parameters
         ----------
-        x : pandas.DataFrame
+        x : DataHandler
             Reference dataset containing features for indexing
-        y : pandas.DataFrame
+        y : DataHandler
             Query dataset to find nearest neighbors for
         k : int
             Number of nearest neighbors to find
@@ -120,16 +86,19 @@ class AnnoyBlocker(BlockingMethod):
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
-        self.x_columns = x.columns
+        self.x_columns = list(x.cols)
 
         distance = controls["annoy"].get("distance")
-        seed = controls.get("random_seed", None)
+        seed = controls.get("random_seed")
         path = controls["annoy"].get("path")
         n_trees = controls["annoy"].get("n_trees")
         build_on_disk = controls["annoy"].get("build_on_disk")
         k_search = controls["annoy"].get("k_search")
 
-        ncols = x.shape[1]
+        X = x.to_dense()
+        Y = y.to_dense()
+
+        ncols = X.shape[1]
         metric = self.METRIC_MAP[distance]
 
         self.index = AnnoyIndex(ncols, metric)
@@ -137,87 +106,55 @@ class AnnoyBlocker(BlockingMethod):
             self.index.set_seed(seed)
 
         if build_on_disk:
-            if build_on_disk:
-                with NamedTemporaryFile(prefix="annoy", suffix=".tree") as temp_file:
-                    if verbose:
-                        logger.info(f"Building index on disk: {temp_file.name}")
-                    self.index.on_disk_build(temp_file.name)
+            with NamedTemporaryFile(prefix="annoy", suffix=".tree") as tmp:
+                if verbose:
+                    logger.info(f"Building index on disk: {tmp.name}")
+                self.index.on_disk_build(tmp.name)
 
         if verbose:
             self.index.verbose(True)
 
-        logger.info("Building index...")
-
-        for i in range(x.shape[0]):
-            self.index.add_item(i, x.iloc[i].values)
+        logger.info("Building index…")
+        for i in range(X.shape[0]):
+            self.index.add_item(i, X[i])
         self.index.build(n_trees=n_trees)
 
-        logger.info("Querying index...")
+        logger.info("Querying index…")
+        if k_search > X.shape[0]:
+            k_search = X.shape[0]
+            logger.warning("k_search larger than reference set; adjusted.")
 
-        if k_search > x.shape[0]:
-            original_k_search = k_search
-            k_search = min(k_search, x.shape[0])
-            logger.warning(
-                f"k_search ({original_k_search}) is larger than the number of "
-                f"reference points ({x.shape[0]}). Adjusted k_search to {k_search}."
-            )
+        ind_nns = np.empty((Y.shape[0], k_search), dtype=int)
+        ind_dist = np.empty((Y.shape[0], k_search), dtype=float)
 
-        l_ind_nns = np.zeros((y.shape[0], k_search), dtype=int)
-        l_ind_dist = np.zeros((y.shape[0], k_search))
-
-        for i in range(y.shape[0]):
-            annoy_res = self.index.get_nns_by_vector(
-                y.iloc[i].values, k_search, include_distances=True
-            )
-            l_ind_nns[i] = annoy_res[0]
-            l_ind_dist[i] = annoy_res[1]
+        for i in range(Y.shape[0]):
+            ids, dists = self.index.get_nns_by_vector(Y[i], k_search, include_distances=True)
+            ind_nns[i] = ids
+            ind_dist[i] = dists
 
         if k == 2:
-            l_ind_nns, l_ind_dist = rearrange_array(l_ind_nns, l_ind_dist)
+            ind_nns, ind_dist = rearrange_array(ind_nns, ind_dist)
 
         if path:
             self._save_index(path)
 
-        result = {
-            "y": np.arange(y.shape[0]),
-            "x": l_ind_nns[:, k - 1],
-            "dist": l_ind_dist[:, k - 1],
-        }
-        result = pd.DataFrame(result)
+        result = pd.DataFrame(
+            {
+                "y": np.arange(Y.shape[0]),
+                "x": ind_nns[:, k - 1],
+                "dist": ind_dist[:, k - 1],
+            }
+        )
         logger.info("Process completed successfully.")
-
         return result
 
     def _save_index(self, path: str) -> None:
-        """
-        Save the Annoy index and column names to files.
-
-        Parameters
-        ----------
-        path : str
-            Directory path where the files will be saved
-
-        Raises
-        ------
-        ValueError
-            If the provided path is incorrect
-
-        Notes
-        -----
-        Creates two files:
-            - 'index.annoy': The Annoy index file
-            - 'index-colnames.txt': A text file with column names
-
-        """
         if not os.path.exists(os.path.dirname(path)):
             raise ValueError("Provided path is incorrect")
-
         path_ann = os.path.join(path, "index.annoy")
-        path_ann_cols = os.path.join(path, "index-colnames.txt")
-
+        path_cols = os.path.join(path, "index-colnames.txt")
         logger.info(f"Writing an index to {path_ann}")
-
-        self.index.save(path_ann)
-
-        with open(path_ann_cols, "w", encoding="utf-8") as f:
-            f.write("\n".join(self.x_columns))
+        if self.index is not None:
+            self.index.save(path_ann)
+        with open(path_cols, "w", encoding="utf-8") as fh:
+            fh.write("\n".join(self.x_columns or []))

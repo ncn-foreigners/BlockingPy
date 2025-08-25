@@ -145,8 +145,32 @@ print(dedup_result.result)
 - Support for already created Document-Term-Matrices (as `np.ndarray` or `csr_matrix`)
 - Support for both record linkage and deduplication
 - Evaluation metrics when true blocks are known
+- GPU support for fast blocking of large datasets
 
 You can find detailed information about BlockingPy in [documentation](https://blockingpy.readthedocs.io/en/latest/).
+
+## GPU Support
+`BlockingPy` can process large datasets by utilizing the GPU with `faiss_gpu` algorithms
+
+### Prerequisites
+OS : Linux or Windows 11 with WSL2 (Ubuntu)
+Python: 3.10
+GPU: Nvidia with driver supporting CUDA >= 12.4
+Tools: conda/mamba + pip
+
+### Install
+```python
+# 1) Env
+mamba create -n blockingpy-gpu python=3.10 -y
+conda activate blockingpy-gpu
+
+# 2) Install FAISS GPU (nightly cuVS build)
+mamba install -c pytorch/label/nightly \
+  faiss-gpu-cuvs=1.11.0=py3.10_ha3bacd1_55_cuda12.4.0_nightly -y
+
+# 3) Install BlockingPy and the rest of deps with pip (or poetry, uv etc.)
+pip install blockingpy[gpu]
+```
 
 ## Example Datasets
 

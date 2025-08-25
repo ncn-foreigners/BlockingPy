@@ -7,7 +7,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from pandas import SparseDtype
 from scipy import sparse
 
 
@@ -38,7 +37,7 @@ class DistanceMetricValidator:
         },
     }
 
-    NO_METRIC_ALGORITHMS = {"lsh", "kd", "nnd"}  # too many options for nnd to validate
+    NO_METRIC_ALGORITHMS = {"lsh", "kd", "nnd", "gpu_faiss"}  # too many options for nnd to validate
 
     @classmethod
     def validate_metric(cls, algorithm: str, metric: str) -> None:
@@ -247,29 +246,3 @@ def rearrange_array(indices: np.ndarray, distances: np.ndarray) -> tuple[np.ndar
                 result[i][0] = value_to_move
 
     return result, result_dist
-
-
-def df_to_array(df: pd.DataFrame) -> np.ndarray:
-    """
-    Convert DataFrame to numpy array.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        DataFrame to convert
-
-    Returns
-    -------
-    np.ndarray
-        Numpy array representation of the DataFrame
-
-    """
-
-    def is_sparse_df(df: pd.DataFrame) -> bool:
-        return any(isinstance(dt, SparseDtype) for dt in df.dtypes)
-
-    if is_sparse_df(df):
-        arr = df.sparse.to_dense().to_numpy(dtype=np.float32)
-    else:
-        arr = df.to_numpy(dtype=np.float32)
-    return np.ascontiguousarray(arr)

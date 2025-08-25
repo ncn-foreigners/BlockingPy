@@ -4,6 +4,8 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 
+from blockingpy.data_handler import DataHandler
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -36,7 +38,7 @@ def test_basic_blocking(voyager_blocker, small_sparse_data, voyager_controls):
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()
 
 
@@ -81,11 +83,11 @@ def test_k_search_warning(voyager_blocker, small_sparse_data, voyager_controls, 
     x, y = small_sparse_data
     caplog.set_level(logging.WARNING)
 
-    voyager_controls["voyager"]["k_search"] = len(x) + 10
+    voyager_controls["voyager"]["k_search"] = x.shape[0] + 10
     voyager_blocker.block(x=x, y=y, k=1, verbose=True, controls=voyager_controls)
 
     warning_message = (
-        f"k_search ({len(x) + 10}) is larger than the number of reference points ({len(x)})"
+        f"k_search ({x.shape[0] + 10}) is larger than the number of reference points ({x.shape[0]})"
     )
     assert any(warning_message in record.message for record in caplog.records)
 
@@ -124,10 +126,13 @@ def test_single_point(voyager_blocker, single_sparse_point, voyager_controls):
 def test_empty_data_handling(voyager_blocker, voyager_controls):
     """Test handling of empty data."""
     rng = np.random.default_rng()
-    x = sparse.csr_matrix(rng.random((0, 3)))
-    y = sparse.csr_matrix(rng.random((5, 3)))
-    x = pd.DataFrame.sparse.from_spmatrix(x)
-    y = pd.DataFrame.sparse.from_spmatrix(y)
+    # x = sparse.csr_matrix(rng.random((0, 3)))
+    # y = sparse.csr_matrix(rng.random((5, 3)))
+    # x = pd.DataFrame.sparse.from_spmatrix(x)
+    # y = pd.DataFrame.sparse.from_spmatrix(y)
+
+    x = DataHandler(data=rng.random((0,3)), cols=["col1", "col2", "col3"])
+    y = DataHandler(data=rng.random((5,3)), cols=["col1", "col2", "col3"])
 
     with pytest.raises(ValueError):
         voyager_blocker.block(x=x, y=y, k=1, verbose=False, controls=voyager_controls)
@@ -163,7 +168,7 @@ def test_large_input(voyager_blocker, large_sparse_data, voyager_controls):
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()
 
 
@@ -182,7 +187,6 @@ def test_multithreading(voyager_blocker, large_sparse_data, voyager_controls, nu
 def test_save_index(voyager_blocker, small_sparse_data, voyager_controls):
     """Test saving the Voyager index and colnames."""
     x, y = small_sparse_data
-    x.columns = x.columns.astype(str)
 
     with TemporaryDirectory() as temp_dir:
         controls = voyager_controls.copy()

@@ -2,6 +2,8 @@
 
 import logging
 
+from blockingpy.data_handler import DataHandler
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -43,7 +45,7 @@ def test_basic_blocking(nnd_blocker, small_sparse_data, nnd_controls):
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()
 
 
@@ -79,11 +81,11 @@ def test_k_search_warning(nnd_blocker, small_sparse_data, nnd_controls, caplog):
     x, y = small_sparse_data
     caplog.set_level(logging.WARNING)
 
-    nnd_controls["nnd"]["k_search"] = len(x) + 10
+    nnd_controls["nnd"]["k_search"] = x.shape[0] + 10
     nnd_blocker.block(x=x, y=y, k=1, verbose=True, controls=nnd_controls)
 
     warning_message = (
-        f"k_search ({len(x) + 10}) is larger than the number of reference points ({len(x)})"
+        f"k_search ({x.shape[0] + 10}) is larger than the number of reference points ({x.shape[0]})"
     )
     assert any(warning_message in record.message for record in caplog.records)
 
@@ -119,8 +121,8 @@ def test_single_point(nnd_blocker, single_sparse_point, nnd_controls):
 def test_empty_data_handling(nnd_blocker, nnd_controls):
     """Test handling of empty datasets."""
     rng = np.random.default_rng()
-    x = pd.DataFrame(columns=["col1", "col2", "col3"])
-    y = pd.DataFrame(rng.random((5, 3)))
+    x = DataHandler(data=rng.random((0, 3)), cols=['col1', 'col2', 'col3'])
+    y = DataHandler(data=rng.random((5, 3)), cols=['col1', 'col2', 'col3'])
 
     with pytest.raises(ValueError):
         nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)

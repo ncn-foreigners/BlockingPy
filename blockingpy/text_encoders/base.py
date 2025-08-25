@@ -1,69 +1,94 @@
-"""base class for text-to-matrix transformers."""
+"""Base class for text-to-matrix transformers using DataHandler."""
+
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-import pandas as pd
+from pandas import Series
+
+from ..data_handler import DataHandler
 
 
 class TextEncoder(ABC):
 
-    """Abstract base class for text-to-matrix transformers."""
+    """
+    Abstract base class for text‑to‑matrix transformers.
 
-    @abstractmethod
-    def fit(self, X: pd.Series, y: pd.Series | None = None) -> "TextEncoder":
+    Concrete subclasses turn a :class:`pandas.Series` of raw strings into a
+    numeric feature matrix packaged in a :class:`DataHandler`.  The actual
+    container may be a dense ``np.ndarray`` (e.g. embeddings) or a sparse
+    ``scipy.sparse.csr_matrix`` (e.g. n‑gram token counts), but that detail is
+    hidden behind the common :class:`DataHandler` interface.
+    """
+
+    # ------------------------------------------------------------------ #
+    # Fitting                                                            #
+    # ------------------------------------------------------------------ #
+    def fit(self, X: Series, y: Series | None = None) -> TextEncoder:
         """
-        Learn any stateful parameters from the data (e.g., vocabulary).
-        Default implementation is a no-op, returning self.
+        Learn stateful parameters from *X*.
+
+        The default implementation is a no‑op that returns *self*; override in
+        subclasses that need to build a vocabulary or train a model.
 
         Parameters
         ----------
-        X : pandas.Series
-            Series of text strings to learn from.
-        y : ignored
-            Present for API consistency.
+        X
+            Series of input strings to learn from.
+        y
+            Ignored. Present for scikit‑learn API compatibility.
 
         Returns
         -------
-        self
+        TextEncoder
+            ``self`` to allow method chaining.
 
         """
         return self
 
-    def fit_transform(self, X: pd.Series, y: pd.Series | None = None) -> pd.DataFrame:
+    # ------------------------------------------------------------------ #
+    # Fit‑and‑transform                                                  #
+    # ------------------------------------------------------------------ #
+    def fit_transform(self, X: Series, y: Series | None = None) -> DataHandler:
         """
-        Equivalent to calling fit(X) then transform(X).
+        Fit the encoder on *X* and return the transformed matrix.
+
+        Equivalent to calling :py:meth:`fit` followed by :py:meth:`transform`.
 
         Parameters
         ----------
-        X : pandas.Series
-            Series of text strings to fit and transform.
-        y : ignored
-            Present for API consistency.
+        X
+            Series of input strings.
+        y
+            Ignored.
 
         Returns
         -------
-        pandas.DataFrame
-            Transformed feature matrix.
+        DataHandler
+            The encoded feature matrix together with its column names.
 
         """
         return self.fit(X, y).transform(X)
 
+    # ------------------------------------------------------------------ #
+    # Transform                                                          #
+    # ------------------------------------------------------------------ #
     @abstractmethod
-    def transform(self, X: pd.Series) -> pd.DataFrame:
+    def transform(self, X: Series) -> DataHandler:
         """
-        Transform a pandas Series of strings into a document-term
-        DataFrame (sparse or dense), where rows correspond to records
-        and columns correspond to features (e.g., n-grams or embeddings).
+        Convert raw strings into a numeric feature matrix.
+
+        Subclasses must implement this method.
 
         Parameters
         ----------
-        X : pandas.Series
-            Series of text strings to transform.
+        X
+            Series of raw text to encode.
 
         Returns
         -------
-        pandas.DataFrame
-            Transformed feature matrix. May use a SparseDtype internally.
+        DataHandler
+            Wrapper containing the encoded matrix and its feature names.
 
         """
         ...

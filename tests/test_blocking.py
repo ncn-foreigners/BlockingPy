@@ -104,21 +104,6 @@ def test_deduplication_vs_linkage(small_named_csr_data, small_named_txt_data):
     assert not link_result_txt.deduplication
 
 
-def test_graph_creation(small_named_csr_data, small_named_txt_data):
-    """Test graph creation with both matrix and text data."""
-    blocker = Blocker()
-    x_csr, _, x_cols, _ = small_named_csr_data
-    x_txt, _ = small_named_txt_data
-
-    result_csr = blocker.block(x_csr, x_colnames=x_cols, y_colnames=x_cols, graph=True)
-    assert isinstance(result_csr.graph, nx.Graph)
-    assert result_csr.graph.number_of_nodes() > 0
-
-    result_txt = blocker.block(x_txt["txt"], graph=True)
-    assert isinstance(result_txt.graph, nx.Graph)
-    assert result_txt.graph.number_of_nodes() > 0
-
-
 def test_column_intersection(small_named_csr_data):
     """Test handling of column intersections with named columns."""
     blocker = Blocker()

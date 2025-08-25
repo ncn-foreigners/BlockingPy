@@ -1,16 +1,24 @@
-"""Module containing the EmbeddingEncoder class."""
+"""Module containing the EmbeddingEncoder class using DataHandler."""
 
-import pandas as pd
+from __future__ import annotations
+
+import numpy as np
 from model2vec import StaticModel
+from pandas import Series
 
+from ..data_handler import DataHandler
 from .base import TextEncoder
 
 
 class EmbeddingEncoder(TextEncoder):
 
     """
-    Encoder that produces dense embeddings for text using the
-    StaticModel from the model2vec library.
+    Dense-vector encoder that wraps `model2vec.StaticModel`.
+
+    The encoder converts a :class:`pandas.Series` of text strings into a
+    :class:`DataHandler` whose ``data`` attribute is a C-contiguous
+    ``np.ndarray`` of shape ``(n_samples, embedding_dim)`` and whose ``cols``
+    are the synthetic column names ``emb_0 … emb_{d-1}``.
     """
 
     def __init__(
@@ -21,29 +29,8 @@ class EmbeddingEncoder(TextEncoder):
         emb_batch_size: int = 1024,
         show_progress_bar: bool = False,
         use_multiprocessing: bool = True,
-        multiprocessing_threshold: int = 10000,
+        multiprocessing_threshold: int = 10_000,
     ) -> None:
-        """
-        Initialize the embedding encoder.
-
-        Parameters
-        ----------
-        model : str, optional
-            Identifier or path for the pretrained model.
-        normalize : bool, optional
-            Whether to normalize output vectors (default True).
-        max_length : int, optional
-            Maximum sequence length for encoding (default 512).
-        emb_batch_size : int, optional
-            Batch size for encoding (default 1024).
-        show_progress_bar : bool, optional
-            If True, display a progress bar (default False).
-        use_multiprocessing : bool, optional
-            If True, use multiprocessing (default True).
-        multiprocessing_threshold : int, optional
-            Threshold for multiprocessing (default 10000).
-
-        """
         self.model = model
         self.normalize = normalize
         self.max_length = max_length
@@ -52,38 +39,39 @@ class EmbeddingEncoder(TextEncoder):
         self.use_multiprocessing = use_multiprocessing
         self.multiprocessing_threshold = multiprocessing_threshold
 
-    def fit(self, X: pd.Series, y: pd.Series | None = None) -> "EmbeddingEncoder":
-        """
-        Placeholder for fit method. This encoder does not learn any state
-        from the data, but this method is included for API consistency.
-        """
+    def fit(self, X: Series, y: Series | None = None) -> EmbeddingEncoder:
+        """No-op fit for scikit-learn compatibility."""
         return self
 
-    def transform(self, x: pd.Series) -> pd.DataFrame:
+    def transform(self, X: Series) -> DataHandler:
         """
-        Encode texts into dense embeddings.
+        Encode *X* into dense numeric vectors.
 
         Parameters
         ----------
-        x : pandas.Series
-            Series of text strings to encode.
+        X
+            Series of raw text strings.
 
         Returns
         -------
-        pandas.DataFrame
-            DataFrame of shape (n_samples, embedding_dim) with column names
-            'emb_0', 'emb_1', ..., representing each embedding dimension.
+        DataHandler
+            ``data`` is ``np.ndarray`` ``(n_samples, d)`` in ``float32``;
+            ``cols`` contains synthetic names ``emb_0 … emb_{d-1}``.
 
         """
-        x = x.tolist()
         model = StaticModel.from_pretrained(self.model, normalize=self.normalize)
-        embedding = model.encode(
-            x,
+        embeddings: np.ndarray = model.encode(
+            X.tolist(),
             max_length=self.max_length,
             batch_size=self.emb_batch_size,
             show_progress_bar=self.show_progress_bar,
             use_multiprocessing=self.use_multiprocessing,
             multiprocessing_threshold=self.multiprocessing_threshold,
         )
-        x_df = pd.DataFrame(embedding, columns=[f"emb_{i}" for i in range(embedding.shape[1])])
-        return x_df
+
+        emb_arr = np.ascontiguousarray(embeddings, dtype=np.float32)
+
+        dim = emb_arr.shape[1]
+        colnames = [f"emb_{i}" for i in range(dim)]
+
+        return DataHandler(data=emb_arr, cols=colnames)

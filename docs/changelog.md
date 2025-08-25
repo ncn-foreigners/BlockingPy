@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.0 [Unreleased]
+- ***GPU SUPPORT*** - through `faiss_gpu`, available indexes (`flat`, `ivf`, `ivfpq`, `cagra`)
+- Custom `DataHandler` class to wrap data replacing pandas dataframe
+- Switched from `networkx` to `igraph` for graph handling
+- Major memory & speed improvements for the CPU `BlockingPy`
+- Minor fixes & improvements
+
 ## v0.1.15
 - added embedding-based encoding support via `model2vec` library
 - fix `lowercase=False` bug

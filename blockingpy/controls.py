@@ -75,6 +75,7 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
             'annoy': {...},
             'voyager': {...},
             'faiss': {...},
+            'gpu_faiss': {...},
             'algo': str ['lsh' or 'kd']
         }
 
@@ -86,7 +87,7 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
     - Annoy: https://github.com/spotify/annoy
     - LSH and KD: https://github.com/mlpack/mlpack
     - Voyager: https://github.com/spotify/voyager
-    - FAISS: https://github.com/facebookresearch/faiss (CPU only)
+    - FAISS: https://github.com/facebookresearch/faiss
 
     Examples
     --------
@@ -170,6 +171,41 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
             "hnsw_ef_search": 200,
             "lsh_nbits": 2,
             "lsh_rotate_data": True,
+        },
+        "gpu_faiss": {
+            "index_type": "flat",
+            "k_search": 30,
+            "distance": "cosine",
+            "path": None,
+            "ivf_nlist": 100,
+            "ivf_nprobe": 10,
+            "ivfpq_nlist": 100,
+            "ivfpq_m": 8,
+            "ivfpq_nbits": 8,
+            "ivfpq_nprobe": 10,
+            "ivfpq_useFloat16": False,
+            "ivfpq_usePrecomputed": False,
+            "ivfpq_reserveVecs": 0,
+            "ivfpq_use_cuvs": False,
+            "cagra": {
+                "graph_degree": 64,
+                "intermediate_graph_degree": 128,
+                "build_algo": "ivf_pq",
+                "nn_descent_niter": 20,
+                "itopk_size": 64,
+                "max_queries": 0,
+                "algo": "auto",
+                "team_size": 0,
+                "search_width": 1,
+                "min_iterations": 0,
+                "max_iterations": 0,
+                "thread_block_size": 0,
+                "hashmap_mode": "auto",
+                "hashmap_min_bitlen": 0,
+                "hashmap_max_fill_rate": 0.5,
+                "num_random_samplings": 1,
+                "seed": 0x128394,
+            },
         },
         "algo": "lsh",
     }
