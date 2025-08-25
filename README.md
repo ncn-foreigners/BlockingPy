@@ -9,6 +9,7 @@
 [![Documentation Status](https://readthedocs.org/projects/blockingpy/badge/?version=latest)](https://blockingpy.readthedocs.io/en/latest/?badge=latest)
 ![PyPI Downloads](https://img.shields.io/pypi/dm/blockingpy)
 
+# GPU BRANCH README
 
 # BlockingPy
 
@@ -150,15 +151,15 @@ print(dedup_result.result)
 You can find detailed information about BlockingPy in [documentation](https://blockingpy.readthedocs.io/en/latest/).
 
 ## GPU Support
-`BlockingPy` can process large datasets by utilizing the GPU with `faiss_gpu` algorithms
+`BlockingPy` can process large datasets by utilizing the GPU with `faiss_gpu` algorithms.
 
 ### Prerequisites
-OS : Linux or Windows 11 with WSL2 (Ubuntu)
-Python: 3.10
-GPU: Nvidia with driver supporting CUDA >= 12.4
-Tools: conda/mamba + pip
+- OS: Linux or Windows 11 with WSL2 (Ubuntu)  
+- Python: 3.10  
+- GPU: Nvidia with driver supporting CUDA ≥ 12.4  
+- Tools: conda/mamba + pip 
 
-### Install
+### Install (not yet implemented)
 ```python
 # 1) Env
 mamba create -n blockingpy-gpu python=3.10 -y
