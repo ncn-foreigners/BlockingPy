@@ -42,31 +42,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+
+      - uses: mamba-org/setup-micromamba@v2
         with:
-          activate-environment: blockingpy-gpu
-          python-version: "3.10"
-      - name: Install mamba and env
+          environment-name: blockingpy-gpu
+          create-args: python=3.10
+          init-shell: bash
+          condarc: |
+            channels:
+              - conda-forge
+              - pytorch/label/nightly
+              - nvidia
+            channel_priority: flexible
+
+      - name: Install FAISS cuVS nightly
         shell: bash -l {0}
         run: |
-          conda install -n base -c conda-forge mamba -y
-          mamba create -n blockingpy-gpu python=3.10 -y
-          conda activate blockingpy-gpu
-      - name: Install FAISS GPU cuVS 
+          micromamba install -n blockingpy-gpu -y \
+            -c pytorch/label/nightly -c conda-forge -c nvidia \
+            'faiss-gpu-cuvs=1.11.0=py3.10_*_cuda12.4.0_nightly'
+
+      - name: Install base stack (conda)
         shell: bash -l {0}
         run: |
-          conda activate blockingpy-gpu
-          mamba install -c pytorch/label/nightly \
-            faiss-gpu-cuvs=1.11.0=py3.10_ha3bacd1_55_cuda12.4.0_nightly -y
-         
-      - name: Install blockingpy-gpu 
+          micromamba install -n blockingpy-gpu -y numpy scipy scikit-learn pandas python-igraph
+
+      - name: Install Python deps (pip)
         shell: bash -l {0}
         run: |
-          conda activate blockingpy-gpu
-          pip install --no-deps -e packages/blockingpy-gpu
-          python -c "import blockingpy; print('blockingpy import ok')"
-      - name: Run GPU Faiss tests
+          micromamba run -n blockingpy-gpu pip install annoy hnswlib pynndescent nltk voyager model2vec
+
+      - name: Install blockingpy-gpu
         shell: bash -l {0}
         run: |
-          conda activate blockingpy-gpu
-          pytest tests/test_gpu_faiss_blocker.py -q
+          micromamba run -n blockingpy-gpu pip install --no-deps -e packages/blockingpy-gpu
+
+      - name: Run GPU FAISS test file
+        shell: bash -l {0}
+        run: micromamba run -n blockingpy-gpu pytest tests/test_gpu_faiss_blocker.py -q
+

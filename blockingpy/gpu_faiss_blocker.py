@@ -8,7 +8,7 @@ import os
 import random
 from typing import Any, Literal
 
-
+import faiss
 import numpy as np
 import pandas as pd
 
@@ -54,11 +54,6 @@ class GPUFaissBlocker(BlockingMethod):
     """
 
     def __init__(self) -> None:
-        try:
-            import faiss
-            assert hasattr(faiss, "get_num_gpus") and faiss.get_num_gpus() > 0
-        except Exception as e:
-            raise RuntimeError("FAISS GPU missing. See docs on how to install") from e
         self.index: faiss.Index
         self.x_columns: list[str]
 
