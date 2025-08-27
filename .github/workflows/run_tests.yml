@@ -90,5 +90,5 @@ jobs:
       - name: Run GPU FAISS test file
         shell: bash -l {0}
         working-directory: ${{ github.workspace }}
-        run: micromamba run -n blockingpy-gpu python -m pytest -q tests/test_gpu_faiss_blocker.py
+        run: micromamba run -n blockingpy-gpu python -m pytest -q tests/test_gpu_faiss.py
 
