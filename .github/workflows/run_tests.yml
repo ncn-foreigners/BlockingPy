@@ -59,8 +59,13 @@ jobs:
         shell: bash -l {0}
         run: |
           micromamba install -n blockingpy-gpu -y \
-            -c pytorch/label/nightly -c conda-forge -c nvidia \
-            'faiss-gpu-cuvs=1.11.0=py3.10_*_cuda12.4.0_nightly'
+            -c rapidsai-nightly -c rapidsai \
+            -c pytorch/label/nightly -c nvidia -c conda-forge \
+            'faiss-gpu-cuvs=1.11.*=*cuda12.4.0_nightly'
+          micromamba run -n blockingpy-gpu python - <<'PY'
+          import faiss
+          print("faiss ok, GPUs:", getattr(faiss, "get_num_gpus", lambda: 0)())
+          PY
 
       - name: Install base stack (conda)
         shell: bash -l {0}
