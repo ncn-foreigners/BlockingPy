@@ -2,45 +2,71 @@ name: Run Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, gpu ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, gpu ]
 
 jobs:
-  test:
+  test-cpu:
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.10", "3.11", "3.12"]
-
     runs-on: ${{ matrix.os }}
-    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: pip
-    
-    - name: Install system dependencies (Ubuntu)
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libmlpack-dev
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install system dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmlpack-dev
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install mlpack
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov
+      - name: Run CPU tests 
+        run: pytest --ignore=tests/test_gpu_faiss_blocker.py
 
-    - name: Install system dependencies (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        brew install mlpack
-
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e .[dev]
-        pip install pytest
-    
-    - name: Run tests
-      run: pytest
+  test-gpu-single:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: blockingpy-gpu
+          python-version: "3.10"
+      - name: Install mamba and env
+        shell: bash -l {0}
+        run: |
+          conda install -n base -c conda-forge mamba -y
+          mamba create -n blockingpy-gpu python=3.10 -y
+          conda activate blockingpy-gpu
+      - name: Install FAISS GPU cuVS 
+        shell: bash -l {0}
+        run: |
+          conda activate blockingpy-gpu
+          mamba install -c pytorch/label/nightly \
+            faiss-gpu-cuvs=1.11.0=py3.10_ha3bacd1_55_cuda12.4.0_nightly -y
+         
+      - name: Install blockingpy-gpu 
+        shell: bash -l {0}
+        run: |
+          conda activate blockingpy-gpu
+          pip install --no-deps -e packages/blockingpy-gpu
+          python -c "import blockingpy; print('blockingpy import ok')"
+      - name: Run GPU Faiss tests
+        shell: bash -l {0}
+        run: |
+          conda activate blockingpy-gpu
+          pytest tests/test_gpu_faiss_blocker.py -q
