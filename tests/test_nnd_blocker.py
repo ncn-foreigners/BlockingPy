@@ -2,11 +2,11 @@
 
 import logging
 
-from blockingpy.data_handler import DataHandler
-
 import numpy as np
 import pandas as pd
 import pytest
+
+from blockingpy.data_handler import DataHandler
 
 
 @pytest.fixture
@@ -121,8 +121,8 @@ def test_single_point(nnd_blocker, single_sparse_point, nnd_controls):
 def test_empty_data_handling(nnd_blocker, nnd_controls):
     """Test handling of empty datasets."""
     rng = np.random.default_rng()
-    x = DataHandler(data=rng.random((0, 3)), cols=['col1', 'col2', 'col3'])
-    y = DataHandler(data=rng.random((5, 3)), cols=['col1', 'col2', 'col3'])
+    x = DataHandler(data=rng.random((0, 3)), cols=["col1", "col2", "col3"])
+    y = DataHandler(data=rng.random((5, 3)), cols=["col1", "col2", "col3"])
 
     with pytest.raises(ValueError):
         nnd_blocker.block(x=x, y=y, k=1, verbose=False, controls=nnd_controls)

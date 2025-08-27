@@ -1,4 +1,5 @@
 """Tests for the InputValidator class in blockingpy.helper_functions."""
+
 import pytest
 
 from blockingpy.helper_functions import InputValidator
@@ -31,6 +32,7 @@ def test_unknown_subkey_in_section_shingles():
     with pytest.raises(ValueError) as exc:
         InputValidator.validate_controls_txt(bad)
     assert "Unknown keys in control_txt['shingle']" in str(exc.value)
+
 
 def test_unknown_subkey_in_section_embedd():
     """

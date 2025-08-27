@@ -4,11 +4,11 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 
-from blockingpy.data_handler import DataHandler
-
 import numpy as np
 import pandas as pd
 import pytest
+
+from blockingpy.data_handler import DataHandler
 
 
 @pytest.fixture

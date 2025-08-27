@@ -4,11 +4,11 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 
-from blockingpy.data_handler import DataHandler
-
 import numpy as np
 import pandas as pd
 import pytest
+
+from blockingpy.data_handler import DataHandler
 
 
 @pytest.fixture
@@ -98,9 +98,7 @@ def test_k_search_warning(annoy_blocker, small_sparse_data, annoy_controls, capl
     annoy_controls["annoy"]["k_search"] = x.shape[0] + 10
     annoy_blocker.block(x=x, y=y, k=1, verbose=True, controls=annoy_controls)
 
-    warning_message = (
-        f"k_search larger than reference set; adjusted."
-    )
+    warning_message = "k_search larger than reference set; adjusted."
     assert any(warning_message in record.message for record in caplog.records)
 
 

@@ -4,18 +4,20 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 
-from blockingpy.data_handler import DataHandler
-
 import numpy as np
 import pandas as pd
 import pytest
 
+from blockingpy.data_handler import DataHandler
+
 pytestmark = pytest.mark.requires_faiss_gpu
 pytest.importorskip("faiss", reason="faiss [gpu] not installed")
+
 
 @pytest.fixture
 def gpu_faiss_blocker():
     from blockingpy.gpu_faiss_blocker import GPUFaissBlocker
+
     return GPUFaissBlocker()
 
 
@@ -28,22 +30,17 @@ def gpu_faiss_controls():
             "k_search": 5,
             "distance": "cosine",
             "path": None,
-
             "ivf_nlist": 64,
             "ivf_nprobe": 8,
-
             "ivfpq_nlist": 64,
             "ivfpq_m": 8,
             "ivfpq_nbits": 8,
             "ivfpq_nprobe": 8,
-
             "ivfpq_useFloat16": False,
             "ivfpq_usePrecomputed": False,
             "ivfpq_reserveVecs": 0,
-            "ivfpq_use_cuvs": False, 
-
+            "ivfpq_use_cuvs": False,
             "train_size": None,
-
             "cagra": {
                 "graph_degree": 64,
                 "intermediate_graph_degree": 96,
@@ -52,6 +49,7 @@ def gpu_faiss_controls():
             },
         }
     }
+
 
 def test_basic_blocking_gpu(gpu_faiss_blocker, small_sparse_data, gpu_faiss_controls):
     x, y = small_sparse_data
@@ -87,7 +85,11 @@ def test_k_search_guard_gpu(gpu_faiss_blocker, small_sparse_data, gpu_faiss_cont
     controls["gpu_faiss"]["k_search"] = x.shape[0] + 10
     with caplog.at_level(logging.WARNING):
         _ = gpu_faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
-    assert f"k_search={x.shape[0] + 10} exceeds reference size ({x.shape[0]}); clipping." in caplog.text
+    assert (
+        f"k_search={x.shape[0] + 10} exceeds reference size ({x.shape[0]}); clipping."
+        in caplog.text
+    )
+
 
 @pytest.mark.parametrize("index_type", ["flat"])
 def test_index_flat_gpu(gpu_faiss_blocker, large_sparse_data, gpu_faiss_controls, index_type):
@@ -133,6 +135,7 @@ def test_index_ivfpq_gpu(gpu_faiss_blocker, large_sparse_data, gpu_faiss_control
     res = gpu_faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
     assert len(res) == y.shape[0]
 
+
 def test_index_cagra_gpu(gpu_faiss_blocker, small_sparse_data, gpu_faiss_controls):
     x, y = small_sparse_data
     controls = gpu_faiss_controls.copy()
@@ -144,6 +147,7 @@ def test_index_cagra_gpu(gpu_faiss_blocker, small_sparse_data, gpu_faiss_control
         pytest.xfail("CAGRA path not implemented in current build.")
     else:
         assert len(res) == y.shape[0]
+
 
 def test_identical_points_gpu(gpu_faiss_blocker, identical_sparse_data, gpu_faiss_controls):
     x, y = identical_sparse_data
@@ -162,7 +166,7 @@ def test_single_point_gpu(gpu_faiss_blocker, single_sparse_point, gpu_faiss_cont
 def test_empty_reference_gpu(gpu_faiss_blocker, gpu_faiss_controls):
     rng = np.random.default_rng(0)
     x = DataHandler(data=rng.random((0, 3)), cols=["a", "b", "c"])
-    y = DataHandler(data=rng.random((5,3)), cols=["a", "b", "c"])
+    y = DataHandler(data=rng.random((5, 3)), cols=["a", "b", "c"])
 
     with pytest.raises(AssertionError):
         gpu_faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=gpu_faiss_controls)
@@ -187,7 +191,9 @@ def test_invalid_save_path_gpu(gpu_faiss_blocker, small_sparse_data, gpu_faiss_c
 
 
 @pytest.mark.parametrize("train_frac", [None, 0.2, 0.5, 1.0])
-def test_train_size_respected_gpu(gpu_faiss_blocker, large_sparse_data, gpu_faiss_controls, train_frac):
+def test_train_size_respected_gpu(
+    gpu_faiss_blocker, large_sparse_data, gpu_faiss_controls, train_frac
+):
     """
     Ensure we can pass a train subset size for IVF/IVFPQ without errors.
     This doesn't validate internal FAISS state—just that our code path works.

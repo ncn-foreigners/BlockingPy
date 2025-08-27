@@ -2,15 +2,15 @@
 
 import logging
 
-from blockingpy.data_handler import DataHandler
-
 import numpy as np
 import pandas as pd
 import pytest
 
+from blockingpy.data_handler import DataHandler
 
 pytestmark = pytest.mark.requires_mlpack
 pytest.importorskip("mlpack", reason="mlpack not installed")
+
 
 @pytest.fixture
 def mlpack_controls():

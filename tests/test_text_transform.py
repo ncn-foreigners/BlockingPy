@@ -6,20 +6,19 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from blockingpy.text_encoders.text_transformer import TextTransformer
-from blockingpy.text_encoders.shingle_encoder import NgramEncoder
-from blockingpy.text_encoders.embedding_encoder import EmbeddingEncoder
 from blockingpy.data_handler import DataHandler
+from blockingpy.text_encoders.embedding_encoder import EmbeddingEncoder
+from blockingpy.text_encoders.shingle_encoder import NgramEncoder
+from blockingpy.text_encoders.text_transformer import TextTransformer
 
 
 @pytest.fixture
-
 def sample_text_series() -> pd.Series:
     """Small text sample for encoder tests."""
     return pd.Series(["Monty Python", "python monty!!", "MONTY-PYTHON"])
 
 
-def _assert_equal_handlers(lhs: DataHandler, rhs: DataHandler) -> None:  # noqa: D401
+def _assert_equal_handlers(lhs: DataHandler, rhs: DataHandler) -> None:
     """Assert two DataHandlers hold identical dense data with the same columns (order‑agnostic)."""
     # Ensure they contain exactly the same column set
     assert set(lhs.cols) == set(rhs.cols), "Column sets differ"
@@ -35,7 +34,6 @@ def _assert_equal_handlers(lhs: DataHandler, rhs: DataHandler) -> None:  # noqa:
     )
 
 
-
 def test_ngram_encoder_basic(sample_text_series: pd.Series) -> None:
     """NgramEncoder should return a DataHandler with expected shape and non‑negative values."""
     encoder = NgramEncoder(n_shingles=2, lowercase=True, strip_non_alphanum=True)
@@ -47,7 +45,6 @@ def test_ngram_encoder_basic(sample_text_series: pd.Series) -> None:
 
     # Non‑negative values in dense view
     assert np.all(dh.to_dense() >= 0)
-
 
 
 def test_ngram_encoder_token_contents() -> None:
@@ -68,10 +65,10 @@ def dummy_static_model(monkeypatch):
         dim: int = 4
 
         @classmethod
-        def from_pretrained(cls, model: str, normalize: bool | None = None):  # noqa: D401
+        def from_pretrained(cls, model: str, normalize: bool | None = None):
             return cls()
 
-        def encode(self, texts, *_, **__):  # noqa: ANN001, D401
+        def encode(self, texts, *_, **__):
             """Return ones for each text with fixed dimensionality."""
             return np.ones((len(texts), self.dim), dtype=np.float32)
 
@@ -81,8 +78,9 @@ def dummy_static_model(monkeypatch):
     yield _DummyModel
 
 
-
-def test_embedding_encoder_basic(sample_text_series: pd.Series, dummy_static_model) -> None:  # noqa: D401
+def test_embedding_encoder_basic(
+    sample_text_series: pd.Series, dummy_static_model
+) -> None:
     """EmbeddingEncoder should return DataHandler with expected embedding columns."""
     encoder = EmbeddingEncoder(model="dummy/unused", normalize=True)
     dh = encoder.transform(sample_text_series)
@@ -102,7 +100,6 @@ def test_embedding_encoder_basic(sample_text_series: pd.Series, dummy_static_mod
     assert np.all(dh.to_dense() == 1)
 
 
-
 def test_text_transformer_shingle_equivalence(sample_text_series: pd.Series) -> None:
     """TextTransformer('shingle') output should equal direct NgramEncoder output."""
     transformer = TextTransformer(encoder="shingle", shingle={"n_shingles": 2})
@@ -112,8 +109,9 @@ def test_text_transformer_shingle_equivalence(sample_text_series: pd.Series) -> 
     _assert_equal_handlers(dh_trans, dh_direct)
 
 
-
-def test_text_transformer_embedding_selection(sample_text_series: pd.Series, dummy_static_model) -> None:  # noqa: D401
+def test_text_transformer_embedding_selection(
+    sample_text_series: pd.Series, dummy_static_model
+) -> None:
     """TextTransformer should select EmbeddingEncoder when requested."""
     transformer = TextTransformer(encoder="embedding", embedding={"model": "irrelevant"})
 
@@ -127,7 +125,6 @@ def test_text_transformer_embedding_selection(sample_text_series: pd.Series, dum
     assert transformer.encoder is transformer.fit(sample_text_series).encoder
 
     assert result.shape[1] == dummy_static_model.dim
-
 
 
 def test_text_transformer_invalid_encoder() -> None:

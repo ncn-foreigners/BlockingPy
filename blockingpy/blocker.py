@@ -524,17 +524,20 @@ class Blocker:
                 "f1_score": f1_score,
             }
         )
-    
-    def _get_blocker(self, ann:str):
+
+    def _get_blocker(self, ann: str):
         """Helper to get the selected blocker"""
         if ann == "faiss":
             from .faiss_blocker import FaissBlocker
+
             return FaissBlocker
         if ann == "gpu_faiss":
             from .gpu_faiss_blocker import GPUFaissBlocker
+
             return GPUFaissBlocker
         if ann in {"lsh", "kd"}:
             from .mlpack_blocker import MLPackBlocker
+
             return MLPackBlocker
         return self.BLOCKER_MAP[ann]
 

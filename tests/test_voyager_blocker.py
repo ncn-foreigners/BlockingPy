@@ -4,12 +4,11 @@ import logging
 import os
 from tempfile import TemporaryDirectory
 
-from blockingpy.data_handler import DataHandler
-
 import numpy as np
 import pandas as pd
 import pytest
-from scipy import sparse
+
+from blockingpy.data_handler import DataHandler
 
 
 @pytest.fixture
@@ -131,8 +130,8 @@ def test_empty_data_handling(voyager_blocker, voyager_controls):
     # x = pd.DataFrame.sparse.from_spmatrix(x)
     # y = pd.DataFrame.sparse.from_spmatrix(y)
 
-    x = DataHandler(data=rng.random((0,3)), cols=["col1", "col2", "col3"])
-    y = DataHandler(data=rng.random((5,3)), cols=["col1", "col2", "col3"])
+    x = DataHandler(data=rng.random((0, 3)), cols=["col1", "col2", "col3"])
+    y = DataHandler(data=rng.random((5, 3)), cols=["col1", "col2", "col3"])
 
     with pytest.raises(ValueError):
         voyager_blocker.block(x=x, y=y, k=1, verbose=False, controls=voyager_controls)
