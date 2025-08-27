@@ -4,7 +4,6 @@ import logging
 import os
 from typing import Any
 
-import faiss
 import numpy as np
 import pandas as pd
 
@@ -89,6 +88,10 @@ class FaissBlocker(BlockingMethod):
 
         Creates a new FaissBlocker with empty index.
         """
+        try:
+            import faiss
+        except Exception as e:
+            raise RuntimeError("FAISS CPU missing. Install: pip install faiss-cpu") from e
         self.index: faiss.Index
         self.x_columns: list[str]
 

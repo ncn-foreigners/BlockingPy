@@ -15,14 +15,11 @@ from .annoy_blocker import AnnoyBlocker
 from .blocking_result import BlockingResult
 from .controls import controls_ann, controls_txt
 from .data_handler import DataHandler
-from .faiss_blocker import FaissBlocker
-from .gpu_faiss_blocker import GPUFaissBlocker
 from .helper_functions import (
     DistanceMetricValidator,
     InputValidator,
 )
 from .hnsw_blocker import HNSWBlocker
-from .mlpack_blocker import MLPackBlocker
 from .nnd_blocker import NNDBlocker
 from .text_encoders.text_transformer import TextTransformer
 from .voyager_blocker import VoyagerBlocker
@@ -47,12 +44,8 @@ class Blocker:
         self.BLOCKER_MAP = {
             "annoy": AnnoyBlocker,
             "hnsw": HNSWBlocker,
-            "lsh": MLPackBlocker,
-            "kd": MLPackBlocker,
             "nnd": NNDBlocker,
             "voyager": VoyagerBlocker,
-            "faiss": FaissBlocker,
-            "gpu_faiss": GPUFaissBlocker,
         }
 
     def block(
@@ -63,7 +56,6 @@ class Blocker:
         ann: str = "faiss",
         true_blocks: pd.DataFrame | None = None,
         verbose: int = 0,
-        graph: bool = False,
         control_txt: dict[str, Any] = {},
         control_ann: dict[str, Any] = {},
         x_colnames: list[str] | None = None,
@@ -195,7 +187,7 @@ class Blocker:
         x_sub = DataHandler(x_dtm.data[:, ix], colnames_xy.tolist())
         y_sub = DataHandler(y_dtm.data[:, iy], colnames_xy.tolist())
 
-        blocker_cls = self.BLOCKER_MAP.get(ann)
+        blocker_cls = self._get_blocker(ann)
         if blocker_cls is None:
             raise ValueError(f"Unsupported algorithm: {ann}")
         x_df = blocker_cls().block(
@@ -532,6 +524,19 @@ class Blocker:
                 "f1_score": f1_score,
             }
         )
+    
+    def _get_blocker(self, ann:str):
+        """Helper to get the selected blocker"""
+        if ann == "faiss":
+            from .faiss_blocker import FaissBlocker
+            return FaissBlocker
+        if ann == "gpu_faiss":
+            from .gpu_faiss_blocker import GPUFaissBlocker
+            return GPUFaissBlocker
+        if ann in {"lsh", "kd"}:
+            from .mlpack_blocker import MLPackBlocker
+            return MLPackBlocker
+        return self.BLOCKER_MAP[ann]
 
     @staticmethod
     def _get_reduction_ratio(

@@ -8,13 +8,6 @@ import os
 import random
 from typing import Any, Literal
 
-try:
-    import faiss
-
-    if not hasattr(faiss, "StandardGpuResources"):
-        raise ImportError("faiss-gpu not available")
-except ImportError:
-    faiss = None
 
 import numpy as np
 import pandas as pd
@@ -60,16 +53,21 @@ class GPUFaissBlocker(BlockingMethod):
 
     """
 
-    METRIC_MAP: dict[str, int] = {
-        "euclidean": faiss.METRIC_L2,
-        "l2": faiss.METRIC_L2,
-        "inner_product": faiss.METRIC_INNER_PRODUCT,
-        "cosine": faiss.METRIC_INNER_PRODUCT,
-    }
-
     def __init__(self) -> None:
+        try:
+            import faiss
+            assert hasattr(faiss, "get_num_gpus") and faiss.get_num_gpus() > 0
+        except Exception as e:
+            raise RuntimeError("FAISS GPU missing. See docs on how to install") from e
         self.index: faiss.Index
         self.x_columns: list[str]
+
+        self.METRIC_MAP: dict[str, int] = {
+            "euclidean": faiss.METRIC_L2,
+            "l2": faiss.METRIC_L2,
+            "inner_product": faiss.METRIC_INNER_PRODUCT,
+            "cosine": faiss.METRIC_INNER_PRODUCT,
+        }
 
     def block(
         self,

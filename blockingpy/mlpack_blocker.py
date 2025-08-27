@@ -5,11 +5,6 @@ from typing import Any
 
 import pandas as pd
 
-try:
-    from mlpack import knn, lsh
-except ImportError:
-    knn = lsh = None
-
 from .base import BlockingMethod
 from .data_handler import DataHandler
 from .helper_functions import rearrange_array
@@ -54,6 +49,11 @@ class MLPackBlocker(BlockingMethod):
 
         Creates a new MLPackBlocker with no algorithm selected.
         """
+        try:
+            import mlpack
+        except Exception as e:
+            raise RuntimeError("mlpack missing. pip install mlpack  or  conda -c conda-forge mlpack") from e
+        self._mlpack = mlpack
         self.algo: str
         self.ALGO_MAP: dict[str, str] = {"lsh": "lsh", "kd": "knn"}
 
@@ -143,7 +143,7 @@ class MLPackBlocker(BlockingMethod):
         logger.info(f"Initializing MLPack {self.algo.upper()} index...")
 
         if self.algo == "lsh":
-            query_result = lsh(
+            query_result = self._mlpack.lsh(
                 k=k_search,
                 query=Y,
                 reference=X,
@@ -156,7 +156,7 @@ class MLPackBlocker(BlockingMethod):
                 tables=controls["lsh"].get("tables"),
             )
         else:
-            query_result = knn(
+            query_result = self._mlpack.knn(
                 k=k_search,
                 query=Y,
                 reference=X,
