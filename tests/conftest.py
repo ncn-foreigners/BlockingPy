@@ -8,9 +8,9 @@ from scipy import sparse
 from blockingpy.annoy_blocker import AnnoyBlocker
 from blockingpy.data_handler import DataHandler
 from blockingpy import Blocker
-from blockingpy.faiss_blocker import FaissBlocker
+# from blockingpy.faiss_blocker import FaissBlocker
 from blockingpy.hnsw_blocker import HNSWBlocker
-from blockingpy.mlpack_blocker import MLPackBlocker
+# from blockingpy.mlpack_blocker import MLPackBlocker
 from blockingpy.nnd_blocker import NNDBlocker
 from blockingpy.voyager_blocker import VoyagerBlocker
 
@@ -24,6 +24,8 @@ def blocker():
 @pytest.fixture
 def mlpack_blocker():
     """Create MLPackBlocker instance for each test."""
+    pytest.importorskip("mlpack", reason="mlpack not installed")
+    from blockingpy.mlpack_blocker import MLPackBlocker
     return MLPackBlocker()
 
 
@@ -42,6 +44,8 @@ def voyager_blocker():
 @pytest.fixture
 def faiss_blocker():
     """Create FaissBlocker instance for each test."""
+    pytest.importorskip("faiss", reason="FAISS not installed")
+    from blockingpy.faiss_blocker import FaissBlocker
     return FaissBlocker()
 
 
