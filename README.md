@@ -1,19 +1,22 @@
 [![License](https://img.shields.io/github/license/ncn-foreigners/BlockingPy)](https://github.com/ncn-foreigners/BlockingPy/blob/main/LICENSE) 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Python version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
-[![codecov](https://codecov.io/gh/ncn-foreigners/BlockingPy/graph/badge.svg?token=BF41O220NY)](https://codecov.io/gh/ncn-foreigners/BlockingPy)\
+[![codecov](https://codecov.io/gh/ncn-foreigners/BlockingPy/graph/badge.svg?token=BF41O220NY)](https://codecov.io/gh/ncn-foreigners/BlockingPy)
 [![PyPI version](https://img.shields.io/pypi/v/blockingpy.svg)](https://pypi.org/project/blockingpy/) 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://github.com/ncn-foreigners/BlockingPy/actions/workflows/run_tests.yml/badge.svg)](https://github.com/ncn-foreigners/BlockingPy/actions/workflows/run_tests.yml)
+[![Tests](https://github.com/ncn-foreigners/BlockingPy/actions/workflows/run_tests.yml/badge.svg)](https://github.com/ncn-foreigners/BlockingPy/actions/workflows/run_tests.yml)\
 [![GitHub last commit](https://img.shields.io/github/last-commit/ncn-foreigners/BlockingPy)](https://github.com/ncn-foreigners/BlockingPy/commits/main)
 [![Documentation Status](https://readthedocs.org/projects/blockingpy/badge/?version=latest)](https://blockingpy.readthedocs.io/en/latest/?badge=latest)
 ![PyPI Downloads](https://img.shields.io/pypi/dm/blockingpy)
-
-# GPU BRANCH README
+[![PyPI (GPU)](https://img.shields.io/pypi/v/blockingpy-gpu.svg?label=blockingpy-gpu)](https://pypi.org/project/blockingpy-gpu/)
+![CUDA ≥12.4](https://img.shields.io/badge/CUDA-%E2%89%A5%2012.4-76b900)
 
 # BlockingPy
 
-BlockingPy is a Python package that implements efficient blocking methods for record linkage and data deduplication using Approximate Nearest Neighbor (ANN) algorithms. It is based on [R blocking package](https://github.com/ncn-foreigners/blocking).
+BlockingPy is a Python package that implements efficient blocking methods for record linkage and data deduplication using Approximate Nearest Neighbor (ANN) algorithms. It is based on [R blocking package](https://github.com/ncn-foreigners/blocking). 
+
+**GPU build:** install `blockingpy-gpu` for FAISS GPU acceleration (Flat/IVF/IVFPQ/CAGRA).
+
 
 ## Purpose
 
@@ -36,6 +39,8 @@ You may need to run the following beforehand:
 sudo apt-get install -y libmlpack-dev # on Linux
 brew install mlpack # on MacOS
 ```
+for the GPU version: see [here](#gpu-support) or [docs](https://blockingpy.readthedocs.io/en/latest/gpu/index.html)
+
 ## Basic Usage
 ### Record Linkage
 ```python
@@ -146,12 +151,12 @@ print(dedup_result.result)
 - Support for already created Document-Term-Matrices (as `np.ndarray` or `csr_matrix`)
 - Support for both record linkage and deduplication
 - Evaluation metrics when true blocks are known
-- GPU support for fast blocking of large datasets
+- GPU support for fast blocking of large datasets usin GPU-accelerated indexes from FAISS
 
 You can find detailed information about BlockingPy in [documentation](https://blockingpy.readthedocs.io/en/latest/).
 
 ## GPU Support
-`BlockingPy` can process large datasets by utilizing the GPU with `faiss_gpu` algorithms.
+`BlockingPy` can process large datasets by utilizing the GPU with `faiss_gpu` algorithms. The available GPU indexes are (`Flat`/`IVF`/`IVFPQ`/`CAGRA`). `blockingpy-gpu` also includes all CPU indexes besides the **mlpack** backends.
 
 ### Prerequisites
 - OS: Linux or Windows 11 with WSL2 (Ubuntu)  
@@ -159,18 +164,21 @@ You can find detailed information about BlockingPy in [documentation](https://bl
 - GPU: Nvidia with driver supporting CUDA ≥ 12.4  
 - Tools: conda/mamba + pip 
 
-### Install (not yet implemented)
+### Install
+
+PyPI wheels do not provide CUDA-enabled FAISS. You must install FAISS-GPU via conda/mamba, then install `blockingpy-gpu` with pip.
+
 ```python
 # 1) Env
 mamba create -n blockingpy-gpu python=3.10 -y
 conda activate blockingpy-gpu
 
-# 2) Install FAISS GPU (nightly cuVS build)
+# 2) Install FAISS GPU (nightly cuVS build) - this version was tested
 mamba install -c pytorch/label/nightly \
   faiss-gpu-cuvs=1.11.0=py3.10_ha3bacd1_55_cuda12.4.0_nightly -y
 
 # 3) Install BlockingPy and the rest of deps with pip (or poetry, uv etc.)
-pip install blockingpy[gpu]
+pip install blockingpy-gpu
 ```
 
 ## Example Datasets
