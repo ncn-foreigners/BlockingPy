@@ -20,10 +20,8 @@ def sample_text_series() -> pd.Series:
 
 def _assert_equal_handlers(lhs: DataHandler, rhs: DataHandler) -> None:
     """Assert two DataHandlers hold identical dense data with the same columns (order‑agnostic)."""
-    # Ensure they contain exactly the same column set
     assert set(lhs.cols) == set(rhs.cols), "Column sets differ"
 
-    # Establish a canonical column order (sorted) to align both matrices
     common_cols = sorted(lhs.cols)
     lhs_indices = [lhs.cols.index(c) for c in common_cols]
     rhs_indices = [rhs.cols.index(c) for c in common_cols]
@@ -39,11 +37,9 @@ def test_ngram_encoder_basic(sample_text_series: pd.Series) -> None:
     encoder = NgramEncoder(n_shingles=2, lowercase=True, strip_non_alphanum=True)
     dh = encoder.transform(sample_text_series)
 
-    # Shape check
     assert dh.shape[0] == len(sample_text_series)
     assert dh.shape[1] > 0
 
-    # Non‑negative values in dense view
     assert np.all(dh.to_dense() >= 0)
 
 
@@ -87,12 +83,10 @@ def test_embedding_encoder_basic(
 
     assert dh.shape == (len(sample_text_series), dummy_static_model.dim)
 
-    # fit_transform parity
     np.testing.assert_array_equal(
         encoder.transform(sample_text_series).to_dense(),
         encoder.fit_transform(sample_text_series).to_dense(),
     )
-    # fit returns self
     assert encoder is encoder.fit(sample_text_series)
 
     expected_cols = [f"emb_{i}" for i in range(dummy_static_model.dim)]
@@ -117,7 +111,6 @@ def test_text_transformer_embedding_selection(
 
     result = transformer.transform(sample_text_series)
 
-    # fit_transform parity
     np.testing.assert_array_equal(
         transformer.transform(sample_text_series).to_dense(),
         transformer.fit_transform(sample_text_series).to_dense(),

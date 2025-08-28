@@ -33,7 +33,7 @@ class GPUFaissBlocker(BlockingMethod):
 
     Attributes
     ----------
-    index : faiss.IndexFlat or None
+    index : faiss.Index (gpu)
         The FAISS index used for nearest neighbor search
     x_columns : array-like or None
         Column names of the reference dataset

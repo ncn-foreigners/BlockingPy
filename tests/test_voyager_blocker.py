@@ -125,10 +125,6 @@ def test_single_point(voyager_blocker, single_sparse_point, voyager_controls):
 def test_empty_data_handling(voyager_blocker, voyager_controls):
     """Test handling of empty data."""
     rng = np.random.default_rng()
-    # x = sparse.csr_matrix(rng.random((0, 3)))
-    # y = sparse.csr_matrix(rng.random((5, 3)))
-    # x = pd.DataFrame.sparse.from_spmatrix(x)
-    # y = pd.DataFrame.sparse.from_spmatrix(y)
 
     x = DataHandler(data=rng.random((0, 3)), cols=["col1", "col2", "col3"])
     y = DataHandler(data=rng.random((5, 3)), cols=["col1", "col2", "col3"])

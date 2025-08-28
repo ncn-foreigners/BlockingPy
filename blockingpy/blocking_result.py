@@ -15,8 +15,7 @@ class BlockingResult:
     A class to represent and analyze the results of a blocking operation.
 
     This class provides functionality to analyze and evaluate blocking results,
-    including calculation of reduction ratios, metrics evaluation, and optional
-    graph representation of the blocking structure.
+    including calculation of reduction ratios, metrics evaluation.
 
     Parameters
     ----------
@@ -36,8 +35,6 @@ class BlockingResult:
         Confusion matrix if true blocks were provided
     colnames_xy : numpy.ndarray
         Column names used in the blocking process
-    graph : bool, optional
-        Whether to create a graph from the blocking results (default False)
     reduction_ratio : float, optional
         Pre-calculated reduction ratio (default None)
 

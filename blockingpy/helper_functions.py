@@ -205,9 +205,9 @@ class InputValidator:
 def rearrange_array(indices: np.ndarray, distances: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Rearrange the array of indices to match the correct order.
-    If the algoritm returns the record "itself" for a given row (in deduplication), but not
+    If the algorithm returns the record "itself" for a given row (in deduplication), but not
     as the first nearest neighbor, rearrange the array to fix this issue.
-    If the algoritm does not return the record "itself" for a given row (in deduplication),
+    If the algorithm does not return the record "itself" for a given row (in deduplication),
     insert a dummy value (-1) at the start and shift other indices and distances values.
 
     Parameters

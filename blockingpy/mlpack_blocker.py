@@ -66,9 +66,9 @@ class MLPackBlocker(BlockingMethod):
 
         Parameters
         ----------
-        x : pandas.DataFrame
+        x : DataHandler
             Reference dataset containing features for indexing
-        y : pandas.DataFrame
+        y : DataHandler
             Query dataset to find nearest neighbors for
         k : int
             Number of nearest neighbors to find

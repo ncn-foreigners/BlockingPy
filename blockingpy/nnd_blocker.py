@@ -65,9 +65,9 @@ class NNDBlocker(BlockingMethod):
 
         Parameters
         ----------
-        x : pandas.DataFrame
+        x : DataHandler
             Reference dataset containing features for indexing
-        y : pandas.DataFrame
+        y : DataHandler
             Query dataset to find nearest neighbors for
         k : int
             Number of nearest neighbors to find
@@ -148,7 +148,6 @@ class NNDBlocker(BlockingMethod):
             diversify_prob=controls["nnd"].get("diversify_prob"),
             init_graph=controls["nnd"].get("init_graph"),
             init_dist=controls["nnd"].get("init_dist"),
-            # algorithm=nnd_params.get('algorithm'),
             low_memory=controls["nnd"].get("low_memory"),
             max_candidates=controls["nnd"].get("max_candidates"),
             max_rptree_depth=controls["nnd"].get("max_rptree_depth"),

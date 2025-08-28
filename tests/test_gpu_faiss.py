@@ -126,7 +126,6 @@ def test_index_ivfpq_gpu(gpu_faiss_blocker, large_sparse_data, gpu_faiss_control
             "index_type": "ivfpq",
             "ivfpq_nlist": 32,
             "ivfpq_nprobe": 4,
-            # "train_size": min(x.shape[0], 50),
             **pq_kwargs,
         }
     )

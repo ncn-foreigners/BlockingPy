@@ -8,11 +8,7 @@ from scipy import sparse
 from blockingpy import Blocker
 from blockingpy.annoy_blocker import AnnoyBlocker
 from blockingpy.data_handler import DataHandler
-
-# from blockingpy.faiss_blocker import FaissBlocker
 from blockingpy.hnsw_blocker import HNSWBlocker
-
-# from blockingpy.mlpack_blocker import MLPackBlocker
 from blockingpy.nnd_blocker import NNDBlocker
 from blockingpy.voyager_blocker import VoyagerBlocker
 

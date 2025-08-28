@@ -30,7 +30,7 @@ class FaissBlocker(BlockingMethod):
 
     Attributes
     ----------
-    index : faiss.IndexFlat or None
+    index : faiss.Index
         The FAISS index used for nearest neighbor search
     x_columns : array-like or None
         Column names of the reference dataset
