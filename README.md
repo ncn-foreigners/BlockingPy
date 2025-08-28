@@ -15,7 +15,8 @@
 
 BlockingPy is a Python package that implements efficient blocking methods for record linkage and data deduplication using Approximate Nearest Neighbor (ANN) algorithms. It is based on [R blocking package](https://github.com/ncn-foreigners/blocking). 
 
-**GPU build:** install `blockingpy-gpu` for FAISS GPU acceleration (Flat/IVF/IVFPQ/CAGRA).
+
+Additionally, **GPU** acceleration is available via `blockingpy-gpu` ([FAISS-GPU](https://github.com/facebookresearch/faiss/wiki/Running-on-GPUs)).
 
 
 ## Purpose
@@ -151,12 +152,12 @@ print(dedup_result.result)
 - Support for already created Document-Term-Matrices (as `np.ndarray` or `csr_matrix`)
 - Support for both record linkage and deduplication
 - Evaluation metrics when true blocks are known
-- GPU support for fast blocking of large datasets usin GPU-accelerated indexes from FAISS
+- GPU support for fast blocking of large datasets usin GPU-accelerated indexes from [FAISS](https://github.com/facebookresearch/faiss/wiki/Running-on-GPUs)
 
 You can find detailed information about BlockingPy in [documentation](https://blockingpy.readthedocs.io/en/latest/).
 
 ## GPU Support
-`BlockingPy` can process large datasets by utilizing the GPU with `faiss_gpu` algorithms. The available GPU indexes are (`Flat`/`IVF`/`IVFPQ`/`CAGRA`). `blockingpy-gpu` also includes all CPU indexes besides the **mlpack** backends.
+`BlockingPy` can process large datasets by utilizing the GPU with [`faiss_gpu`](https://github.com/facebookresearch/faiss/wiki/Running-on-GPUs) algorithms. The available GPU indexes are (`Flat`/`IVF`/`IVFPQ`/`CAGRA`). `blockingpy-gpu` also includes all CPU indexes besides the **mlpack** backends.
 
 ### Prerequisites
 - OS: Linux or Windows 11 with WSL2 (Ubuntu)  
