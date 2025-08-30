@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from blockingpy.data_handler import DataHandler
+
 
 @pytest.fixture
 def hnsw_controls():
@@ -33,7 +35,7 @@ def test_basic_blocking(hnsw_blocker, small_sparse_data, hnsw_controls):
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()
 
 
@@ -96,11 +98,11 @@ def test_k_search_warning(hnsw_blocker, small_sparse_data, hnsw_controls, caplog
     x, y = small_sparse_data
     caplog.set_level(logging.WARNING)
 
-    hnsw_controls["hnsw"]["k_search"] = len(x) + 10
+    hnsw_controls["hnsw"]["k_search"] = x.shape[0] + 10
     hnsw_blocker.block(x=x, y=y, k=1, verbose=True, controls=hnsw_controls)
 
     warning_message = (
-        f"k_search ({len(x) + 10}) is larger than the number of reference points ({len(x)})"
+        f"k_search ({x.shape[0] + 10}) is larger than the number of reference points ({x.shape[0]})"
     )
     assert any(warning_message in record.message for record in caplog.records)
 
@@ -140,8 +142,8 @@ def test_single_point(hnsw_blocker, single_sparse_point, hnsw_controls):
 def test_empty_data_handling(hnsw_blocker, hnsw_controls):
     """Test handling of empty data."""
     rng = np.random.default_rng()
-    x = pd.DataFrame(columns=["col1", "col2", "col3"])
-    y = pd.DataFrame(rng.random((5, 3)))
+    x = DataHandler(data=rng.random((0, 3)), cols=["col1", "col2", "col3"])
+    y = DataHandler(data=rng.random((5, 3)), cols=["col1", "col2", "col3"])
 
     with pytest.raises(IndexError):
         hnsw_blocker.block(x=x, y=y, k=1, verbose=False, controls=hnsw_controls)
@@ -155,14 +157,13 @@ def test_large_input(hnsw_blocker, large_sparse_data, hnsw_controls):
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()
 
 
 def test_save_index(hnsw_blocker, small_sparse_data, hnsw_controls):
     """Test saving the HNSW index and colnames."""
     x, y = small_sparse_data
-    x.columns = x.columns.astype(str)
 
     with TemporaryDirectory() as temp_dir:
         controls = hnsw_controls.copy()

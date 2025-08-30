@@ -5,7 +5,6 @@ blocking results.
 
 from collections import Counter
 
-import networkx as nx
 import numpy as np
 import pandas as pd
 
@@ -16,8 +15,7 @@ class BlockingResult:
     A class to represent and analyze the results of a blocking operation.
 
     This class provides functionality to analyze and evaluate blocking results,
-    including calculation of reduction ratios, metrics evaluation, and optional
-    graph representation of the blocking structure.
+    including calculation of reduction ratios, metrics evaluation.
 
     Parameters
     ----------
@@ -37,8 +35,6 @@ class BlockingResult:
         Confusion matrix if true blocks were provided
     colnames_xy : numpy.ndarray
         Column names used in the blocking process
-    graph : bool, optional
-        Whether to create a graph from the blocking results (default False)
     reduction_ratio : float, optional
         Pre-calculated reduction ratio (default None)
 
@@ -56,8 +52,6 @@ class BlockingResult:
         Confusion matrix if true blocks were provided
     colnames : numpy.ndarray
         Names of columns used in blocking
-    graph : networkx.Graph or None
-        Network representation of blocking results if requested
     n_original_records : tuple[int, int]
         Number of records in the original dataset(s)
     reduction_ratio : float
@@ -80,7 +74,6 @@ class BlockingResult:
         eval_metrics: pd.Series | None,
         confusion: pd.DataFrame | None,
         colnames_xy: np.ndarray,
-        graph: bool | None = False,
         reduction_ratio: float | None = None,
     ) -> None:
         """Initialize a BlockingResult instance."""
@@ -90,15 +83,8 @@ class BlockingResult:
         self.metrics = eval_metrics if true_blocks is not None else None
         self.confusion = confusion if true_blocks is not None else None
         self.colnames = colnames_xy
-        self.graph = (
-            nx.from_pandas_edgelist(x_df[["x", "y"]], source="x", target="y") if graph else None
-        )
         self.n_original_records = n_original_records
-
-        if reduction_ratio is None:
-            self.reduction_ratio = self._calculate_reduction_ratio()
-        else:
-            self.reduction_ratio = reduction_ratio
+        self.reduction_ratio = reduction_ratio
 
     def __repr__(self) -> str:
         """
@@ -252,39 +238,6 @@ class BlockingResult:
         _fill_orphans(right, block_col, max_block)
 
         return left, right
-
-    def _calculate_reduction_ratio(self) -> float:
-        """
-        Calculate the reduction ratio for the blocking method.
-
-        The reduction ratio measures how much the blocking method reduces
-        the number of comparisons needed compared to all possible pairs.
-
-        Returns
-        -------
-        float
-            The reduction ratio, where:
-            - 1.0 means maximum reduction (minimal comparisons)
-            - 0.0 means no reduction (all pairs compared)
-
-        Notes
-        -----
-        The ratio is calculated as:
-        1 - (number of comparisons after blocking / total possible comparisons)
-
-        """
-        if self.deduplication:
-            denominator = self.n_original_records[0] * (self.n_original_records[0] - 1) / 2
-            block_sizes = self.result.groupby("block")[["x", "y"]].apply(
-                lambda x: len(pd.concat([x["x"], x["y"]]).unique())
-            )
-            numerator = (block_sizes * (block_sizes - 1) / 2).sum() if len(block_sizes) > 0 else 0
-        else:
-            denominator = self.n_original_records[0] * self.n_original_records[1]
-            block_comparisons = self.result.groupby("block").agg({"x": "nunique", "y": "nunique"})
-            numerator = (block_comparisons["x"] * block_comparisons["y"]).sum()
-
-        return 1 - (numerator / denominator if denominator > 0 else 0)
 
     def _format_metrics(self) -> dict[str, float]:
         """

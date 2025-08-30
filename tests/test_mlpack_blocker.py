@@ -6,6 +6,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from blockingpy.data_handler import DataHandler
+
+pytestmark = pytest.mark.requires_mlpack
+pytest.importorskip("mlpack", reason="mlpack not installed")
+
 
 @pytest.fixture
 def mlpack_controls():
@@ -68,7 +73,7 @@ def test_basic_blocking(mlpack_blocker, small_sparse_data, mlpack_controls):
 
         assert isinstance(result, pd.DataFrame)
         assert set(result.columns) == {"x", "y", "dist"}
-        assert len(result) == len(y)
+        assert len(result) == y.shape[0]
         assert result["dist"].notna().all()
 
 
@@ -87,11 +92,11 @@ def test_k_search_warning(mlpack_blocker, small_sparse_data, lsh_controls, caplo
     x, y = small_sparse_data
     caplog.set_level(logging.WARNING)
 
-    lsh_controls["lsh"]["k_search"] = len(x) + 10
+    lsh_controls["lsh"]["k_search"] = x.shape[0] + 10
     mlpack_blocker.block(x=x, y=y, k=1, verbose=True, controls=lsh_controls)
 
     warning_message = (
-        f"k_search ({len(x) + 10}) is larger than the number of reference points ({len(x)})"
+        f"k_search ({x.shape[0] + 10}) is larger than the number of reference points ({x.shape[0]})"
     )
     assert any(warning_message in record.message for record in caplog.records)
 
@@ -131,8 +136,8 @@ def test_single_point(mlpack_blocker, single_sparse_point, mlpack_controls):
 def test_empty_data_handling(mlpack_blocker, lsh_controls):
     """Test handling of empty datasets."""
     rng = np.random.default_rng()
-    x = pd.DataFrame(columns=["col1", "col2", "col3"])
-    y = pd.DataFrame(rng.random((5, 3)))
+    x = DataHandler(data=rng.random((0, 3)), cols=[f"x_col_{i}" for i in range(3)])
+    y = DataHandler(data=rng.random((5, 3)), cols=[f"y_col_{i}" for i in range(3)])
 
     with pytest.raises(RuntimeError):
         mlpack_blocker.block(x, y, k=1, verbose=False, controls=lsh_controls)
@@ -187,5 +192,5 @@ def test_large_input(mlpack_blocker, large_sparse_data, kd_controls):
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()

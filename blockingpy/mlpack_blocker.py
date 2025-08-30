@@ -3,10 +3,11 @@
 import logging
 from typing import Any
 
+import mlpack
 import pandas as pd
-from mlpack import knn, lsh
 
 from .base import BlockingMethod
+from .data_handler import DataHandler
 from .helper_functions import rearrange_array
 
 logger = logging.getLogger(__name__)
@@ -54,8 +55,8 @@ class MLPackBlocker(BlockingMethod):
 
     def block(
         self,
-        x: pd.DataFrame,
-        y: pd.DataFrame,
+        x: DataHandler,
+        y: DataHandler,
         k: int,
         verbose: bool | None,
         controls: dict[str, Any],
@@ -65,9 +66,9 @@ class MLPackBlocker(BlockingMethod):
 
         Parameters
         ----------
-        x : pandas.DataFrame
+        x : DataHandler
             Reference dataset containing features for indexing
-        y : pandas.DataFrame
+        y : DataHandler
             Query dataset to find nearest neighbors for
         k : int
             Number of nearest neighbors to find
@@ -115,6 +116,10 @@ class MLPackBlocker(BlockingMethod):
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
+        self.x_columns = list(x.cols)
+        X = x.to_dense()
+        Y = y.to_dense()
+
         self.algo = controls.get("algo", "lsh")
         self._check_algo(self.algo)
         seed = controls.get("random_seed", None)
@@ -123,21 +128,21 @@ class MLPackBlocker(BlockingMethod):
         else:
             k_search = controls["kd"].get("k_search")
 
-        if k_search > x.shape[0]:
+        if k_search > X.shape[0]:
             original_k_search = k_search
-            k_search = min(k_search, x.shape[0])
+            k_search = min(k_search, X.shape[0])
             logger.warning(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({x.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}."
             )
 
         logger.info(f"Initializing MLPack {self.algo.upper()} index...")
 
         if self.algo == "lsh":
-            query_result = lsh(
+            query_result = mlpack.lsh(
                 k=k_search,
-                query=y,
-                reference=x,
+                query=Y,
+                reference=X,
                 verbose=verbose,
                 seed=seed,
                 bucket_size=controls["lsh"].get("bucket_size"),
@@ -147,10 +152,10 @@ class MLPackBlocker(BlockingMethod):
                 tables=controls["lsh"].get("tables"),
             )
         else:
-            query_result = knn(
+            query_result = mlpack.knn(
                 k=k_search,
-                query=y,
-                reference=x,
+                query=Y,
+                reference=X,
                 verbose=verbose,
                 seed=seed,
                 algorithm=controls["kd"].get("algorithm"),
@@ -172,7 +177,7 @@ class MLPackBlocker(BlockingMethod):
 
         result = pd.DataFrame(
             {
-                "y": range(y.shape[0]),
+                "y": range(Y.shape[0]),
                 "x": indices[:, k - 1],
                 "dist": distances[:, k - 1],
             }

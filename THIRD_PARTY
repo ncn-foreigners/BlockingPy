@@ -12,6 +12,6 @@ This project uses the following open source packages:
 - pynndescent: BSD-2 Clause License (https://github.com/lmcinnes/pynndescent/blob/master/LICENSE)
 - Voyager: Apache 2.0 License (https://github.com/spotify/voyager/blob/main/LICENSE)
 - Faiss: MIT License (https://github.com/facebookresearch/faiss/blob/main/LICENSE)
-- NetworkX: BSD-3 Clause License (https://github.com/networkx/networkx/blob/main/LICENSE.txt)
+- igraph: BSD-2 Clause License (https://github.com/igraph/python-igraph?tab=GPL-2.0-1-ov-file#readme)
 - nltk: Apache 2.0 License (https://github.com/nltk/nltk/blob/develop/README.md) 
 - model2vec: MIT License (https://github.com/MinishLab/model2vec/blob/main/LICENSE)

@@ -45,6 +45,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../user_guide/index.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
 </ul>
 
@@ -80,7 +81,6 @@
 
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
 
-<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
@@ -93,8 +93,7 @@
 <span class="sd">    A class to represent and analyze the results of a blocking operation.</span>
 
 <span class="sd">    This class provides functionality to analyze and evaluate blocking results,</span>
-<span class="sd">    including calculation of reduction ratios, metrics evaluation, and optional</span>
-<span class="sd">    graph representation of the blocking structure.</span>
+<span class="sd">    including calculation of reduction ratios, metrics evaluation.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -114,8 +113,6 @@
 <span class="sd">        Confusion matrix if true blocks were provided</span>
 <span class="sd">    colnames_xy : numpy.ndarray</span>
 <span class="sd">        Column names used in the blocking process</span>
-<span class="sd">    graph : bool, optional</span>
-<span class="sd">        Whether to create a graph from the blocking results (default False)</span>
 <span class="sd">    reduction_ratio : float, optional</span>
 <span class="sd">        Pre-calculated reduction ratio (default None)</span>
 
@@ -133,8 +130,6 @@
 <span class="sd">        Confusion matrix if true blocks were provided</span>
 <span class="sd">    colnames : numpy.ndarray</span>
 <span class="sd">        Names of columns used in blocking</span>
-<span class="sd">    graph : networkx.Graph or None</span>
-<span class="sd">        Network representation of blocking results if requested</span>
 <span class="sd">    n_original_records : tuple[int, int]</span>
 <span class="sd">        Number of records in the original dataset(s)</span>
 <span class="sd">    reduction_ratio : float</span>
@@ -157,7 +152,6 @@
         <span class="n">eval_metrics</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">confusion</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">colnames_xy</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-        <span class="n">graph</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">reduction_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize a BlockingResult instance.&quot;&quot;&quot;</span>
@@ -167,15 +161,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="n">eval_metrics</span> <span class="k">if</span> <span class="n">true_blocks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">confusion</span> <span class="o">=</span> <span class="n">confusion</span> <span class="k">if</span> <span class="n">true_blocks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">colnames</span> <span class="o">=</span> <span class="n">colnames_xy</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">nx</span><span class="o">.</span><span class="n">from_pandas_edgelist</span><span class="p">(</span><span class="n">x_df</span><span class="p">[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]],</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">graph</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_original_records</span> <span class="o">=</span> <span class="n">n_original_records</span>
-
-        <span class="k">if</span> <span class="n">reduction_ratio</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">reduction_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_reduction_ratio</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">reduction_ratio</span> <span class="o">=</span> <span class="n">reduction_ratio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduction_ratio</span> <span class="o">=</span> <span class="n">reduction_ratio</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -332,39 +319,6 @@
 
         <span class="k">return</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span></div>
 
-
-    <span class="k">def</span> <span class="nf">_calculate_reduction_ratio</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calculate the reduction ratio for the blocking method.</span>
-
-<span class="sd">        The reduction ratio measures how much the blocking method reduces</span>
-<span class="sd">        the number of comparisons needed compared to all possible pairs.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        float</span>
-<span class="sd">            The reduction ratio, where:</span>
-<span class="sd">            - 1.0 means maximum reduction (minimal comparisons)</span>
-<span class="sd">            - 0.0 means no reduction (all pairs compared)</span>
-
-<span class="sd">        Notes</span>
-<span class="sd">        -----</span>
-<span class="sd">        The ratio is calculated as:</span>
-<span class="sd">        1 - (number of comparisons after blocking / total possible comparisons)</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">deduplication</span><span class="p">:</span>
-            <span class="n">denominator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_original_records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_original_records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-            <span class="n">block_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;block&quot;</span><span class="p">)[[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
-                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]])</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
-            <span class="p">)</span>
-            <span class="n">numerator</span> <span class="o">=</span> <span class="p">(</span><span class="n">block_sizes</span> <span class="o">*</span> <span class="p">(</span><span class="n">block_sizes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">block_sizes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">denominator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_original_records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_original_records</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">block_comparisons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;block&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="s2">&quot;nunique&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="s2">&quot;nunique&quot;</span><span class="p">})</span>
-            <span class="n">numerator</span> <span class="o">=</span> <span class="p">(</span><span class="n">block_comparisons</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">block_comparisons</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-
-        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">numerator</span> <span class="o">/</span> <span class="n">denominator</span> <span class="k">if</span> <span class="n">denominator</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_format_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

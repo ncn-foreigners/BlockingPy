@@ -1,0 +1,131 @@
+[tool.poetry]
+name = "blockingpy-gpu"
+version = "0.2.0"
+description = "BlockingPy GPU build."
+authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>", "Maciej Beręsewicz <maciej.beresewicz@ue.poznan.pl>"]
+readme = "../../README.md"
+license = "MIT"
+repository = "https://github.com/ncn-foreigners/BlockingPy"
+documentation = "https://blockingpy.readthedocs.io/en/latest/"
+keywords = ["record-linkage", "deduplication", "ANN", "blocking", "data-matching"]
+
+packages = [{ include = "blockingpy", from = "../../" }]
+
+include = [
+    "../../blockingpy/datasets/data/*.csv.gz",
+    "../../blockingpy/py.typed"
+]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/ncn-foreigners/BlockingPy/issues"
+"Funding" = "https://www.ncn.gov.pl"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+numpy = "^1.26.4"
+annoy = "^1.17.3"
+hnswlib = "^0.8.0"
+scipy = ">=1.5.0"
+pynndescent = "^0.5.13"
+scikit-learn = "^1.5.2"
+nltk = "^3.9.1"
+voyager = "^2.0.9"
+pandas = ">=2.2.0,<3.0.0"
+model2vec = "^0.4.1"
+igraph = "^0.11.9"
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+pytest = "^8.3.3"
+pytest-cov = "^6.0.0"
+ruff = "^0.8.0"
+black = "^24.10.0"
+mypy = "^1.13.0"
+sphinx = "^8.1.3"
+sphinxcontrib-napoleon = "^0.7"
+myst-parser = "^4.0.0"
+sphinx-rtd-theme = "^3.0.2"
+sphinx-autobuild = "^2024.10.3"
+
+[tool.pytest.ini_options]
+markers = [
+  "requires_faiss_gpu: needs faiss-gpu and a CUDA device",
+  "requires_mlpack: needs mlpack",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.mypy]
+python_version = "3.10"
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unreachable = true
+strict_optional = true
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I", 
+    "B",    
+    "C90",  
+    "D", 
+    "UP", 
+    "YTT", 
+    "ANN",  
+    "S",   
+    "A", 
+    "LOG",  
+    "PYI", 
+    "TC",   
+    "PD",   
+    "PL",   
+    "NPY",  
+    "DOC",  
+    "RUF",
+    "PLR2004",  
+]
+
+ignore = ["D211", "D212", "D205", "RUF012", "PLR0917", "PLR0913", "ANN401", "PLR0912", "C901", "PLR0915"]
+
+[tool.ruff.per-file-ignores]
+"tests/*" = [
+    "ANN001",
+    "ANN002",
+    "ANN003",
+    "ANN201",  
+    "ANN202",  
+    "S101",
+    "DOC201",
+    "D401"
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

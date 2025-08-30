@@ -8,6 +8,7 @@ import hnswlib
 import pandas as pd
 
 from .base import BlockingMethod
+from .data_handler import DataHandler
 from .helper_functions import rearrange_array
 
 logger = logging.getLogger(__name__)
@@ -63,8 +64,8 @@ class HNSWBlocker(BlockingMethod):
 
     def block(
         self,
-        x: pd.DataFrame,
-        y: pd.DataFrame,
+        x: DataHandler,
+        y: DataHandler,
         k: int,
         verbose: bool | None,
         controls: dict[str, Any],
@@ -116,7 +117,7 @@ class HNSWBlocker(BlockingMethod):
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
-        self.x_columns = x.columns
+        self.x_columns = list(x.cols)
 
         distance = controls["hnsw"].get("distance")
         n_threads = controls["hnsw"].get("n_threads")
@@ -129,9 +130,12 @@ class HNSWBlocker(BlockingMethod):
 
         logger.info("Initializing HNSW index...")
 
-        self.index = hnswlib.Index(space=space, dim=x.shape[1])
+        X = x.to_dense()
+        Y = y.to_dense()
+
+        self.index = hnswlib.Index(space=space, dim=X.shape[1])
         self.index.init_index(
-            max_elements=x.shape[0],
+            max_elements=X.shape[0],
             ef_construction=controls["hnsw"].get("ef_c"),
             M=controls["hnsw"].get("M"),
             random_seed=seed,
@@ -140,20 +144,20 @@ class HNSWBlocker(BlockingMethod):
 
         logger.info("Adding items to index...")
 
-        self.index.add_items(x)
+        self.index.add_items(X)
         self.index.set_ef(controls["hnsw"].get("ef_s"))
 
         logger.info("Querying index...")
 
-        if k_search > x.shape[0]:
+        if k_search > X.shape[0]:
             original_k_search = k_search
-            k_search = min(k_search, x.shape[0])
+            k_search = min(k_search, X.shape[0])
             logger.warning(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({x.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}."
             )
 
-        l_1nn = self.index.knn_query(y, k=k_search, num_threads=n_threads)
+        l_1nn = self.index.knn_query(Y, k=k_search, num_threads=n_threads)
         indices = l_1nn[0]
         distances = l_1nn[1]
 

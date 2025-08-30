@@ -50,6 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">BlockingPy API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
 </ul>
 
@@ -110,6 +111,7 @@
 <li class="toctree-l2"><a class="reference internal" href="examples/deduplication.html">Deduplication</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/deduplication_2.html">Deduplication No. 2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/embedding_dedup.html">Deduplication with Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/gpu_example_dedup.html">Deduplication on GPU (adaptation of Example No. 2)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/recordlinkage_integration.html">Integration with recordlinkage package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="examples/splink_integration.html">Integration with splink package</a></li>
 </ul>
@@ -123,9 +125,17 @@
 <li class="toctree-l1"><a class="reference internal" href="blocklib_comp.html">BlockingPy vs blocklib - comparison</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="blocklib_comp.html#why-blockingpy-outperforms-blocklib">Why <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> outperforms blocklib</a></li>
 <li class="toctree-l2"><a class="reference internal" href="blocklib_comp.html#where-is-blocklib-better">Where is <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> better</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blocklib_comp.html#blockingpy-with-gpu-acceleration">Blockingpy with GPU acceleration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gpu.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpu.html#whats-included-vs-cpu-build">What’s included vs CPU build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpu.html#index-configuration">Index Configuration</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-2-0">v0.2.0</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-15">v0.1.15</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-14">v0.1.14</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#v0-1-13">v0.1.13</a></li>
@@ -146,6 +156,7 @@
 </ul>
 </div>
 <p>BlockingPy is a Python package that implements efficient blocking methods for record linkage and data deduplication using Approximate Nearest Neighbor (ANN) algorithms. It is based on <a class="reference external" href="https://github.com/ncn-foreigners/blocking">R blocking package</a>.</p>
+<p>Additionally, <strong>GPU</strong> acceleration is available via <code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code> (<a class="reference external" href="https://github.com/facebookresearch/faiss/wiki/Running-on-GPUs">FAISS-GPU</a>).</p>
 <section id="purpose">
 <h2>Purpose<a class="headerlink" href="#purpose" title="Link to this heading"></a></h2>
 <p>When performing record linkage or deduplication on large datasets, comparing all possible record pairs becomes computationally infeasible. Blocking helps reduce the comparison space by identifying candidate record pairs that are likely to match, using efficient approximate nearest neighbor search algorithms.</p>

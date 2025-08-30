@@ -7,7 +7,7 @@ from .utils import get_data_file
 
 def load_census_cis_data(
     as_frame: bool = True, data_home: str | None = None
-) -> tuple[pd.DataFrame, pd.DataFrame] | tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Load CIS and census datasets for record linkage example.
 

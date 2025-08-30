@@ -7,7 +7,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from pandas import SparseDtype
 from scipy import sparse
 
 
@@ -38,7 +37,7 @@ class DistanceMetricValidator:
         },
     }
 
-    NO_METRIC_ALGORITHMS = {"lsh", "kd", "nnd"}  # too many options for nnd to validate
+    NO_METRIC_ALGORITHMS = {"lsh", "kd", "nnd", "gpu_faiss"}  # too many options for nnd to validate
 
     @classmethod
     def validate_metric(cls, algorithm: str, metric: str) -> None:
@@ -206,9 +205,9 @@ class InputValidator:
 def rearrange_array(indices: np.ndarray, distances: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     Rearrange the array of indices to match the correct order.
-    If the algoritm returns the record "itself" for a given row (in deduplication), but not
+    If the algorithm returns the record "itself" for a given row (in deduplication), but not
     as the first nearest neighbor, rearrange the array to fix this issue.
-    If the algoritm does not return the record "itself" for a given row (in deduplication),
+    If the algorithm does not return the record "itself" for a given row (in deduplication),
     insert a dummy value (-1) at the start and shift other indices and distances values.
 
     Parameters
@@ -247,29 +246,3 @@ def rearrange_array(indices: np.ndarray, distances: np.ndarray) -> tuple[np.ndar
                 result[i][0] = value_to_move
 
     return result, result_dist
-
-
-def df_to_array(df: pd.DataFrame) -> np.ndarray:
-    """
-    Convert DataFrame to numpy array.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        DataFrame to convert
-
-    Returns
-    -------
-    np.ndarray
-        Numpy array representation of the DataFrame
-
-    """
-
-    def is_sparse_df(df: pd.DataFrame) -> bool:
-        return any(isinstance(dt, SparseDtype) for dt in df.dtypes)
-
-    if is_sparse_df(df):
-        arr = df.sparse.to_dense().to_numpy(dtype=np.float32)
-    else:
-        arr = df.to_numpy(dtype=np.float32)
-    return np.ascontiguousarray(arr)

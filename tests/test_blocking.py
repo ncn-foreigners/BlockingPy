@@ -2,7 +2,6 @@
 
 import logging
 
-import networkx as nx
 import numpy as np
 import pandas as pd
 import pytest
@@ -60,18 +59,14 @@ def test_algorithm_selection(algo, small_named_csr_data, small_named_txt_data):
     assert isinstance(result_txt, BlockingResult)
     assert result_txt.method == algo
 
+
 @pytest.mark.parametrize("algo", ["nnd", "hnsw", "annoy", "faiss", "voyager"])
 def test_algos_with_embedding(algo, small_named_txt_data):
     """Test different algorithms with embeddings."""
     blocker = Blocker()
     x_txt, y_txt = small_named_txt_data
 
-    control_txt = {
-        "encoder":"embedding",
-        "embedding":{
-            "model":"minishlab/potion-base-8M"
-        }
-    }
+    control_txt = {"encoder": "embedding", "embedding": {"model": "minishlab/potion-base-8M"}}
     result_txt = blocker.block(x_txt["txt"], y=y_txt["txt"], ann=algo, control_txt=control_txt)
     assert isinstance(result_txt, BlockingResult)
     assert result_txt.method == algo
@@ -102,21 +97,6 @@ def test_deduplication_vs_linkage(small_named_csr_data, small_named_txt_data):
     link_result_txt = blocker.block(x_txt["txt"], y=y_txt["txt"], deduplication=False)
     assert isinstance(link_result_txt, BlockingResult)
     assert not link_result_txt.deduplication
-
-
-def test_graph_creation(small_named_csr_data, small_named_txt_data):
-    """Test graph creation with both matrix and text data."""
-    blocker = Blocker()
-    x_csr, _, x_cols, _ = small_named_csr_data
-    x_txt, _ = small_named_txt_data
-
-    result_csr = blocker.block(x_csr, x_colnames=x_cols, y_colnames=x_cols, graph=True)
-    assert isinstance(result_csr.graph, nx.Graph)
-    assert result_csr.graph.number_of_nodes() > 0
-
-    result_txt = blocker.block(x_txt["txt"], graph=True)
-    assert isinstance(result_txt.graph, nx.Graph)
-    assert result_txt.graph.number_of_nodes() > 0
 
 
 def test_column_intersection(small_named_csr_data):

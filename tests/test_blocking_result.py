@@ -6,14 +6,10 @@ import pytest
 
 from blockingpy.blocking_result import BlockingResult
 
+
 @pytest.fixture
 def make_br_dedup():
-    res_df = pd.DataFrame({
-        "x": [1, 2],
-        "y": [0, 3],
-        "block": [0, 1],
-        "dist": [0.1, 0.2]
-    })
+    res_df = pd.DataFrame({"x": [1, 2], "y": [0, 3], "block": [0, 1], "dist": [0.1, 0.2]})
 
     return BlockingResult(
         x_df=res_df,
@@ -26,6 +22,7 @@ def make_br_dedup():
         colnames_xy=np.array([0]),
     )
 
+
 def test_add_block_column_dedup_orphans(make_br_dedup):
     br = make_br_dedup
     df = pd.DataFrame({"val": ["a", "b", "c", "d"]})
@@ -34,13 +31,9 @@ def test_add_block_column_dedup_orphans(make_br_dedup):
     assert list(out["block"]) == [0, 0, 1, 1]
     assert out["block"].dtype == np.int64
 
+
 def test_add_block_column_reclink_orphans():
-    res_df = pd.DataFrame({
-        "x": [0, 2],
-        "y": [1, 2],
-        "block": [0, 1],
-        "dist": [0.1, 0.2]
-    })
+    res_df = pd.DataFrame({"x": [0, 2], "y": [1, 2], "block": [0, 1], "dist": [0.1, 0.2]})
     br = BlockingResult(
         x_df=res_df,
         ann="test",

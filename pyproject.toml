@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blockingpy"
-version = "0.1.15"
+version = "0.2.0"
 description = "Blocking records for record linkage and data deduplication based on ANN algorithms."
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>", "Maciej Beręsewicz <maciej.beresewicz@ue.poznan.pl>"]
 readme = "README.md"
@@ -31,20 +31,20 @@ classifiers = [
 "Funding" = "https://www.ncn.gov.pl"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.13"
 numpy = "^1.26.4"
 annoy = "^1.17.3"
 hnswlib = "^0.8.0"
 scipy = ">=1.5.0"
 pynndescent = "^0.5.13"
 scikit-learn = "^1.5.2"
-networkx = "^3.1"
 nltk = "^3.9.1"
 voyager = "^2.0.9"
-faiss-cpu = "^1.9.0"
 pandas = ">=2.2.0,<3.0.0"
-mlpack = ">=4.4.0, <5.0.0"
 model2vec = "^0.4.1"
+faiss-cpu = "^1.9.0"
+igraph = "^0.11.9"
+mlpack = ">=4.4.0, <5.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -59,6 +59,12 @@ sphinxcontrib-napoleon = "^0.7"
 myst-parser = "^4.0.0"
 sphinx-rtd-theme = "^3.0.2"
 sphinx-autobuild = "^2024.10.3"
+
+[tool.pytest.ini_options]
+markers = [
+  "requires_faiss_gpu: needs faiss-gpu and a CUDA device",
+  "requires_mlpack: needs mlpack",
+]
 
 [tool.black]
 line-length = 100

@@ -5,11 +5,10 @@ import pandas as pd
 import pytest
 from scipy import sparse
 
-from blockingpy.annoy_blocker import AnnoyBlocker
 from blockingpy import Blocker
-from blockingpy.faiss_blocker import FaissBlocker
+from blockingpy.annoy_blocker import AnnoyBlocker
+from blockingpy.data_handler import DataHandler
 from blockingpy.hnsw_blocker import HNSWBlocker
-from blockingpy.mlpack_blocker import MLPackBlocker
 from blockingpy.nnd_blocker import NNDBlocker
 from blockingpy.voyager_blocker import VoyagerBlocker
 
@@ -23,6 +22,9 @@ def blocker():
 @pytest.fixture
 def mlpack_blocker():
     """Create MLPackBlocker instance for each test."""
+    pytest.importorskip("mlpack", reason="mlpack not installed")
+    from blockingpy.mlpack_blocker import MLPackBlocker
+
     return MLPackBlocker()
 
 
@@ -41,6 +43,9 @@ def voyager_blocker():
 @pytest.fixture
 def faiss_blocker():
     """Create FaissBlocker instance for each test."""
+    pytest.importorskip("faiss", reason="FAISS not installed")
+    from blockingpy.faiss_blocker import FaissBlocker
+
     return FaissBlocker()
 
 
@@ -62,16 +67,20 @@ def small_sparse_data():
     rng = np.random.default_rng()
     x = sparse.csr_matrix(rng.random((5, 3)))
     y = sparse.csr_matrix(rng.random((5, 3)))
-    return pd.DataFrame.sparse.from_spmatrix(x), pd.DataFrame.sparse.from_spmatrix(y)
+    return DataHandler(data=x, cols=[f"x_col_{i}" for i in range(x.shape[1])]), DataHandler(
+        data=y, cols=[f"y_col_{i}" for i in range(y.shape[1])]
+    )
 
 
 @pytest.fixture
 def large_sparse_data():
     """Create larger sparse test datasets."""
     np.random.default_rng(42)
-    x = sparse.random(100, 10, density=0.1, format="csr")
-    y = sparse.random(50, 10, density=0.1, format="csr")
-    return pd.DataFrame.sparse.from_spmatrix(x), pd.DataFrame.sparse.from_spmatrix(y)
+    x = sparse.random(2000, 20, density=0.1, format="csr")
+    y = sparse.random(1000, 20, density=0.1, format="csr")
+    return DataHandler(data=x, cols=[f"x_col_{i}" for i in range(x.shape[1])]), DataHandler(
+        data=y, cols=[f"y_col_{i}" for i in range(y.shape[1])]
+    )
 
 
 @pytest.fixture
@@ -132,7 +141,9 @@ def identical_sparse_data():
     data = np.array([[1.0, 2.0], [1.0, 2.0], [1.0, 2.0]])
     x = sparse.csr_matrix(data)
     y = sparse.csr_matrix(data[0:1])
-    return pd.DataFrame.sparse.from_spmatrix(x), pd.DataFrame.sparse.from_spmatrix(y)
+    return DataHandler(data=x, cols=[f"x_col_{i}" for i in range(x.shape[1])]), DataHandler(
+        data=y, cols=[f"y_col_{i}" for i in range(y.shape[1])]
+    )
 
 
 @pytest.fixture
@@ -140,7 +151,9 @@ def single_sparse_point():
     """Create sparse single point datasets."""
     x = sparse.csr_matrix([[1.0, 2.0]])
     y = sparse.csr_matrix([[1.5, 2.5]])
-    return pd.DataFrame.sparse.from_spmatrix(x), pd.DataFrame.sparse.from_spmatrix(y)
+    return DataHandler(data=x, cols=[f"x_col_{i}" for i in range(x.shape[1])]), DataHandler(
+        data=y, cols=[f"y_col_{i}" for i in range(y.shape[1])]
+    )
 
 
 @pytest.fixture
@@ -177,3 +190,30 @@ def kd_controls():
             "random_basis": False,
         },
     }
+
+
+def _has_faiss_gpu() -> bool:
+    try:
+        import faiss
+
+        return hasattr(faiss, "get_num_gpus") and faiss.get_num_gpus() > 0
+    except Exception:
+        return False
+
+
+def _has_mlpack() -> bool:
+    try:
+
+        return True
+    except Exception:
+        return False
+
+
+def pytest_collection_modifyitems(config, items):
+    have_gpu = _has_faiss_gpu()
+    have_ml = _has_mlpack()
+    for item in items:
+        if "requires_faiss_gpu" in item.keywords and not have_gpu:
+            item.add_marker(pytest.mark.skip(reason="FAISS GPU not available"))
+        if "requires_mlpack" in item.keywords and not have_ml:
+            item.add_marker(pytest.mark.skip(reason="mlpack not installed"))

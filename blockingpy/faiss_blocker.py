@@ -9,7 +9,8 @@ import numpy as np
 import pandas as pd
 
 from .base import BlockingMethod
-from .helper_functions import df_to_array, rearrange_array
+from .data_handler import DataHandler
+from .helper_functions import rearrange_array
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ class FaissBlocker(BlockingMethod):
 
     Attributes
     ----------
-    index : faiss.IndexFlat or None
+    index : faiss.Index
         The FAISS index used for nearest neighbor search
     x_columns : array-like or None
         Column names of the reference dataset
@@ -93,8 +94,8 @@ class FaissBlocker(BlockingMethod):
 
     def block(
         self,
-        x: pd.DataFrame,
-        y: pd.DataFrame,
+        x: DataHandler,
+        y: DataHandler,
         k: int,
         verbose: bool | None,
         controls: dict[str, Any],
@@ -104,9 +105,9 @@ class FaissBlocker(BlockingMethod):
 
         Parameters
         ----------
-        x : pandas.DataFrame
+        x : DataHandler
             Reference dataset containing features for indexing
-        y : pandas.DataFrame
+        y : DataHandler
             Query dataset to find nearest neighbors for
         k : int
             Number of nearest neighbors to find
@@ -149,7 +150,7 @@ class FaissBlocker(BlockingMethod):
 
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
-        self.x_columns = x.columns
+        self.x_columns = list(x.cols)
 
         distance = controls["faiss"].get("distance")
         k_search = controls["faiss"].get("k_search")
@@ -161,54 +162,55 @@ class FaissBlocker(BlockingMethod):
                 f"Invalid index_type '{index_type}'. Must be one of 'flat', 'hnsw', or 'lsh'."
             )
 
+        X = x.to_dense()
+        Y = y.to_dense()
+
         if distance == "cosine":
-            x_arr = df_to_array(x)
-            y_arr = df_to_array(y)
-            faiss.normalize_L2(x_arr)
-            faiss.normalize_L2(y_arr)
+            faiss.normalize_L2(X)
+            faiss.normalize_L2(Y)
         elif distance in {"jensen_shannon", "canberra"}:
             smooth = 1e-12
-            x += smooth
-            y += smooth
+            X += smooth
+            Y += smooth
 
         metric = self.METRIC_MAP[distance]
 
         if index_type == "flat":
-            self.index = faiss.IndexFlat(x.shape[1], metric)
+            self.index = faiss.IndexFlat(X.shape[1], metric)
         elif index_type == "hnsw":
             M = controls["faiss"].get("hnsw_M")
             ef_construction = controls["faiss"].get("hnsw_ef_construction")
             ef_search = controls["faiss"].get("hnsw_ef_search")
-            self.index = faiss.IndexHNSWFlat(x.shape[1], M, metric)
+            self.index = faiss.IndexHNSWFlat(X.shape[1], M, metric)
             self.index.hnsw.efConstruction = ef_construction
             self.index.hnsw.efSearch = ef_search
         elif index_type == "lsh":
-            nbits = controls["faiss"].get("lsh_nbits") * x.shape[1]
+            nbits = controls["faiss"].get("lsh_nbits") * X.shape[1]
             if not isinstance(nbits, int):
                 nbits = round(nbits)
             rotate_data = controls["faiss"].get("lsh_rotate_data")
-            self.index = faiss.IndexLSH(x.shape[1], nbits, rotate_data)
+            self.index = faiss.IndexLSH(X.shape[1], nbits, rotate_data)
 
         logger.info("Building index...")
         if distance == "cosine":
-            self.index.add(x=x_arr)
+            self.index.add(x=X)
         else:
-            self.index.add(x=x)
+            self.index.add(x=X)
 
         logger.info("Querying index...")
 
-        if k_search > x.shape[0]:
+        if k_search > X.shape[0]:
             original_k_search = k_search
-            k_search = min(k_search, x.shape[0])
+            k_search = min(k_search, X.shape[0])
             logger.warning(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({x.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}."
             )
 
         if distance == "cosine":
-            distances, indices = self.index.search(x=y_arr, k=k_search)
+            distances, indices = self.index.search(x=Y, k=k_search)
         else:
-            distances, indices = self.index.search(x=y, k=k_search)
+            distances, indices = self.index.search(x=Y, k=k_search)
 
         if distance == "cosine" and index_type != "lsh":
             distances = (1 - distances) / 2
@@ -220,7 +222,7 @@ class FaissBlocker(BlockingMethod):
             self._save_index(path)
 
         result = {
-            "y": np.arange(y.shape[0]),
+            "y": np.arange(Y.shape[0]),
             "x": indices[:, k - 1],
             "dist": distances[:, k - 1],
         }

@@ -12,7 +12,8 @@ import pandas as pd
 from voyager import Index, Space
 
 from .base import BlockingMethod
-from .helper_functions import df_to_array, rearrange_array
+from .data_handler import DataHandler
+from .helper_functions import rearrange_array
 
 logger = logging.getLogger(__name__)
 
@@ -73,8 +74,8 @@ class VoyagerBlocker(BlockingMethod):
 
     def block(
         self,
-        x: pd.DataFrame,
-        y: pd.DataFrame,
+        x: DataHandler,
+        y: DataHandler,
         k: int,
         verbose: bool | None,
         controls: dict[str, Any],
@@ -84,9 +85,9 @@ class VoyagerBlocker(BlockingMethod):
 
         Parameters
         ----------
-        x : pandas.DataFrame
+        x : DataHandler
             Reference dataset containing features for indexing
-        y : pandas.DataFrame
+        y : DataHandler
             Query dataset to find nearest neighbors for
         k : int
             Number of nearest neighbors to find
@@ -125,7 +126,10 @@ class VoyagerBlocker(BlockingMethod):
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
-        self.x_columns = x.columns
+        self.x_columns = list(x.cols)
+
+        X = x.to_dense()
+        Y = y.to_dense()
 
         distance = controls["voyager"].get("distance")
         space = self.METRIC_MAP[distance]
@@ -135,14 +139,14 @@ class VoyagerBlocker(BlockingMethod):
         if seed is None:
             seed = 1
 
-        if x.shape[0] == 0:
+        if X.shape[0] == 0:
             raise ValueError("Reference dataset `x` must not be empty.")
-        if y.shape[0] == 0:
+        if Y.shape[0] == 0:
             raise ValueError("Query dataset `y` must not be empty.")
 
         self.index = Index(
             space=space,
-            num_dimensions=x.shape[1],
+            num_dimensions=X.shape[1],
             M=controls["voyager"].get("M"),
             ef_construction=controls["voyager"].get("ef_construction"),
             random_seed=seed,
@@ -151,28 +155,26 @@ class VoyagerBlocker(BlockingMethod):
 
         logger.info("Building index...")
 
-        x_vec = df_to_array(x)
         self.index.add_items(
-            x_vec,
+            X,
             num_threads=controls["voyager"].get("num_threads"),
         )
 
         logger.info("Querying index...")
 
-        l_ind_nns = np.zeros(y.shape[0], dtype=int)
-        l_ind_dist = np.zeros(y.shape[0])
+        l_ind_nns = np.zeros(Y.shape[0], dtype=int)
+        l_ind_dist = np.zeros(Y.shape[0])
 
-        if k_search > x.shape[0]:
+        if k_search > X.shape[0]:
             original_k_search = k_search
-            k_search = min(k_search, x.shape[0])
+            k_search = min(k_search, X.shape[0])
             logger.warning(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({x.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}."
             )
 
-        y_vec = df_to_array(y)
         all_neighbor_ids, all_distances = self.index.query(
-            vectors=y_vec,
+            vectors=Y,
             k=k_search,
             num_threads=controls["voyager"].get("num_threads"),
             query_ef=controls["voyager"].get("query_ef"),
@@ -187,7 +189,7 @@ class VoyagerBlocker(BlockingMethod):
             self._save_index(path)
 
         result = {
-            "y": np.arange(y.shape[0]),
+            "y": np.arange(Y.shape[0]),
             "x": l_ind_nns,
             "dist": l_ind_dist,
         }

@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from blockingpy.data_handler import DataHandler
+
 
 @pytest.fixture
 def annoy_controls():
@@ -32,7 +34,7 @@ def test_basic_blocking(annoy_blocker, small_sparse_data, annoy_controls):
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()
 
 
@@ -93,12 +95,10 @@ def test_k_search_warning(annoy_blocker, small_sparse_data, annoy_controls, capl
     x, y = small_sparse_data
     caplog.set_level(logging.WARNING)
 
-    annoy_controls["annoy"]["k_search"] = len(x) + 10
+    annoy_controls["annoy"]["k_search"] = x.shape[0] + 10
     annoy_blocker.block(x=x, y=y, k=1, verbose=True, controls=annoy_controls)
 
-    warning_message = (
-        f"k_search ({len(x) + 10}) is larger than the number of reference points ({len(x)})"
-    )
+    warning_message = "k_search larger than reference set; adjusted."
     assert any(warning_message in record.message for record in caplog.records)
 
 
@@ -136,8 +136,8 @@ def test_single_point(annoy_blocker, single_sparse_point, annoy_controls):
 def test_empty_data_handling(annoy_blocker, annoy_controls):
     """Test handling of empty data."""
     rng = np.random.default_rng()
-    x = pd.DataFrame(rng.random((0, 3)))
-    y = pd.DataFrame(rng.random((5, 3)))
+    x = DataHandler(data=rng.random((0, 3)), cols=[f"x_col_{i}" for i in range(3)])
+    y = DataHandler(data=rng.random((5, 3)), cols=[f"y_col_{i}" for i in range(3)])
 
     with pytest.raises(IndexError):
         annoy_blocker.block(x=x, y=y, k=1, verbose=False, controls=annoy_controls)
@@ -151,7 +151,7 @@ def test_large_input(annoy_blocker, large_sparse_data, annoy_controls):
 
     assert isinstance(result, pd.DataFrame)
     assert set(result.columns) == {"x", "y", "dist"}
-    assert len(result) == len(y)
+    assert len(result) == y.shape[0]
     assert result["dist"].notna().all()
 
 

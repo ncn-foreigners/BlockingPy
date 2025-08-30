@@ -5,6 +5,8 @@ from typing import Any
 
 import pandas as pd
 
+from .data_handler import DataHandler
+
 
 class BlockingMethod(ABC):
 
@@ -36,8 +38,8 @@ class BlockingMethod(ABC):
     @abstractmethod
     def block(
         self,
-        x: pd.DataFrame,
-        y: pd.DataFrame,
+        x: DataHandler,
+        y: DataHandler,
         k: int,
         verbose: bool | None,
         controls: dict[str, Any],
@@ -51,9 +53,9 @@ class BlockingMethod(ABC):
 
         Parameters
         ----------
-        x : pandas.DataFrame
+        x : DataHandler
             Reference dataset containing features for indexing
-        y : pandas.DataFrame
+        y : DataHandler
             Query dataset to find nearest neighbors for
         k : int
             Number of nearest neighbors to find
