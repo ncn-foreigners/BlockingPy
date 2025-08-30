@@ -23,9 +23,14 @@ jobs:
         run: |
           python - <<'PY'
           import tomli, pathlib
-          core = tomli.loads(pathlib.Path("packages/blockingpy-core/pyproject.toml").read_text("utf-8"))["tool"]["poetry"]["version"]
-          cpu  = tomli.loads(pathlib.Path("packages/blockingpy/pyproject.toml").read_text("utf-8"))["tool"]["poetry"]["version"]
-          gpu  = tomli.loads(pathlib.Path("packages/blockingpy-gpu/pyproject.toml").read_text("utf-8"))["tool"]["poetry"]["version"]
+          def ver(path):
+            t = tomli.loads(pathlib.Path(path).read_text("utf-8"))
+            if "project" in t and "version" in t["project"]:
+              return t["project"]["version"]
+            return t["tool"]["poetry"]["version"]
+          core = ver("packages/blockingpy-core/pyproject.toml")
+          cpu  = ver("packages/blockingpy/pyproject.toml")
+          gpu  = ver("packages/blockingpy-gpu/pyproject.toml")
           assert core == cpu == gpu, f"Version mismatch: core={core}, blockingpy={cpu}, blockingpy-gpu={gpu}"
           print("Version:", core)
           PY
