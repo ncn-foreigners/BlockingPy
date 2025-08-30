@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blockingpy"
-version = "0.2.1"
+version = "0.2.2"
 description = "Dev-only toml"
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>", "Maciej Beręsewicz <maciej.beresewicz@ue.poznan.pl>"]
 readme = "README.md"

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blockingpy-gpu"
-version = "0.2.1"
+version = "0.2.2"
 description = "BlockingPy GPU build."
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>", "Maciej Beręsewicz <maciej.beresewicz@ue.poznan.pl>"]
 readme = "README.md"
@@ -113,5 +113,5 @@ ignore = ["D211", "D212", "D205", "RUF012", "PLR0917", "PLR0913", "ANN401", "PLR
 ]
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.9.0"]
 build-backend = "poetry.core.masonry.api"
