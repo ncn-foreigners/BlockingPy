@@ -1,17 +1,18 @@
 [tool.poetry]
-name = "blockingpy-gpu"
+name = "blockingpy-core"
 version = "0.2.0"
-description = "BlockingPy GPU build."
+description = "Core library for BlockingPy."
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>", "Maciej Beręsewicz <maciej.beresewicz@ue.poznan.pl>"]
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/ncn-foreigners/BlockingPy"
 documentation = "https://blockingpy.readthedocs.io/en/latest/"
 keywords = ["record-linkage", "deduplication", "ANN", "blocking", "data-matching"]
-
-packages = []
-
-
+packages = [{include = "blockingpy"}]
+include = [
+    "blockingpy/datasets/data/*.csv.gz",
+    "blockingpy/py.typed"
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -31,7 +32,19 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-blockingpy-core = ">=0.2.0"
+numpy = "^1.26.4"
+annoy = "^1.17.3"
+hnswlib = "^0.8.0"
+scipy = ">=1.5.0"
+pynndescent = "^0.5.13"
+scikit-learn = "^1.5.2"
+nltk = "^3.9.1"
+voyager = "^2.0.9"
+pandas = ">=2.2.0,<3.0.0"
+model2vec = "^0.4.1"
+igraph = "^0.11.9"
+mlpack = ">=4.4.0, <5.0.0"
+
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
@@ -115,3 +128,4 @@ ignore = ["D211", "D212", "D205", "RUF012", "PLR0917", "PLR0913", "ANN401", "PLR
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+

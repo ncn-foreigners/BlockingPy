@@ -33,8 +33,10 @@ jobs:
       - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
+          pip install -e packages/blockingpy-core[dev]
           pip install pytest pytest-cov
+      - name: Install FAISS (CPU)
+        run: pip install faiss-cpu
       - name: Run CPU tests 
         run: pytest --ignore=tests/test_gpu_faiss_blocker.py
 
@@ -77,10 +79,10 @@ jobs:
         run: |
           micromamba run -n blockingpy-gpu pip install annoy hnswlib pynndescent nltk voyager model2vec
 
-      - name: Install blockingpy-gpu
+      - name: Install blockingpy-core
         shell: bash -l {0}
         run: |
-          micromamba run -n blockingpy-gpu pip install --no-deps -e packages/blockingpy-gpu
+          micromamba run -n blockingpy-gpu pip install -e packages/blockingpy-core[dev]
 
       - name: Install pytest
         shell: bash -l {0}

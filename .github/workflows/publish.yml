@@ -23,16 +23,20 @@ jobs:
         run: |
           python - <<'PY'
           import tomli, pathlib
-          cpu = tomli.loads(pathlib.Path("pyproject.toml").read_text("utf-8"))["tool"]["poetry"]["version"]
-          gpu = tomli.loads(pathlib.Path("packages/blockingpy-gpu/pyproject.toml").read_text("utf-8"))["tool"]["poetry"]["version"]
-          assert cpu == gpu, f"Version mismatch: blockingpy={cpu} vs blockingpy-gpu={gpu}"
-          print("Version:", cpu)
+          core = tomli.loads(pathlib.Path("packages/blockingpy-core/pyproject.toml").read_text("utf-8"))["tool"]["poetry"]["version"]
+          cpu  = tomli.loads(pathlib.Path("packages/blockingpy/pyproject.toml").read_text("utf-8"))["tool"]["poetry"]["version"]
+          gpu  = tomli.loads(pathlib.Path("packages/blockingpy-gpu/pyproject.toml").read_text("utf-8"))["tool"]["poetry"]["version"]
+          assert core == cpu == gpu, f"Version mismatch: core={core}, blockingpy={cpu}, blockingpy-gpu={gpu}"
+          print("Version:", core)
           PY
 
-      - name: Build CPU package
-        run: python -m build -o dist .
+      - name: Build core
+        run: python -m build -o packages/blockingpy-core/dist packages/blockingpy-core
 
-      - name: Build GPU package
+      - name: Build blockingpy (meta CPU)
+        run: python -m build -o packages/blockingpy/dist packages/blockingpy
+
+      - name: Build blockingpy-gpu (meta GPU)
         run: python -m build -o packages/blockingpy-gpu/dist packages/blockingpy-gpu
 
       - name: Upload to PyPI
@@ -40,4 +44,7 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          twine upload dist/* packages/blockingpy-gpu/dist/*
+          twine upload \
+            packages/blockingpy-core/dist/* \
+            packages/blockingpy/dist/* \
+            packages/blockingpy-gpu/dist/*
