@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="BlockingResult" href="api/blocking_result.html" /> 
+    <link rel="prev" title="BlockingPy vs blocklib - comparison" href="blocklib_comp.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,7 +47,9 @@
 <li class="toctree-l1"><a class="reference internal" href="user_guide/index.html">User Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#v0-2-0">v0.2.0</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v0-1-15">v0.1.15</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v0-1-14">v0.1.14</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#v0-1-13">v0.1.13</a></li>
@@ -93,6 +95,16 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="changelog">
 <h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading"></a></h1>
+<section id="v0-2-0">
+<h2>v0.2.0<a class="headerlink" href="#v0-2-0" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><em><strong>GPU SUPPORT</strong></em> - through <code class="docutils literal notranslate"><span class="pre">faiss_gpu</span></code>, available indexes (<code class="docutils literal notranslate"><span class="pre">flat</span></code>, <code class="docutils literal notranslate"><span class="pre">ivf</span></code>, <code class="docutils literal notranslate"><span class="pre">ivfpq</span></code>, <code class="docutils literal notranslate"><span class="pre">cagra</span></code>)</p></li>
+<li><p>Custom <code class="docutils literal notranslate"><span class="pre">DataHandler</span></code> class to wrap data replacing pandas dataframe</p></li>
+<li><p>Switched from <code class="docutils literal notranslate"><span class="pre">networkx</span></code> to <code class="docutils literal notranslate"><span class="pre">igraph</span></code> for graph handling</p></li>
+<li><p>Major memory &amp; speed improvements for the CPU <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code></p></li>
+<li><p>Minor fixes &amp; improvements</p></li>
+</ul>
+</section>
 <section id="v0-1-15">
 <h2>v0.1.15<a class="headerlink" href="#v0-1-15" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -214,7 +226,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="api/blocking_result.html" class="btn btn-neutral float-left" title="BlockingResult" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="blocklib_comp.html" class="btn btn-neutral float-left" title="BlockingPy vs blocklib - comparison" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

@@ -67,6 +67,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#nnd-configuration">NND Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gpu-faiss-configuration">GPU Faiss Configuration</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="evaluation_metrics.html">Evaluation Metrics</a></li>
@@ -74,6 +75,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu.html">GPU SUPPORT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 </ul>
 
@@ -348,6 +351,52 @@
 </pre></div>
 </div>
 <p>For more information about <code class="docutils literal notranslate"><span class="pre">nnd</span></code> see <a class="reference external" href="https://pynndescent.readthedocs.io/en/latest/api.html">here</a>.</p>
+</section>
+<section id="gpu-faiss-configuration">
+<h2>GPU Faiss Configuration<a class="headerlink" href="#gpu-faiss-configuration" title="Link to this heading"></a></h2>
+<p>This applies only if you use <code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>. The structure is similar to the rest of ANNs.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_ann</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;gpu_faiss&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;index_type&quot;</span><span class="p">:</span> <span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="c1">#ivf, ivfpq, cagra</span>
+            <span class="s2">&quot;k_search&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+
+            <span class="s2">&quot;ivf_nlist&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="s2">&quot;ivf_nprobe&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+
+            <span class="s2">&quot;ivfpq_nlist&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_m&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_nbits&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_nprobe&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_useFloat16&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_usePrecomputed&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_reserveVecs&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_use_cuvs&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+
+            <span class="s2">&quot;cagra&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;graph_degree&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+                <span class="s2">&quot;intermediate_graph_degree&quot;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
+                <span class="s2">&quot;build_algo&quot;</span><span class="p">:</span> <span class="s2">&quot;ivf_pq&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;nn_descent_niter&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                <span class="s2">&quot;itopk_size&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+                <span class="s2">&quot;max_queries&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;algo&quot;</span><span class="p">:</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;team_size&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;search_width&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;min_iterations&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;max_iterations&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;thread_block_size&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;hashmap_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;hashmap_min_bitlen&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;hashmap_max_fill_rate&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;num_random_samplings&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;seed&quot;</span><span class="p">:</span> <span class="mh">0x128394</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 </section>
 

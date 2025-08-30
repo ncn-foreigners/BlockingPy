@@ -9,10 +9,8 @@ repository = "https://github.com/ncn-foreigners/BlockingPy"
 documentation = "https://blockingpy.readthedocs.io/en/latest/"
 keywords = ["record-linkage", "deduplication", "ANN", "blocking", "data-matching"]
 
-# Reuse code from repo root
 packages = [{ include = "blockingpy", from = "../../" }]
 
-# Include package data from the root code tree
 include = [
     "../../blockingpy/datasets/data/*.csv.gz",
     "../../blockingpy/py.typed"

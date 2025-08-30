@@ -251,5 +251,51 @@ control_ann = {
     }
 }
 ```
-
 For more information about `nnd` see [here](https://pynndescent.readthedocs.io/en/latest/api.html).
+
+## GPU Faiss Configuration
+This applies only if you use `blockingpy-gpu`. The structure is similar to the rest of ANNs.
+
+```python
+control_ann = {
+    "gpu_faiss": {
+            "index_type": "flat", #ivf, ivfpq, cagra
+            "k_search": 30,
+            "distance": "cosine",
+            "path": None,
+
+            "ivf_nlist": 100,
+            "ivf_nprobe": 10,
+
+            "ivfpq_nlist": 100,
+            "ivfpq_m": 8,
+            "ivfpq_nbits": 8,
+            "ivfpq_nprobe": 10,
+            "ivfpq_useFloat16": False,
+            "ivfpq_usePrecomputed": False,
+            "ivfpq_reserveVecs": 0,
+            "ivfpq_use_cuvs": False,
+
+            "cagra": {
+                "graph_degree": 64,
+                "intermediate_graph_degree": 128,
+                "build_algo": "ivf_pq",
+                "nn_descent_niter": 20,
+                "itopk_size": 64,
+                "max_queries": 0,
+                "algo": "auto",
+                "team_size": 0,
+                "search_width": 1,
+                "min_iterations": 0,
+                "max_iterations": 0,
+                "thread_block_size": 0,
+                "hashmap_mode": "auto",
+                "hashmap_min_bitlen": 0,
+                "hashmap_max_fill_rate": 0.5,
+                "num_random_samplings": 1,
+                "seed": 0x128394,
+            },
+        },
+}
+```
+

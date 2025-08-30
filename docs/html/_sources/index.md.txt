@@ -20,6 +20,7 @@ user_guide/index
 examples/index
 api/index
 blocklib_comp
+gpu
 changelog
 ```
 

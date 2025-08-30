@@ -80,31 +80,28 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">igraph</span> <span class="kn">import</span> <span class="n">Graph</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span>
 
 <span class="kn">from</span> <span class="nn">.annoy_blocker</span> <span class="kn">import</span> <span class="n">AnnoyBlocker</span>
 <span class="kn">from</span> <span class="nn">.blocking_result</span> <span class="kn">import</span> <span class="n">BlockingResult</span>
 <span class="kn">from</span> <span class="nn">.controls</span> <span class="kn">import</span> <span class="n">controls_ann</span><span class="p">,</span> <span class="n">controls_txt</span>
-<span class="kn">from</span> <span class="nn">.faiss_blocker</span> <span class="kn">import</span> <span class="n">FaissBlocker</span>
+<span class="kn">from</span> <span class="nn">.data_handler</span> <span class="kn">import</span> <span class="n">DataHandler</span>
 <span class="kn">from</span> <span class="nn">.helper_functions</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">DistanceMetricValidator</span><span class="p">,</span>
     <span class="n">InputValidator</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.hnsw_blocker</span> <span class="kn">import</span> <span class="n">HNSWBlocker</span>
-<span class="kn">from</span> <span class="nn">.mlpack_blocker</span> <span class="kn">import</span> <span class="n">MLPackBlocker</span>
 <span class="kn">from</span> <span class="nn">.nnd_blocker</span> <span class="kn">import</span> <span class="n">NNDBlocker</span>
 <span class="kn">from</span> <span class="nn">.text_encoders.text_transformer</span> <span class="kn">import</span> <span class="n">TextTransformer</span>
 <span class="kn">from</span> <span class="nn">.voyager_blocker</span> <span class="kn">import</span> <span class="n">VoyagerBlocker</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">time</span>
 
 <div class="viewcode-block" id="Blocker">
 <a class="viewcode-back" href="../../api/blocker.html#blockingpy.blocker.Blocker">[docs]</a>
@@ -112,64 +109,21 @@
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class implementing various blocking methods for record linkage and deduplication.</span>
-
-<span class="sd">    This class provides a unified interface to multiple approximate nearest neighbor</span>
-<span class="sd">    search algorithms for blocking in record linkage and deduplication tasks.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    None</span>
-
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    eval_metrics : pandas.Series or None</span>
-<span class="sd">        Evaluation metrics when true blocks are provided</span>
-<span class="sd">    confusion : pandas.DataFrame or None</span>
-<span class="sd">        Confusion matrix when true blocks are provided</span>
-<span class="sd">    x_colnames : list of str or None</span>
-<span class="sd">        Column names for reference dataset</span>
-<span class="sd">    y_colnames : list of str or None</span>
-<span class="sd">        Column names for query dataset</span>
-<span class="sd">    control_ann : dict</span>
-<span class="sd">        Control parameters for ANN algorithms</span>
-<span class="sd">    control_txt : dict</span>
-<span class="sd">        Control parameters for text processing</span>
-<span class="sd">    BLOCKER_MAP : dict</span>
-<span class="sd">        Mapping of blocking algorithm names to their implementations</span>
-
-
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    Supported algorithms:</span>
-<span class="sd">    - Annoy (Spotify)</span>
-<span class="sd">    - HNSW (Hierarchical Navigable Small World)</span>
-<span class="sd">    - MLPack (LSH and k-d tree)</span>
-<span class="sd">    - NND (Nearest Neighbor Descent)</span>
-<span class="sd">    - Voyager (Spotify)</span>
-<span class="sd">    - FAISS (LSH, HNSW and Flat Indexes)</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize the Blocker instance.</span>
-
-<span class="sd">        Initializes empty state variables.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">confusion</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduction_ratio</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">BLOCKER_MAP</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;annoy&quot;</span><span class="p">:</span> <span class="n">AnnoyBlocker</span><span class="p">,</span>
             <span class="s2">&quot;hnsw&quot;</span><span class="p">:</span> <span class="n">HNSWBlocker</span><span class="p">,</span>
-            <span class="s2">&quot;lsh&quot;</span><span class="p">:</span> <span class="n">MLPackBlocker</span><span class="p">,</span>
-            <span class="s2">&quot;kd&quot;</span><span class="p">:</span> <span class="n">MLPackBlocker</span><span class="p">,</span>
             <span class="s2">&quot;nnd&quot;</span><span class="p">:</span> <span class="n">NNDBlocker</span><span class="p">,</span>
             <span class="s2">&quot;voyager&quot;</span><span class="p">:</span> <span class="n">VoyagerBlocker</span><span class="p">,</span>
-            <span class="s2">&quot;faiss&quot;</span><span class="p">:</span> <span class="n">FaissBlocker</span><span class="p">,</span>
         <span class="p">}</span>
 
 <div class="viewcode-block" id="Blocker.block">
@@ -182,7 +136,6 @@
         <span class="n">ann</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;faiss&quot;</span><span class="p">,</span>
         <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="n">graph</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">control_txt</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
         <span class="n">control_ann</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
         <span class="n">x_colnames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -208,8 +161,6 @@
 <span class="sd">            Verbosity level (0-3). Controls logging level:</span>
 <span class="sd">            - 0: WARNING level</span>
 <span class="sd">            - 1-3: INFO level with increasing detail</span>
-<span class="sd">        graph : bool, default False</span>
-<span class="sd">            Whether to create a graph representation of blocks</span>
 <span class="sd">        control_txt : dict, default {}</span>
 <span class="sd">            Text processing parameters</span>
 <span class="sd">        control_ann : dict, default {}</span>
@@ -252,8 +203,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span> <span class="k">if</span> <span class="n">verbose</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
 
-        <span class="n">time_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="o">=</span> <span class="n">x_colnames</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="o">=</span> <span class="n">y_colnames</span>
         <span class="n">InputValidator</span><span class="o">.</span><span class="n">validate_controls_txt</span><span class="p">(</span><span class="n">control_txt</span><span class="p">)</span>
@@ -262,17 +211,15 @@
 
         <span class="k">if</span> <span class="n">deduplication</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">[</span><span class="s2">&quot;random_seed&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">[</span><span class="s2">&quot;random_seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">random_seed</span>
 
         <span class="k">if</span> <span class="n">ann</span> <span class="o">==</span> <span class="s2">&quot;nnd&quot;</span><span class="p">:</span>
             <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nnd&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metric&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">ann</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;annoy&quot;</span><span class="p">,</span> <span class="s2">&quot;voyager&quot;</span><span class="p">,</span> <span class="s2">&quot;hnsw&quot;</span><span class="p">,</span> <span class="s2">&quot;faiss&quot;</span><span class="p">}:</span>
+        <span class="k">elif</span> <span class="n">ann</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;annoy&quot;</span><span class="p">,</span> <span class="s2">&quot;voyager&quot;</span><span class="p">,</span> <span class="s2">&quot;hnsw&quot;</span><span class="p">,</span> <span class="s2">&quot;faiss&quot;</span><span class="p">,</span> <span class="s2">&quot;gpu_faiss&quot;</span><span class="p">}:</span>
             <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ann</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">distance</span> <span class="o">=</span> <span class="kc">None</span>
-
         <span class="k">if</span> <span class="n">distance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">distance</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">&quot;nnd&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
@@ -280,6 +227,7 @@
                 <span class="s2">&quot;annoy&quot;</span><span class="p">:</span> <span class="s2">&quot;angular&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;voyager&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;faiss&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;gpu_faiss&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;lsh&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s2">&quot;kd&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
             <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ann</span><span class="p">)</span>
@@ -295,92 +243,77 @@
             <span class="n">y</span> <span class="o">=</span> <span class="n">x</span>
             <span class="n">k</span> <span class="o">=</span> <span class="mi">2</span>
             <span class="n">len_y</span> <span class="o">=</span> <span class="kc">None</span>
-
         <span class="n">InputValidator</span><span class="o">.</span><span class="n">validate_true_blocks</span><span class="p">(</span><span class="n">true_blocks</span><span class="p">,</span> <span class="n">deduplication</span><span class="p">)</span>
         <span class="n">len_x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="n">sparse</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input is sparse, but x_colnames is None.&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input is sparse, but y_colnames is None.&quot;</span><span class="p">)</span>
-
-            <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">from_spmatrix</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span><span class="p">)</span>
-            <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">from_spmatrix</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Column names must be provided for sparse input.&quot;</span><span class="p">)</span>
+            <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span><span class="p">)</span>
+            <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input is np.ndarray, but x_colnames is None.&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input is np.ndarray, but y_colnames is None.&quot;</span><span class="p">)</span>
-
-            <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
-                <span class="n">pd</span><span class="o">.</span><span class="n">SparseDtype</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="p">)</span>
-            <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
-                <span class="n">pd</span><span class="o">.</span><span class="n">SparseDtype</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Column names must be provided for ndarray input.&quot;</span><span class="p">)</span>
+            <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span><span class="p">)</span>
+            <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;===== creating tokens: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;encoder&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Error&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> =====&quot;</span><span class="p">)</span>
             <span class="n">transformer</span> <span class="o">=</span> <span class="n">TextTransformer</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span><span class="p">)</span>
             <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
-        <span class="n">colnames_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">x_dtm</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">y_dtm</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;===== starting search (</span><span class="si">{</span><span class="n">ann</span><span class="si">}</span><span class="s2">, x, y: </span><span class="si">{</span><span class="n">x_dtm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">,&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">y_dtm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, t: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">colnames_xy</span><span class="p">)</span><span class="si">}</span><span class="s2">) =====&quot;</span>
+        <span class="n">colnames_xy</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">iy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x_dtm</span><span class="o">.</span><span class="n">cols</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y_dtm</span><span class="o">.</span><span class="n">cols</span><span class="p">),</span> <span class="n">return_indices</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
+        <span class="n">x_sub</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">x_dtm</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span> <span class="n">ix</span><span class="p">],</span> <span class="n">colnames_xy</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">y_sub</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">y_dtm</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span> <span class="n">iy</span><span class="p">],</span> <span class="n">colnames_xy</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
 
-        <span class="n">blocker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BLOCKER_MAP</span><span class="p">[</span><span class="n">ann</span><span class="p">]</span>
-        <span class="n">x_df</span> <span class="o">=</span> <span class="n">blocker</span><span class="p">()</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
-            <span class="n">x</span><span class="o">=</span><span class="n">x_dtm</span><span class="p">[</span><span class="n">colnames_xy</span><span class="p">],</span>
-            <span class="n">y</span><span class="o">=</span><span class="n">y_dtm</span><span class="p">[</span><span class="n">colnames_xy</span><span class="p">],</span>
+        <span class="n">blocker_cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_blocker</span><span class="p">(</span><span class="n">ann</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">blocker_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported algorithm: </span><span class="si">{</span><span class="n">ann</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">x_df</span> <span class="o">=</span> <span class="n">blocker_cls</span><span class="p">()</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">x_sub</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">y_sub</span><span class="p">,</span>
             <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
-            <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span> <span class="k">if</span> <span class="n">verbose</span> <span class="ow">in</span> <span class="p">{</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">}</span> <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">),</span>
             <span class="n">controls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;===== creating graph =====&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">deduplication</span><span class="p">:</span>
-            <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;pair&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]])),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">x_df</span> <span class="o">=</span> <span class="n">x_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">x_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;pair&quot;</span><span class="p">)[</span><span class="s2">&quot;dist&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()]</span>
-            <span class="n">x_df</span> <span class="o">=</span> <span class="n">x_df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s2">&quot;pair&quot;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-            <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;q&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
-            <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;index_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;q&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;q&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
-            <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;index_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;i&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
-        <span class="n">x_gr</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">from_pandas_edgelist</span><span class="p">(</span>
-            <span class="n">x_df</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;query_g&quot;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s2">&quot;index_g&quot;</span><span class="p">,</span> <span class="n">create_using</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;q&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+        <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;index_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">deduplication</span><span class="p">,</span>
+            <span class="s2">&quot;q&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">),</span>
+            <span class="s2">&quot;i&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">),</span>
         <span class="p">)</span>
-        <span class="n">components</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">x_gr</span><span class="p">)</span>
-        <span class="n">x_block</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">component_id</span><span class="p">,</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">component</span><span class="p">:</span>
-                <span class="n">x_block</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">component_id</span>
 
-        <span class="n">unique_query_g</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-        <span class="n">unique_index_g</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;index_g&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-        <span class="n">combined_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">unique_query_g</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span>
-            <span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">unique_index_g</span> <span class="k">if</span> <span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unique_query_g</span>
-        <span class="p">]</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;index_g&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">Graph</span><span class="o">.</span><span class="n">TupleList</span><span class="p">(</span><span class="n">edges</span><span class="o">=</span><span class="n">edges</span><span class="p">,</span> <span class="n">directed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">vertex_name_attr</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
 
-        <span class="n">sorted_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">combined_keys</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">x_block</span><span class="p">:</span>
-                <span class="n">sorted_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_block</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">comp</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">components</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;weak&quot;</span><span class="p">)</span>
+        <span class="n">membership</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">comp</span><span class="o">.</span><span class="n">membership</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">vs</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
 
-        <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x_block</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">x_block</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">node_to_comp</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">membership</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;block&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">node_to_comp</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+
+        <span class="n">is_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromiter</span><span class="p">((</span><span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;q&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduction_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_reduction_ratio</span><span class="p">(</span>
+            <span class="n">n_x</span><span class="o">=</span><span class="n">len_x</span><span class="p">,</span>
+            <span class="n">n_y</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">deduplication</span> <span class="k">else</span> <span class="n">len_y</span><span class="p">,</span>
+            <span class="n">deduplication</span><span class="o">=</span><span class="n">deduplication</span><span class="p">,</span>
+            <span class="n">membership</span><span class="o">=</span><span class="n">membership</span><span class="p">,</span>
+            <span class="n">is_query_mask</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">deduplication</span> <span class="k">else</span> <span class="n">is_q</span><span class="p">,</span>
+        <span class="p">)</span>
+
         <span class="k">if</span> <span class="n">true_blocks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">deduplication</span><span class="p">:</span>
                 <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_rl</span><span class="p">(</span><span class="n">x_df</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_dedup</span><span class="p">(</span><span class="n">x_df</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">)</span>
-
             <span class="bp">self</span><span class="o">.</span><span class="n">confusion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_confusion</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_metrics</span><span class="p">(</span><span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span><span class="p">)</span>
 
         <span class="n">x_df</span> <span class="o">=</span> <span class="n">x_df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;block&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">BlockingResult</span><span class="p">(</span>
             <span class="n">x_df</span><span class="o">=</span><span class="n">x_df</span><span class="p">,</span>
             <span class="n">ann</span><span class="o">=</span><span class="n">ann</span><span class="p">,</span>
@@ -390,7 +323,7 @@
             <span class="n">eval_metrics</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span><span class="p">,</span>
             <span class="n">confusion</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">confusion</span><span class="p">,</span>
             <span class="n">colnames_xy</span><span class="o">=</span><span class="n">colnames_xy</span><span class="p">,</span>
-            <span class="n">graph</span><span class="o">=</span><span class="n">graph</span><span class="p">,</span>
+            <span class="n">reduction_ratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">reduction_ratio</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
@@ -456,7 +389,7 @@
             <span class="n">eval_metrics</span><span class="o">=</span><span class="n">eval_metrics</span><span class="p">,</span>
             <span class="n">confusion</span><span class="o">=</span><span class="n">confusion</span><span class="p">,</span>
             <span class="n">colnames_xy</span><span class="o">=</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">colnames</span><span class="p">,</span>
-            <span class="n">graph</span><span class="o">=</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">graph</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">reduction_ratio</span><span class="o">=</span><span class="n">blocking_result</span><span class="o">.</span><span class="n">reduction_ratio</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
@@ -674,7 +607,83 @@
                 <span class="s2">&quot;specificity&quot;</span><span class="p">:</span> <span class="n">specificity</span><span class="p">,</span>
                 <span class="s2">&quot;f1_score&quot;</span><span class="p">:</span> <span class="n">f1_score</span><span class="p">,</span>
             <span class="p">}</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_blocker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ann</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper to get the selected blocker&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ann</span> <span class="o">==</span> <span class="s2">&quot;faiss&quot;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">.faiss_blocker</span> <span class="kn">import</span> <span class="n">FaissBlocker</span>
+
+            <span class="k">return</span> <span class="n">FaissBlocker</span>
+        <span class="k">if</span> <span class="n">ann</span> <span class="o">==</span> <span class="s2">&quot;gpu_faiss&quot;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">.gpu_faiss_blocker</span> <span class="kn">import</span> <span class="n">GPUFaissBlocker</span>
+
+            <span class="k">return</span> <span class="n">GPUFaissBlocker</span>
+        <span class="k">if</span> <span class="n">ann</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;lsh&quot;</span><span class="p">,</span> <span class="s2">&quot;kd&quot;</span><span class="p">}:</span>
+            <span class="kn">from</span> <span class="nn">.mlpack_blocker</span> <span class="kn">import</span> <span class="n">MLPackBlocker</span>
+
+            <span class="k">return</span> <span class="n">MLPackBlocker</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">BLOCKER_MAP</span><span class="p">[</span><span class="n">ann</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_reduction_ratio</span><span class="p">(</span>
+        <span class="n">n_x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">n_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">deduplication</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">membership</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">is_query_mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute Reduction Ratio (RR) from component membership.</span>
+
+<span class="sd">        RR = 1 - (#candidate_pairs / #all_possible_pairs)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        n_x : int</span>
+<span class="sd">            Number of records on the X/query side.</span>
+<span class="sd">        n_y : Optional[int]</span>
+<span class="sd">            Number of records on the Y/index side (None for dedup).</span>
+<span class="sd">        deduplication : bool</span>
+<span class="sd">            True for dedup; False for record linkage (X vs Y).</span>
+<span class="sd">        membership : np.ndarray[int]</span>
+<span class="sd">            Component id per node (length = n_x for dedup, else n_x + n_y).</span>
+<span class="sd">        is_query_mask : Optional[np.ndarray[bool]]</span>
+<span class="sd">            For RL only: boolean mask marking which nodes belong to X (query).</span>
+<span class="sd">            Length must equal len(membership). Ignored for dedup.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Reduction ratio.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">membership</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">1.0</span>
+
+        <span class="k">if</span> <span class="n">deduplication</span><span class="p">:</span>
+            <span class="n">n_comp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">comp_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="n">n_comp</span><span class="p">)</span>
+            <span class="n">cand</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">comp_sizes</span> <span class="o">*</span> <span class="p">(</span><span class="n">comp_sizes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="n">denom</span> <span class="o">=</span> <span class="n">n_x</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n_y</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">is_query_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;For RL, pass n_y and is_query_mask.&quot;</span><span class="p">)</span>
+            <span class="n">is_q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">is_query_mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">is_q</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">m</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;membership (len=</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">) and is_query_mask (len=</span><span class="si">{</span><span class="n">is_q</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">) must match.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">n_comp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">comp_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="n">is_q</span><span class="p">],</span> <span class="n">minlength</span><span class="o">=</span><span class="n">n_comp</span><span class="p">)</span>
+            <span class="n">comp_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="o">~</span><span class="n">is_q</span><span class="p">],</span> <span class="n">minlength</span><span class="o">=</span><span class="n">n_comp</span><span class="p">)</span>
+            <span class="n">cand</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">comp_x</span> <span class="o">*</span> <span class="n">comp_y</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="n">denom</span> <span class="o">=</span> <span class="n">n_x</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_y</span><span class="p">)</span>
+
+        <span class="n">rr</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">cand</span> <span class="o">/</span> <span class="n">denom</span> <span class="k">if</span> <span class="n">denom</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">rr</span><span class="p">)))</span></div>
 
 </pre></div>
 

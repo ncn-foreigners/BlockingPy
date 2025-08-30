@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.2.0 [Unreleased]
+## v0.2.0
 - ***GPU SUPPORT*** - through `faiss_gpu`, available indexes (`flat`, `ivf`, `ivfpq`, `cagra`)
 - Custom `DataHandler` class to wrap data replacing pandas dataframe
 - Switched from `networkx` to `igraph` for graph handling
