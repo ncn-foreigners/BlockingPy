@@ -3,6 +3,7 @@
 import logging
 import os
 from typing import Any
+import warnings
 
 import hnswlib
 import pandas as pd
@@ -152,9 +153,11 @@ class HNSWBlocker(BlockingMethod):
         if k_search > X.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, X.shape[0])
-            logger.warning(
+            warnings.warn(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({X.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}.",
+                category=UserWarning,
+                stacklevel=2
             )
 
         l_1nn = self.index.knn_query(Y, k=k_search, num_threads=n_threads)

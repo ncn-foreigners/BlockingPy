@@ -20,6 +20,7 @@ release = "0.1.7"
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
@@ -28,6 +29,8 @@ extensions = [
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
+autosummary_generate = True
 
 
 # -- Options for HTML output -------------------------------------------------

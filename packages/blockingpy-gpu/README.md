@@ -29,11 +29,7 @@ BlockingPy requires Python 3.10 or later. Installation is handled via PIP as fol
 ```bash
 pip install blockingpy
 ```
-or i.e. with poetry:
 
-```bash
-poetry add blockingpy
-```
 ### Note
 You may need to run the following beforehand:
 ```bash
@@ -132,6 +128,9 @@ print(dedup_result.result)
 # 4  4  6      1  0.105573
 # 5  5  7      1  0.278312
 ```
+
+You can find more comprehensive examples in [examples](https://blockingpy.readthedocs.io/en/latest/examples/index.html) section.
+
 ## Features
 - Multiple ANN implementations available:
     - [FAISS](https://github.com/facebookresearch/faiss) (Facebook AI Similarity Search) (`lsh`, `hnsw`, `flat`)

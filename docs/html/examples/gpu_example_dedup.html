@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Deduplication on GPU (adaptation of Example No. 2) &mdash; BlockingPy 0.1.7 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -119,9 +119,9 @@ pip<span class="w"> </span>install<span class="w"> </span>blockingpy-gpu
 <section id="data-preparation">
 <h2>Data preparation<a class="headerlink" href="#data-preparation" title="Link to this heading"></a></h2>
 <p>Firstly, we need to prepare the dataset:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">blockingpy</span> <span class="kn">import</span> <span class="n">Blocker</span>
-<span class="kn">from</span> <span class="nn">blockingpy.datasets</span> <span class="kn">import</span> <span class="n">load_deduplication_data</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">blockingpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Blocker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">blockingpy.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_deduplication_data</span>
 
 <span class="n">data</span> <span class="o">=</span> <span class="n">load_deduplication_data</span><span class="p">()</span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>

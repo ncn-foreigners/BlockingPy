@@ -7,6 +7,7 @@ import logging
 import os
 import random
 from typing import Any, Literal
+import warnings
 
 import faiss
 import numpy as np
@@ -233,7 +234,9 @@ class GPUFaissBlocker(BlockingMethod):
         gc.collect()
 
         if k_search > x_total:
-            logger.warning("k_search=%d exceeds reference size (%d); clipping.", k_search, x_total)
+            warnings.warn(f"k_search={k_search} exceeds reference size ({x_total}); clipping.",
+                          category=UserWarning,
+                          stacklevel=2)
             k_search = x_total
 
         if index_type == "cagra":

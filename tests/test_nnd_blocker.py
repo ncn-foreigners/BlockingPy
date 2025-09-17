@@ -76,18 +76,14 @@ def test_result_reproducibility(nnd_blocker, small_sparse_data, nnd_controls):
     pd.testing.assert_frame_equal(result1, result2)
 
 
-def test_k_search_warning(nnd_blocker, small_sparse_data, nnd_controls, caplog):
+def test_k_search_warning(nnd_blocker, small_sparse_data, nnd_controls):
     """Test warning when k_search is larger than reference points."""
     x, y = small_sparse_data
-    caplog.set_level(logging.WARNING)
 
     nnd_controls["nnd"]["k_search"] = x.shape[0] + 10
-    nnd_blocker.block(x=x, y=y, k=1, verbose=True, controls=nnd_controls)
 
-    warning_message = (
-        f"k_search ({x.shape[0] + 10}) is larger than the number of reference points ({x.shape[0]})"
-    )
-    assert any(warning_message in record.message for record in caplog.records)
+    with pytest.warns(UserWarning, match=r"k_search.*larger.*reference"):
+        nnd_blocker.block(x=x, y=y, k=1, verbose=True, controls=nnd_controls)
 
 
 def test_verbose_logging(nnd_blocker, small_sparse_data, nnd_controls, caplog):

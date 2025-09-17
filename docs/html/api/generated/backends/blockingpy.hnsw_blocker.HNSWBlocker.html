@@ -1,0 +1,219 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blockingpy.hnsw_blocker.HNSWBlocker &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="blockingpy.annoy_blocker.AnnoyBlocker" href="blockingpy.annoy_blocker.AnnoyBlocker.html" />
+    <link rel="prev" title="blockingpy.faiss_blocker.FaissBlocker" href="blockingpy.faiss_blocker.FaissBlocker.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">BlockingPy API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../blocker.html">Blocker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../blocker.html#more-information">More information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../blocking_result.html">BlockingResult</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../../backends.html">Backends</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="blockingpy.faiss_blocker.FaissBlocker.html">blockingpy.faiss_blocker.FaissBlocker</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">blockingpy.hnsw_blocker.HNSWBlocker</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#blockingpy.hnsw_blocker.HNSWBlocker"><code class="docutils literal notranslate"><span class="pre">HNSWBlocker</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="blockingpy.annoy_blocker.AnnoyBlocker.html">blockingpy.annoy_blocker.AnnoyBlocker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blockingpy.nnd_blocker.NNDBlocker.html">blockingpy.nnd_blocker.NNDBlocker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blockingpy.voyager_blocker.VoyagerBlocker.html">blockingpy.voyager_blocker.VoyagerBlocker</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../data_structures.html">Data structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../datasets.html">Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../encoders.html">Text encoders</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">BlockingPy API</a></li>
+          <li class="breadcrumb-item"><a href="../../backends.html">Backends</a></li>
+      <li class="breadcrumb-item active">blockingpy.hnsw_blocker.HNSWBlocker</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../_sources/api/generated/backends/blockingpy.hnsw_blocker.HNSWBlocker.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="blockingpy-hnsw-blocker-hnswblocker">
+<h1>blockingpy.hnsw_blocker.HNSWBlocker<a class="headerlink" href="#blockingpy-hnsw-blocker-hnswblocker" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="blockingpy.hnsw_blocker.HNSWBlocker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blockingpy.hnsw_blocker.</span></span><span class="sig-name descname"><span class="pre">HNSWBlocker</span></span><a class="reference internal" href="../../../_modules/blockingpy/hnsw_blocker.html#HNSWBlocker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.hnsw_blocker.HNSWBlocker" title="Link to this definition"></a></dt>
+<dd><p>A class for performing blocking using the Hierarchical Navigable Small World (HNSW) algorithm.</p>
+<p>This class implements blocking functionality using the HNSW algorithm for efficient
+similarity search and nearest neighbor queries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>None</strong></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.hnsw_blocker.HNSWBlocker.index">
+<span class="sig-name descname"><span class="pre">index</span></span><a class="headerlink" href="#blockingpy.hnsw_blocker.HNSWBlocker.index" title="Link to this definition"></a></dt>
+<dd><p>The HNSW index used for nearest neighbor search</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>hnswlib.Index or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.hnsw_blocker.HNSWBlocker.x_columns">
+<span class="sig-name descname"><span class="pre">x_columns</span></span><a class="headerlink" href="#blockingpy.hnsw_blocker.HNSWBlocker.x_columns" title="Link to this definition"></a></dt>
+<dd><p>Column names of the reference dataset</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array-like or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="blockingpy.hnsw_blocker.HNSWBlocker.SPACE_MAP">
+<span class="sig-name descname"><span class="pre">SPACE_MAP</span></span><a class="headerlink" href="#blockingpy.hnsw_blocker.HNSWBlocker.SPACE_MAP" title="Link to this definition"></a></dt>
+<dd><p>Mapping of distance metric names to their HNSW implementations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockingMethod</span></code></dt><dd><p>Abstract base class defining the blocking interface</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>For more details about the HNSW algorithm, see:
+<a class="reference external" href="https://github.com/nmslib/hnswlib">https://github.com/nmslib/hnswlib</a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="blockingpy.hnsw_blocker.HNSWBlocker.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/blockingpy/hnsw_blocker.html#HNSWBlocker.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.hnsw_blocker.HNSWBlocker.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the HNSWBlocker instance.</p>
+<p>Creates a new HNSWBlocker with empty index.</p>
+</dd></dl>
+
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#blockingpy.hnsw_blocker.HNSWBlocker.__init__" title="blockingpy.hnsw_blocker.HNSWBlocker.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
+<td><p>Initialize the HNSWBlocker instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">block</span></code>(x, y, k, verbose, controls)</p></td>
+<td><p>Perform blocking using the HNSW algorithm.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#blockingpy.hnsw_blocker.HNSWBlocker.SPACE_MAP" title="blockingpy.hnsw_blocker.HNSWBlocker.SPACE_MAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPACE_MAP</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="blockingpy.faiss_blocker.FaissBlocker.html" class="btn btn-neutral float-left" title="blockingpy.faiss_blocker.FaissBlocker" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="blockingpy.annoy_blocker.AnnoyBlocker.html" class="btn btn-neutral float-right" title="blockingpy.annoy_blocker.AnnoyBlocker" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

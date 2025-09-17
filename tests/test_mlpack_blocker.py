@@ -87,18 +87,13 @@ def test_result_reproducibility(mlpack_blocker, small_sparse_data, kd_controls):
     pd.testing.assert_frame_equal(result1, result2)
 
 
-def test_k_search_warning(mlpack_blocker, small_sparse_data, lsh_controls, caplog):
+def test_k_search_warning(mlpack_blocker, small_sparse_data, lsh_controls):
     """Test warning when k_search is larger than reference points."""
     x, y = small_sparse_data
-    caplog.set_level(logging.WARNING)
 
     lsh_controls["lsh"]["k_search"] = x.shape[0] + 10
-    mlpack_blocker.block(x=x, y=y, k=1, verbose=True, controls=lsh_controls)
-
-    warning_message = (
-        f"k_search ({x.shape[0] + 10}) is larger than the number of reference points ({x.shape[0]})"
-    )
-    assert any(warning_message in record.message for record in caplog.records)
+    with pytest.warns(UserWarning, match=r"k_search.*larger.*reference"):
+        mlpack_blocker.block(x=x, y=y, k=1, verbose=True, controls=lsh_controls)
 
 
 def test_verbose_logging(mlpack_blocker, small_sparse_data, lsh_controls, caplog):

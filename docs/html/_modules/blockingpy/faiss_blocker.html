@@ -1,0 +1,381 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blockingpy.faiss_blocker &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blockingpy.faiss_blocker</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blockingpy.faiss_blocker</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Contains the FaissBlocker class for performing blocking using one of the FAISS algorithms.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">faiss</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlockingMethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.data_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.helper_functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">rearrange_array</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="FaissBlocker">
+<a class="viewcode-back" href="../../api/generated/backends/blockingpy.faiss_blocker.FaissBlocker.html#blockingpy.faiss_blocker.FaissBlocker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FaissBlocker</span><span class="p">(</span><span class="n">BlockingMethod</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for performing blocking using the FAISS (Facebook AI Similarity Search) algorithm.</span>
+
+<span class="sd">    This class implements blocking functionality using Facebook&#39;s FAISS library for</span>
+<span class="sd">    efficient similarity search and nearest neighbor queries. It supports multiple</span>
+<span class="sd">    distance metrics and is optimized for high-performance computing.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    index : faiss.Index</span>
+<span class="sd">        The FAISS index used for nearest neighbor search</span>
+<span class="sd">    x_columns : array-like or None</span>
+<span class="sd">        Column names of the reference dataset</span>
+<span class="sd">    METRIC_MAP : dict</span>
+<span class="sd">        Mapping of distance metric names to FAISS metric types</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    BlockingMethod : Abstract base class defining the blocking interface</span>
+<span class="sd">    faiss.Index : The underlying FAISS index implementation</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The available Index types from FAISS are: &#39;flat&#39;, &#39;hnsw&#39;, and &#39;lsh&#39;.</span>
+<span class="sd">    - &#39;flat&#39; is a brute-force exact search (most accurate but slowest)</span>
+<span class="sd">    - &#39;hnsw&#39; is a Hierarchical Navigable Small World graph algorithm</span>
+<span class="sd">        (good balance of speed and accuracy)</span>
+<span class="sd">    - &#39;lsh&#39; is a Locality Sensitive Hashing algorithm</span>
+<span class="sd">        (fastest but approximate results)</span>
+
+<span class="sd">    For more details about the FAISS library and implementation, see:</span>
+<span class="sd">    https://github.com/facebookresearch/faiss</span>
+
+<span class="sd">    Some distance metrics require special handling:</span>
+<span class="sd">    - Cosine similarity is implemented through L2 normalization</span>
+<span class="sd">    - Jensen-Shannon and Canberra metrics require smoothing to handle zero values</span>
+<span class="sd">    - Selected distance metrics does not affect the algorithm if &#39;lsh&#39; was selected</span>
+
+<span class="sd">    Faiss does not support `random_seed` parameter. Instead, it handles reproducibility</span>
+<span class="sd">    inside the algorithm. For more details, see:</span>
+<span class="sd">    https://gist.github.com/mdouze/1892178b5663b80e85ab076966c59c28</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">METRIC_MAP</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;euclidean&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_L2</span><span class="p">,</span>
+        <span class="s2">&quot;l2&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_L2</span><span class="p">,</span>
+        <span class="s2">&quot;inner_product&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_INNER_PRODUCT</span><span class="p">,</span>
+        <span class="s2">&quot;cosine&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_INNER_PRODUCT</span><span class="p">,</span>
+        <span class="c1"># note: later handled by vector normalisation</span>
+        <span class="c1"># see:(https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances)</span>
+        <span class="s2">&quot;l1&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_L1</span><span class="p">,</span>
+        <span class="s2">&quot;manhattan&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_L1</span><span class="p">,</span>
+        <span class="s2">&quot;linf&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_Linf</span><span class="p">,</span>
+        <span class="c1"># &quot;lp&quot; : faiss.METRIC_Lp,</span>
+        <span class="s2">&quot;canberra&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_Canberra</span><span class="p">,</span>
+        <span class="c1"># note: requires smoothing since 0/0 is undefined</span>
+        <span class="s2">&quot;bray_curtis&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_BrayCurtis</span><span class="p">,</span>
+        <span class="s2">&quot;jensen_shannon&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_JensenShannon</span><span class="p">,</span>
+        <span class="c1"># note: requires smoothing since log(0) is undefined</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="FaissBlocker.__init__">
+<a class="viewcode-back" href="../../api/generated/backends/blockingpy.faiss_blocker.FaissBlocker.html#blockingpy.faiss_blocker.FaissBlocker.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the FaissBlocker instance.</span>
+
+<span class="sd">        Creates a new FaissBlocker with empty index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">,</span>
+        <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">controls</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform blocking using the FAISS algorithm.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : DataHandler</span>
+<span class="sd">            Reference dataset containing features for indexing</span>
+<span class="sd">        y : DataHandler</span>
+<span class="sd">            Query dataset to find nearest neighbors for</span>
+<span class="sd">        k : int</span>
+<span class="sd">            Number of nearest neighbors to find</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            If True, print detailed progress information</span>
+<span class="sd">        controls : dict</span>
+<span class="sd">            Algorithm control parameters with the following structure:</span>
+<span class="sd">            {</span>
+<span class="sd">                &#39;faiss&#39;: {</span>
+<span class="sd">                    &#39;index_type&#39;: [&#39;flat&#39;, &#39;hnsw&#39;, &#39;lsh&#39;],</span>
+<span class="sd">                    &#39;distance&#39;: str,</span>
+<span class="sd">                    &#39;k_search&#39;: int,</span>
+<span class="sd">                    &#39;path&#39;: str,</span>
+
+<span class="sd">                    &#39;hnsw_M&#39;: int,</span>
+<span class="sd">                    &#39;hnsw_ef_construction&#39;: int,</span>
+<span class="sd">                    &#39;hnsw_ef_search&#39;: int,</span>
+
+<span class="sd">                    &#39;lsh_nbits&#39;: int, (gets multiplied by dimensions)</span>
+<span class="sd">                    &#39;lsh_rotate_data&#39;: bool,</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            DataFrame containing the blocking results with columns:</span>
+<span class="sd">            - &#39;y&#39;: indices from query dataset</span>
+<span class="sd">            - &#39;x&#39;: indices of matched items from reference dataset</span>
+<span class="sd">            - &#39;dist&#39;: distances to matched items</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Special preprocessing is applied for certain metrics:</span>
+<span class="sd">        - For cosine similarity, vectors are L2-normalized</span>
+<span class="sd">        - For Jensen-Shannon and Canberra metrics, small constant is added</span>
+<span class="sd">          to prevent undefined values</span>
+<span class="sd">        - For LSH index, the distance calculation is determined by the hash function,</span>
+<span class="sd">          not directly by the selected distance metric</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span> <span class="k">if</span> <span class="n">verbose</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;faiss&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">)</span>
+        <span class="n">k_search</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;faiss&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;k_search&quot;</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;faiss&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+        <span class="n">index_type</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;faiss&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;index_type&quot;</span><span class="p">,</span> <span class="s2">&quot;hnsw&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">index_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="s2">&quot;hnsw&quot;</span><span class="p">,</span> <span class="s2">&quot;lsh&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Invalid index_type &#39;</span><span class="si">{</span><span class="n">index_type</span><span class="si">}</span><span class="s2">&#39;. Must be one of &#39;flat&#39;, &#39;hnsw&#39;, or &#39;lsh&#39;.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">X</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">distance</span> <span class="o">==</span> <span class="s2">&quot;cosine&quot;</span><span class="p">:</span>
+            <span class="n">faiss</span><span class="o">.</span><span class="n">normalize_L2</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">faiss</span><span class="o">.</span><span class="n">normalize_L2</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">distance</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;jensen_shannon&quot;</span><span class="p">,</span> <span class="s2">&quot;canberra&quot;</span><span class="p">}:</span>
+            <span class="n">smooth</span> <span class="o">=</span> <span class="mf">1e-12</span>
+            <span class="n">X</span> <span class="o">+=</span> <span class="n">smooth</span>
+            <span class="n">Y</span> <span class="o">+=</span> <span class="n">smooth</span>
+
+        <span class="n">metric</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">METRIC_MAP</span><span class="p">[</span><span class="n">distance</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;flat&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexFlat</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">metric</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;hnsw&quot;</span><span class="p">:</span>
+            <span class="n">M</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;faiss&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hnsw_M&quot;</span><span class="p">)</span>
+            <span class="n">ef_construction</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;faiss&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hnsw_ef_construction&quot;</span><span class="p">)</span>
+            <span class="n">ef_search</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;faiss&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hnsw_ef_search&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexHNSWFlat</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">M</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">hnsw</span><span class="o">.</span><span class="n">efConstruction</span> <span class="o">=</span> <span class="n">ef_construction</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">hnsw</span><span class="o">.</span><span class="n">efSearch</span> <span class="o">=</span> <span class="n">ef_search</span>
+        <span class="k">elif</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;lsh&quot;</span><span class="p">:</span>
+            <span class="n">nbits</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;faiss&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lsh_nbits&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nbits</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">nbits</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">nbits</span><span class="p">)</span>
+            <span class="n">rotate_data</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;faiss&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lsh_rotate_data&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexLSH</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">nbits</span><span class="p">,</span> <span class="n">rotate_data</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Building index...&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">distance</span> <span class="o">==</span> <span class="s2">&quot;cosine&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">X</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Querying index...&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">k_search</span> <span class="o">&gt;</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">original_k_search</span> <span class="o">=</span> <span class="n">k_search</span>
+            <span class="n">k_search</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k_search</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;k_search (</span><span class="si">{</span><span class="n">original_k_search</span><span class="si">}</span><span class="s2">) is larger than the number of reference points &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">). Adjusted k_search to </span><span class="si">{</span><span class="n">k_search</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">distance</span> <span class="o">==</span> <span class="s2">&quot;cosine&quot;</span><span class="p">:</span>
+            <span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k_search</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k_search</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">distance</span> <span class="o">==</span> <span class="s2">&quot;cosine&quot;</span> <span class="ow">and</span> <span class="n">index_type</span> <span class="o">!=</span> <span class="s2">&quot;lsh&quot;</span><span class="p">:</span>
+            <span class="n">distances</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">distances</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">indices</span><span class="p">,</span> <span class="n">distances</span> <span class="o">=</span> <span class="n">rearrange_array</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">distances</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_save_index</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">indices</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="s2">&quot;dist&quot;</span><span class="p">:</span> <span class="n">distances</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="p">}</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Process completed successfully.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the FAISS index and column names to files.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            Directory path where the files will be saved</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the provided path is incorrect</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Creates two files:</span>
+<span class="sd">            - &#39;index.faiss&#39;: The FAISS index file</span>
+<span class="sd">            - &#39;index-colnames.txt&#39;: A text file with column names</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided path is incorrect&quot;</span><span class="p">)</span>
+
+        <span class="n">path_faiss</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;index.faiss&quot;</span><span class="p">)</span>
+        <span class="n">path_faiss_cols</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;index-colnames.txt&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Writing index to </span><span class="si">{</span><span class="n">path_faiss</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">path_faiss</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_faiss_cols</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_columns</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

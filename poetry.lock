@@ -13,7 +13,7 @@ files = [
 
 [[package]]
 name = "blockingpy-core"
-version = "0.2.0"
+version = "0.2.3"
 description = "Core library for BlockingPy."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -25,7 +25,7 @@ annoy = "^1.17.3"
 hnswlib = "^0.8.0"
 igraph = "^0.11.9"
 mlpack = ">=4.4.0, <5.0.0"
-model2vec = "^0.4.1"
+model2vec = ">=0.4.1,<1.0.0"
 nltk = "^3.9.1"
 numpy = "^1.26.4"
 pandas = ">=2.2.0,<3.0.0"
@@ -659,13 +659,13 @@ tests = ["pytest (>3)", "pytest (>3,<=4.6)"]
 
 [[package]]
 name = "model2vec"
-version = "0.4.1"
+version = "0.6.0"
 description = "Fast State-of-the-Art Static Embeddings"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "model2vec-0.4.1-py3-none-any.whl", hash = "sha256:04a397a17da9b967082b6baa4c494f0be48c89ec4e1a3975b4f290f045238a38"},
-    {file = "model2vec-0.4.1.tar.gz", hash = "sha256:fc6038416679eebe448951708f2d0bebdee8510f47970af1c81a8f054a3c3f9f"},
+    {file = "model2vec-0.6.0-py3-none-any.whl", hash = "sha256:1175efba2c88517a078edc40c1434e842f74a9a2010ae1123c0fc98c99417c0c"},
+    {file = "model2vec-0.6.0.tar.gz", hash = "sha256:8f09086781660a8364b0bcadc601a06045a08f62985da90f50b703148f9b09e0"},
 ]
 
 [package.dependencies]
@@ -680,9 +680,10 @@ tqdm = "*"
 
 [package.extras]
 dev = ["black", "ipython", "mypy", "pre-commit", "pytest", "pytest-cov", "ruff"]
-distill = ["scikit-learn", "torch", "transformers"]
+distill = ["scikit-learn", "torch", "transformers (<=4.52.1)"]
 inference = ["scikit-learn", "skops"]
 onnx = ["onnx", "torch"]
+tokenizer = ["transformers"]
 train = ["lightning", "scikit-learn", "skops", "torch"]
 
 [[package]]

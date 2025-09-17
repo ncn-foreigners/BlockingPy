@@ -112,18 +112,18 @@ def test_column_intersection(small_named_csr_data):
 
 
 def test_verbosity_levels(small_named_txt_data, caplog):
-    """Test different verbosity levels."""
     blocker = Blocker()
     x_txt, _ = small_named_txt_data
 
-    with caplog.at_level(logging.INFO):
+    caplog.clear()
+    with caplog.at_level(logging.INFO, logger="blockingpy"):
         blocker.block(x_txt["txt"], verbose=0, ann="faiss", control_ann={"faiss": {"k_search": 3}})
-    assert len(caplog.records) == 0
+    assert not any(r.name.startswith("blockingpy") and r.levelno == logging.INFO for r in caplog.records)
 
     caplog.clear()
-    with caplog.at_level(logging.INFO):
+    with caplog.at_level(logging.INFO, logger="blockingpy"):
         blocker.block(x_txt["txt"], verbose=1)
-    assert len(caplog.records) > 0
+    assert any(r.name.startswith("blockingpy") and r.levelno == logging.INFO for r in caplog.records)
 
 
 def test_text_data_with_names(small_named_txt_data, small_named_csr_data):

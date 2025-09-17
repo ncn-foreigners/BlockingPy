@@ -6,6 +6,7 @@ Voyager algorithm from Spotify.
 import logging
 import os
 from typing import Any
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -168,9 +169,11 @@ class VoyagerBlocker(BlockingMethod):
         if k_search > X.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, X.shape[0])
-            logger.warning(
+            warnings.warn(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({X.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}.",
+                category=UserWarning,
+                stacklevel=2
             )
 
         all_neighbor_ids, all_distances = self.index.query(

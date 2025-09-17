@@ -93,18 +93,15 @@ def test_parameter_variations(
     assert result["dist"].notna().all()
 
 
-def test_k_search_warning(hnsw_blocker, small_sparse_data, hnsw_controls, caplog):
+def test_k_search_warning(hnsw_blocker, small_sparse_data, hnsw_controls):
     """Test warning when k_search is larger than reference points."""
     x, y = small_sparse_data
-    caplog.set_level(logging.WARNING)
 
     hnsw_controls["hnsw"]["k_search"] = x.shape[0] + 10
     hnsw_blocker.block(x=x, y=y, k=1, verbose=True, controls=hnsw_controls)
 
-    warning_message = (
-        f"k_search ({x.shape[0] + 10}) is larger than the number of reference points ({x.shape[0]})"
-    )
-    assert any(warning_message in record.message for record in caplog.records)
+    with pytest.warns(UserWarning, match=r"k_search.*larger.*reference"):
+        hnsw_blocker.block(x=x, y=y, k=1, verbose=True, controls=hnsw_controls)
 
 
 def test_verbose_logging(hnsw_blocker, small_sparse_data, hnsw_controls, caplog):

@@ -1,0 +1,190 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blockingpy.text_encoders.embedding_encoder &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blockingpy.text_encoders.embedding_encoder</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blockingpy.text_encoders.embedding_encoder</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Module containing the EmbeddingEncoder class using DataHandler.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">model2vec</span><span class="w"> </span><span class="kn">import</span> <span class="n">StaticModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="kn">import</span> <span class="n">Series</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..data_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextEncoder</span>
+
+
+<div class="viewcode-block" id="EmbeddingEncoder">
+<a class="viewcode-back" href="../../../api/generated/encoders/blockingpy.text_encoders.embedding_encoder.EmbeddingEncoder.html#blockingpy.text_encoders.embedding_encoder.EmbeddingEncoder">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmbeddingEncoder</span><span class="p">(</span><span class="n">TextEncoder</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dense-vector encoder that wraps `model2vec.StaticModel`.</span>
+
+<span class="sd">    The encoder converts a :class:`pandas.Series` of text strings into a</span>
+<span class="sd">    :class:`DataHandler` whose ``data`` attribute is a C-contiguous</span>
+<span class="sd">    ``np.ndarray`` of shape ``(n_samples, embedding_dim)`` and whose ``cols``</span>
+<span class="sd">    are the synthetic column names ``emb_0 … emb_{d-1}``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="EmbeddingEncoder.__init__">
+<a class="viewcode-back" href="../../../api/generated/encoders/blockingpy.text_encoders.embedding_encoder.EmbeddingEncoder.html#blockingpy.text_encoders.embedding_encoder.EmbeddingEncoder.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;minishlab/potion-base-8M&quot;</span><span class="p">,</span>
+        <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
+        <span class="n">emb_batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">,</span>
+        <span class="n">show_progress_bar</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">use_multiprocessing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">multiprocessing_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10_000</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span> <span class="o">=</span> <span class="n">normalize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">=</span> <span class="n">max_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emb_batch_size</span> <span class="o">=</span> <span class="n">emb_batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_progress_bar</span> <span class="o">=</span> <span class="n">show_progress_bar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_multiprocessing</span> <span class="o">=</span> <span class="n">use_multiprocessing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multiprocessing_threshold</span> <span class="o">=</span> <span class="n">multiprocessing_threshold</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">Series</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Series</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmbeddingEncoder</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;No-op fit for scikit-learn compatibility.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataHandler</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Encode *X* into dense numeric vectors.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        X</span>
+<span class="sd">            Series of raw text strings.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        DataHandler</span>
+<span class="sd">            ``data`` is ``np.ndarray`` ``(n_samples, d)`` in ``float32``;</span>
+<span class="sd">            ``cols`` contains synthetic names ``emb_0 … emb_{d-1}``.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">StaticModel</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">)</span>
+        <span class="n">embeddings</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span>
+            <span class="n">X</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="n">max_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_length</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">emb_batch_size</span><span class="p">,</span>
+            <span class="n">show_progress_bar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">show_progress_bar</span><span class="p">,</span>
+            <span class="n">use_multiprocessing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_multiprocessing</span><span class="p">,</span>
+            <span class="n">multiprocessing_threshold</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">multiprocessing_threshold</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">emb_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">embeddings</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="n">dim</span> <span class="o">=</span> <span class="n">emb_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">colnames</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;emb_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">emb_arr</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">colnames</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

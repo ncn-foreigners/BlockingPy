@@ -14,32 +14,49 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-          cache: pip
+          python-version: '3.12'
 
-      - name: System deps (mlpack)
+      - name: Install CPU deps
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libmlpack-dev
+          python -m pip install --upgrade pip
+          # Install your package + test deps as appropriate
+          # pip install -e packages/blockingpy-core
+          # pip install -e packages/blockingpy[tests]
+          pip install coverage pytest
 
-      - name: Install deps
+      - name: Run CPU coverage slice
         run: |
-          pip install -U pip
-          pip install faiss-cpu
-          pip install -e packages/blockingpy-core[dev]
-          pip install coverage pytest-cov
+          coverage run -m pytest -q
+          coverage xml -o coverage-cpu.xml
 
-      - name: Run tests and collect coverage (CPU only)
+      - name: Set up micromamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-name: blockingpy-gpu
+          create-args: python=3.10
+          init-shell: bash
+          cache-environment: true
+
+      - name: Install GPU deps
+        shell: bash -l {0}
         run: |
-          pytest --ignore=tests/test_gpu_faiss.py \
-                 --cov=blockingpy --cov-branch \
-                 --cov-report=xml:coverage.xml --cov-report=term-missing
+          micromamba run -n blockingpy-gpu pip install --upgrade pip
+          # Add your GPU stack here if needed (faiss-gpu etc.)
+          # micromamba install -y -n blockingpy-gpu -c pytorch/label/nightly faiss-gpu-cuvs=1.11.0=py3.10_ha3bacd1_55_cuda12.4.0_nightly
+          micromamba run -n blockingpy-gpu pip install coverage pytest
 
-      - name: Upload coverage to Codecov
+      - name: Run GPU coverage slice
+        shell: bash -l {0}
+        run: |
+          micromamba run -n blockingpy-gpu coverage run -m pytest -q tests/test_gpu_faiss.py
+          micromamba run -n blockingpy-gpu coverage xml -o coverage-gpu.xml
+
+      - name: Upload combined coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: coverage.xml
+          files: coverage-cpu.xml,coverage-gpu.xml
           fail_ci_if_error: true

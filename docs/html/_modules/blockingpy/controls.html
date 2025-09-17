@@ -1,0 +1,413 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blockingpy.controls &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blockingpy.controls</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blockingpy.controls</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Contains controls for ANN algorithms and text processing operations.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">deep_update</span><span class="p">(</span><span class="n">base_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">update_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update nested dictionaries while preserving default values.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    base_dict : dict</span>
+<span class="sd">        The base dictionary containing default values</span>
+<span class="sd">    update_dict : dict</span>
+<span class="sd">        The dictionary containing values to update</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Updated dictionary with preserved nested structure</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function performs a deep copy and recursive update of nested dictionaries,</span>
+<span class="sd">    ensuring that default values are preserved when not explicitly overridden.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">base_dict</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">update_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">result</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">deep_update</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<div class="viewcode-block" id="controls_ann">
+<a class="viewcode-back" href="../../api/generated/config/blockingpy.controls.controls_ann.html#blockingpy.controls.controls_ann">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">controls_ann</span><span class="p">(</span><span class="n">controls</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create configuration dictionary for Approximate Nearest Neighbor algorithms.</span>
+
+<span class="sd">    This function provides a centralized configuration for multiple ANN algorithms,</span>
+<span class="sd">    with sensible defaults and easy override capabilities.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    controls : dict</span>
+<span class="sd">        Dictionary of control parameters to override defaults</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments for direct parameter updates</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Configuration dictionary with the following structure:</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;random_seed&#39;: int,</span>
+<span class="sd">            &#39;nnd&#39;: {</span>
+<span class="sd">                &#39;metric&#39;: str,</span>
+<span class="sd">                &#39;k_search&#39;: int,</span>
+<span class="sd">                &#39;metric_kwds&#39;: dict or None,</span>
+<span class="sd">                &#39;n_threads&#39;: int or None,</span>
+<span class="sd">                ...</span>
+<span class="sd">            },</span>
+<span class="sd">            &#39;hnsw&#39;: {</span>
+<span class="sd">                &#39;distance&#39;: str,</span>
+<span class="sd">                &#39;n_threads&#39;: int,</span>
+<span class="sd">                &#39;M&#39;: int,</span>
+<span class="sd">                ...</span>
+<span class="sd">            },</span>
+<span class="sd">            &#39;lsh&#39;: {...},</span>
+<span class="sd">            &#39;kd&#39;: {...},</span>
+<span class="sd">            &#39;annoy&#39;: {...},</span>
+<span class="sd">            &#39;voyager&#39;: {...},</span>
+<span class="sd">            &#39;faiss&#39;: {...},</span>
+<span class="sd">            &#39;gpu_faiss&#39;: {...},</span>
+<span class="sd">            &#39;algo&#39;: str [&#39;lsh&#39; or &#39;kd&#39;]</span>
+<span class="sd">        }</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Supported algorithms and their documentation:</span>
+<span class="sd">    - NND: https://github.com/lmcinnes/pynndescent</span>
+<span class="sd">    - HNSW: https://github.com/nmslib/hnswlib</span>
+<span class="sd">    - Annoy: https://github.com/spotify/annoy</span>
+<span class="sd">    - LSH and KD: https://github.com/mlpack/mlpack</span>
+<span class="sd">    - Voyager: https://github.com/spotify/voyager</span>
+<span class="sd">    - FAISS: https://github.com/facebookresearch/faiss</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; config = controls_ann(hnsw={&#39;M&#39;: 30, &#39;ef_c&#39;: 300})</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">defaults</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;random_seed&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;nnd&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="s2">&quot;euclidean&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;k_search&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="s2">&quot;metric_kwds&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;n_threads&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;tree_init&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;n_trees&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;leaf_size&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;pruning_degree_multiplier&quot;</span><span class="p">:</span> <span class="mf">1.5</span><span class="p">,</span>
+            <span class="s2">&quot;diversify_prob&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s2">&quot;init_graph&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;init_dist&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;low_memory&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;max_candidates&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;max_rptree_depth&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="s2">&quot;n_iters&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;delta&quot;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
+            <span class="s2">&quot;compressed&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;parallel_batch_queries&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;epsilon&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;hnsw&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;k_search&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;n_threads&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;M&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+            <span class="s2">&quot;ef_c&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+            <span class="s2">&quot;ef_s&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;lsh&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;k_search&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="s2">&quot;bucket_size&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+            <span class="s2">&quot;hash_width&quot;</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">,</span>
+            <span class="s2">&quot;num_probes&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;projections&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s2">&quot;tables&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;kd&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;k_search&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="s2">&quot;algorithm&quot;</span><span class="p">:</span> <span class="s2">&quot;dual_tree&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;epsilon&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">&quot;leaf_size&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+            <span class="s2">&quot;random_basis&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;rho&quot;</span><span class="p">:</span> <span class="mf">0.7</span><span class="p">,</span>
+            <span class="s2">&quot;tau&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">&quot;tree_type&quot;</span><span class="p">:</span> <span class="s2">&quot;kd&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;annoy&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;k_search&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="s2">&quot;angular&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;n_trees&quot;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+            <span class="s2">&quot;build_on_disk&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;voyager&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;k_search&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;M&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+            <span class="s2">&quot;ef_construction&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+            <span class="s2">&quot;max_elements&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;num_threads&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="s2">&quot;query_ef&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;faiss&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;index_type&quot;</span><span class="p">:</span> <span class="s2">&quot;hnsw&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;k_search&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;hnsw_M&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+            <span class="s2">&quot;hnsw_ef_construction&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+            <span class="s2">&quot;hnsw_ef_search&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+            <span class="s2">&quot;lsh_nbits&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;lsh_rotate_data&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;gpu_faiss&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;index_type&quot;</span><span class="p">:</span> <span class="s2">&quot;flat&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;k_search&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+            <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;ivf_nlist&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="s2">&quot;ivf_nprobe&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_nlist&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_m&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_nbits&quot;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_nprobe&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_useFloat16&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_usePrecomputed&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_reserveVecs&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="s2">&quot;ivfpq_use_cuvs&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;cagra&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;graph_degree&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+                <span class="s2">&quot;intermediate_graph_degree&quot;</span><span class="p">:</span> <span class="mi">128</span><span class="p">,</span>
+                <span class="s2">&quot;build_algo&quot;</span><span class="p">:</span> <span class="s2">&quot;ivf_pq&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;nn_descent_niter&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                <span class="s2">&quot;itopk_size&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+                <span class="s2">&quot;max_queries&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;algo&quot;</span><span class="p">:</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;team_size&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;search_width&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;min_iterations&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;max_iterations&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;thread_block_size&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;hashmap_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;hashmap_min_bitlen&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;hashmap_max_fill_rate&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;num_random_samplings&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">&quot;seed&quot;</span><span class="p">:</span> <span class="mh">0x128394</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;algo&quot;</span><span class="p">:</span> <span class="s2">&quot;lsh&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">updates</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">controls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">updates</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">controls</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">updates</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">deep_update</span><span class="p">(</span><span class="n">defaults</span><span class="p">,</span> <span class="n">updates</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="controls_txt">
+<a class="viewcode-back" href="../../api/generated/config/blockingpy.controls.controls_txt.html#blockingpy.controls.controls_txt">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">controls_txt</span><span class="p">(</span><span class="n">controls</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create configuration dictionary for text processing operations.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    controls : dict</span>
+<span class="sd">        Dictionary of control parameters to override defaults</span>
+<span class="sd">    **kwargs : dict</span>
+<span class="sd">        Additional keyword arguments for direct parameter updates</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Configuration dictionary with the following structure:</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;encoder&#39;: str,</span>
+<span class="sd">            &#39;embedding&#39;: {</span>
+<span class="sd">                &#39;model&#39;: str,</span>
+<span class="sd">                &#39;normalize&#39;: bool,</span>
+<span class="sd">                &#39;max_length&#39;: int,</span>
+<span class="sd">                &#39;emb_batch_size&#39;: int,</span>
+<span class="sd">                &#39;show_progress_bar&#39;: bool,</span>
+<span class="sd">                &#39;use_multiprocessing&#39;: bool,</span>
+<span class="sd">                &#39;multiprocessing_threshold&#39;: int,</span>
+<span class="sd">            },</span>
+<span class="sd">            &#39;shingle&#39;: {</span>
+<span class="sd">                &#39;n_shingles&#39;: int,</span>
+<span class="sd">                &#39;lowercase&#39;: bool,</span>
+<span class="sd">                &#39;strip_non_alphanum&#39;: bool,</span>
+<span class="sd">                &#39;max_features&#39;: int,</span>
+<span class="sd">            },</span>
+<span class="sd">        }</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Configuration options:</span>
+<span class="sd">    - encoder: Type of text encoder (&#39;shingle&#39; or &#39;embedding&#39;)</span>
+<span class="sd">    For &#39;embedding&#39;, additional parameters are required:</span>
+<span class="sd">        - model: Pretrained model identifier or path</span>
+<span class="sd">        - normalize: Normalize output vectors if True</span>
+<span class="sd">        - max_length: Maximum sequence length for encoding</span>
+<span class="sd">        - emb_batch_size: Batch size for encoding</span>
+<span class="sd">        - show_progress_bar: Show progress bar if True</span>
+<span class="sd">        - use_multiprocessing: Use multiprocessing if True</span>
+<span class="sd">        - multiprocessing_threshold: Threshold for multiprocessing</span>
+<span class="sd">    For &#39;shingle&#39;, additional parameters are required:</span>
+<span class="sd">        - n_shingles: Number of consecutive characters to combine</span>
+<span class="sd">        - max_features: Maximum number of features to keep</span>
+<span class="sd">        - lowercase: Convert text to lowercase if True</span>
+<span class="sd">        - strip_non_alphanum: Remove non-alphanumeric characters if True</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">defaults</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;encoder&quot;</span><span class="p">:</span> <span class="s2">&quot;shingle&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;embedding&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;minishlab/potion-base-8M&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;normalize&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;max_length&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>
+            <span class="s2">&quot;emb_batch_size&quot;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
+            <span class="s2">&quot;show_progress_bar&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;use_multiprocessing&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;multiprocessing_threshold&quot;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;shingle&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;n_shingles&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;lowercase&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;strip_non_alphanum&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;max_features&quot;</span><span class="p">:</span> <span class="mi">5000</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+
+    <span class="n">updates</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">controls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">updates</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">controls</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">updates</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">deep_update</span><span class="p">(</span><span class="n">defaults</span><span class="p">,</span> <span class="n">updates</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

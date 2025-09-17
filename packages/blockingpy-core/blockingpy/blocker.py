@@ -177,6 +177,7 @@ class Blocker:
             x_dtm = DataHandler(np.ascontiguousarray(x, dtype=np.float32), self.x_colnames)
             y_dtm = DataHandler(np.ascontiguousarray(y, dtype=np.float32), self.y_colnames)
         else:
+            logger.info("===== creating tokens =====")
             transformer = TextTransformer(**self.control_txt)
             x_dtm = transformer.transform(x)
             y_dtm = transformer.transform(y)
@@ -186,6 +187,11 @@ class Blocker:
         )
         x_sub = DataHandler(x_dtm.data[:, ix], colnames_xy.tolist())
         y_sub = DataHandler(y_dtm.data[:, iy], colnames_xy.tolist())
+
+        logger.info(
+                    f"===== starting search ({ann}, x, y: {x_dtm.shape[0]},"
+                    f"{y_dtm.shape[0]}, t: {len(colnames_xy)}) ====="
+                )
 
         blocker_cls = self._get_blocker(ann)
         if blocker_cls is None:
@@ -198,6 +204,7 @@ class Blocker:
             controls=self.control_ann,
         )
 
+        logger.info("===== creating graph =====")
         x_df["query_g"] = "q" + x_df["y"].astype(str)
         x_df["index_g"] = np.where(
             deduplication,
@@ -225,6 +232,7 @@ class Blocker:
         )
 
         if true_blocks is not None:
+            logger.info("===== evaluating =====")
             if not deduplication:
                 TP, FP, FN, TN = self._eval_rl(x_df, true_blocks)
             else:

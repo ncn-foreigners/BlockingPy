@@ -90,16 +90,13 @@ def test_build_on_disk(annoy_blocker, small_sparse_data, annoy_controls):
     assert result["dist"].notna().all()
 
 
-def test_k_search_warning(annoy_blocker, small_sparse_data, annoy_controls, caplog):
+def test_k_search_warning(annoy_blocker, small_sparse_data, annoy_controls):
     """Test warning when k_search is larger than reference points."""
     x, y = small_sparse_data
-    caplog.set_level(logging.WARNING)
 
     annoy_controls["annoy"]["k_search"] = x.shape[0] + 10
-    annoy_blocker.block(x=x, y=y, k=1, verbose=True, controls=annoy_controls)
-
-    warning_message = "k_search larger than reference set; adjusted."
-    assert any(warning_message in record.message for record in caplog.records)
+    with pytest.warns(UserWarning, match=r"k_search.*larger.*reference"):
+        annoy_blocker.block(x=x, y=y, k=1, verbose=True, controls=annoy_controls)
 
 
 def test_verbose_logging(annoy_blocker, small_sparse_data, annoy_controls, caplog):

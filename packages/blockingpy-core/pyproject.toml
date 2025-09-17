@@ -41,7 +41,7 @@ scikit-learn = "^1.5.2"
 nltk = "^3.9.1"
 voyager = "^2.0.9"
 pandas = ">=2.2.0,<3.0.0"
-model2vec = "^0.4.1"
+model2vec = ">=0.4.1,<1.0.0"
 igraph = "^0.11.9"
 mlpack = ">=4.4.0, <5.0.0"
 

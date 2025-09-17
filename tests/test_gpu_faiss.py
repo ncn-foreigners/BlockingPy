@@ -79,16 +79,13 @@ def test_result_reproducibility_gpu(gpu_faiss_blocker, small_sparse_data, gpu_fa
     pd.testing.assert_frame_equal(r1, r2)
 
 
-def test_k_search_guard_gpu(gpu_faiss_blocker, small_sparse_data, gpu_faiss_controls, caplog):
+def test_k_search_guard_gpu(gpu_faiss_blocker, small_sparse_data, gpu_faiss_controls):
     x, y = small_sparse_data
     controls = gpu_faiss_controls.copy()
     controls["gpu_faiss"]["k_search"] = x.shape[0] + 10
-    with caplog.at_level(logging.WARNING):
+
+    with pytest.warns(UserWarning, match=r"k_search.*exceeds.*clipping"):
         _ = gpu_faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=controls)
-    assert (
-        f"k_search={x.shape[0] + 10} exceeds reference size ({x.shape[0]}); clipping."
-        in caplog.text
-    )
 
 
 @pytest.mark.parametrize("index_type", ["flat"])

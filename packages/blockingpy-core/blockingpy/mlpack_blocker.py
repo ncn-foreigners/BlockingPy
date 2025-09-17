@@ -5,6 +5,7 @@ from typing import Any
 
 import mlpack
 import pandas as pd
+import warnings
 
 from .base import BlockingMethod
 from .data_handler import DataHandler
@@ -131,9 +132,11 @@ class MLPackBlocker(BlockingMethod):
         if k_search > X.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, X.shape[0])
-            logger.warning(
+            warnings.warn(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({X.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}.",
+                category=UserWarning,
+                stacklevel=2
             )
 
         logger.info(f"Initializing MLPack {self.algo.upper()} index...")

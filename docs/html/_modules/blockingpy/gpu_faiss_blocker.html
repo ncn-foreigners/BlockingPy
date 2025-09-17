@@ -1,0 +1,445 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blockingpy.gpu_faiss_blocker &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blockingpy.gpu_faiss_blocker</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blockingpy.gpu_faiss_blocker</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;GPU Faiss Blocker.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">gc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">faiss</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlockingMethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.data_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.helper_functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">rearrange_array</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">_IndexType</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="s2">&quot;ivf&quot;</span><span class="p">,</span> <span class="s2">&quot;ivfpq&quot;</span><span class="p">,</span> <span class="s2">&quot;cagra&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="GPUFaissBlocker">
+<a class="viewcode-back" href="../../api/generated/backends/blockingpy.gpu_faiss_blocker.GPUFaissBlocker.html#blockingpy.gpu_faiss_blocker.GPUFaissBlocker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GPUFaissBlocker</span><span class="p">(</span><span class="n">BlockingMethod</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for performing blocking using the FAISS (Facebook AI Similarity Search) algorithms</span>
+<span class="sd">    that are GPU-accelerated.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    index : faiss.Index (gpu)</span>
+<span class="sd">        The FAISS index used for nearest neighbor search</span>
+<span class="sd">    x_columns : array-like or None</span>
+<span class="sd">        Column names of the reference dataset</span>
+<span class="sd">    METRIC_MAP : dict</span>
+<span class="sd">        Mapping of distance metric names to FAISS metric types</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    BlockingMethod : Abstract base class defining the blocking interface</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The available Index types from FAISS are: &#39;flat&#39;, &#39;ivf&#39;, &#39;ivfpq&#39; and &#39;cagra&#39;.</span>
+
+<span class="sd">    For more details about the FAISS library and implementation, see:</span>
+<span class="sd">    https://github.com/facebookresearch/faiss</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GPUFaissBlocker.__init__">
+<a class="viewcode-back" href="../../api/generated/backends/blockingpy.gpu_faiss_blocker.GPUFaissBlocker.html#blockingpy.gpu_faiss_blocker.GPUFaissBlocker.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">Index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">METRIC_MAP</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;euclidean&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_L2</span><span class="p">,</span>
+            <span class="s2">&quot;l2&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_L2</span><span class="p">,</span>
+            <span class="s2">&quot;inner_product&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_INNER_PRODUCT</span><span class="p">,</span>
+            <span class="s2">&quot;cosine&quot;</span><span class="p">:</span> <span class="n">faiss</span><span class="o">.</span><span class="n">METRIC_INNER_PRODUCT</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">,</span>
+        <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">controls</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform blocking using the GPU FAISS algorithms.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : DataHandler</span>
+<span class="sd">            Reference dataset containing features for indexing</span>
+<span class="sd">        y : DataHandler</span>
+<span class="sd">            Query dataset to find nearest neighbors for</span>
+<span class="sd">        k : int</span>
+<span class="sd">            Number of nearest neighbors to find</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            If True, print detailed progress information</span>
+<span class="sd">        controls : dict</span>
+<span class="sd">            Algorithm control parameters.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            DataFrame containing the blocking results with columns:</span>
+<span class="sd">            - &#39;y&#39;: indices from query dataset</span>
+<span class="sd">            - &#39;x&#39;: indices of matched items from reference dataset</span>
+<span class="sd">            - &#39;dist&#39;: distances to matched items</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span> <span class="k">if</span> <span class="n">verbose</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+
+        <span class="n">faiss_ctl</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;gpu_faiss&quot;</span><span class="p">]</span>
+        <span class="n">distance</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="s2">&quot;cosine&quot;</span><span class="p">)</span>
+        <span class="n">index_type</span><span class="p">:</span> <span class="n">_IndexType</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;index_type&quot;</span><span class="p">,</span> <span class="s2">&quot;flat&quot;</span><span class="p">)</span>
+        <span class="n">k_search</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;k_search&quot;</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+        <span class="n">train_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;train_size&quot;</span><span class="p">)</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">controls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;random_seed&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">index_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="s2">&quot;ivf&quot;</span><span class="p">,</span> <span class="s2">&quot;ivfpq&quot;</span><span class="p">,</span> <span class="s2">&quot;cagra&quot;</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;index_type must be one of &#39;flat&#39;, &#39;ivf&#39;, &#39;ivfpq&#39;, &#39;cagra&#39;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">METRIC_MAP</span><span class="p">[</span><span class="n">distance</span><span class="p">]</span>
+
+        <span class="n">x_arr</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">y_arr</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="k">del</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">distance</span> <span class="o">==</span> <span class="s2">&quot;cosine&quot;</span><span class="p">:</span>
+            <span class="n">faiss</span><span class="o">.</span><span class="n">normalize_L2</span><span class="p">(</span><span class="n">x_arr</span><span class="p">)</span>
+            <span class="n">faiss</span><span class="o">.</span><span class="n">normalize_L2</span><span class="p">(</span><span class="n">y_arr</span><span class="p">)</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">x_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">index_cpu</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">trainable</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">gpu_res</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">StandardGpuResources</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;flat&quot;</span><span class="p">:</span>
+            <span class="n">index_cpu</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexFlat</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;ivf&quot;</span><span class="p">:</span>
+            <span class="n">nlist</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ivf_nlist&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="n">quantiser</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexFlat</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+            <span class="n">index_cpu</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexIVFFlat</span><span class="p">(</span><span class="n">quantiser</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">nlist</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+            <span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;ivfpq&quot;</span><span class="p">:</span>
+            <span class="n">nlist</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ivfpq_nlist&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ivfpq_m&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="n">nbits</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ivfpq_nbits&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nbits</span> <span class="o">!=</span> <span class="mi">8</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;FAISS GPU IVFPQ requires ivfpq_nbits == 8.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">d</span> <span class="o">%</span> <span class="n">m</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dimension d=</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s2"> must be divisible by m=</span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2"> for IVFPQ index.&quot;</span><span class="p">)</span>
+            <span class="n">quantiser</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexFlat</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+            <span class="n">index_cpu</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">IndexIVFPQ</span><span class="p">(</span><span class="n">quantiser</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">nlist</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">nbits</span><span class="p">)</span>
+            <span class="n">trainable</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;cagra&quot;</span><span class="p">:</span>
+            <span class="n">cctl</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cagra&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">CfgCls</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">faiss</span><span class="p">,</span> <span class="s2">&quot;GpuIndexCagraConfig&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">CfgCls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">cagra_cfg</span> <span class="o">=</span> <span class="n">CfgCls</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cagra_cfg</span><span class="p">,</span> <span class="s2">&quot;graph_degree&quot;</span><span class="p">):</span>
+                    <span class="n">cagra_cfg</span><span class="o">.</span><span class="n">graph_degree</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;graph_degree&quot;</span><span class="p">,</span> <span class="mi">64</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cagra_cfg</span><span class="p">,</span> <span class="s2">&quot;intermediate_graph_degree&quot;</span><span class="p">):</span>
+                    <span class="n">cagra_cfg</span><span class="o">.</span><span class="n">intermediate_graph_degree</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
+                        <span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;intermediate_graph_degree&quot;</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">build_algo</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;build_algo&quot;</span><span class="p">,</span> <span class="s2">&quot;ivf_pq&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cagra_cfg</span><span class="p">,</span> <span class="s2">&quot;build_algo&quot;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">build_algo</span> <span class="o">==</span> <span class="s2">&quot;nn_descent&quot;</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">CfgCls</span><span class="p">,</span> <span class="s2">&quot;NN_DESCENT&quot;</span><span class="p">):</span>
+                        <span class="n">cagra_cfg</span><span class="o">.</span><span class="n">build_algo</span> <span class="o">=</span> <span class="n">CfgCls</span><span class="o">.</span><span class="n">NN_DESCENT</span>
+                        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">cagra_cfg</span><span class="p">,</span> <span class="s2">&quot;nn_descent_niter&quot;</span><span class="p">):</span>
+                            <span class="n">cagra_cfg</span><span class="o">.</span><span class="n">nn_descent_niter</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nn_descent_niter&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+                    <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">CfgCls</span><span class="p">,</span> <span class="s2">&quot;IVF_PQ&quot;</span><span class="p">):</span>
+                        <span class="n">cagra_cfg</span><span class="o">.</span><span class="n">build_algo</span> <span class="o">=</span> <span class="n">CfgCls</span><span class="o">.</span><span class="n">IVF_PQ</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">GpuIndexCagra</span><span class="p">(</span><span class="n">gpu_res</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">cagra_cfg</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">GpuIndexCagra</span><span class="p">(</span><span class="n">gpu_res</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">GpuIndexCagra</span><span class="p">(</span><span class="n">gpu_res</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">metric</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported index_type&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">trainable</span> <span class="ow">and</span> <span class="n">index_cpu</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">index_cpu</span><span class="o">.</span><span class="n">is_trained</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">train_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">train_size</span> <span class="o">&lt;</span> <span class="n">x_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">sample_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">x_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">train_size</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">train_data</span> <span class="o">=</span> <span class="n">x_arr</span><span class="p">[</span><span class="n">sample_idx</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">train_data</span> <span class="o">=</span> <span class="n">x_arr</span>
+            <span class="n">index_cpu</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">train_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">train_size</span> <span class="o">&lt;</span> <span class="n">x_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="k">del</span> <span class="n">train_data</span>
+                <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">index_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="s2">&quot;ivf&quot;</span><span class="p">,</span> <span class="s2">&quot;ivfpq&quot;</span><span class="p">}:</span>
+            <span class="k">if</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;flat&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_cpu_to_gpu</span><span class="p">(</span><span class="n">gpu_res</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index_cpu</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">co</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">GpuClonerOptions</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;ivfpq&quot;</span><span class="p">:</span>
+                    <span class="n">ivfpq_useFloat16</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ivfpq_useFloat16&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                    <span class="n">ivfpq_usePrecomputed</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ivfpq_usePrecomputed&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                    <span class="n">ivfpq_reserveVecs</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ivfpq_reserveVecs&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="n">ivfpq_use_cuvs</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ivfpq_use_cuvs&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">co</span><span class="p">,</span> <span class="s2">&quot;useFloat16&quot;</span><span class="p">):</span>
+                        <span class="n">co</span><span class="o">.</span><span class="n">useFloat16</span> <span class="o">=</span> <span class="n">ivfpq_useFloat16</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">co</span><span class="p">,</span> <span class="s2">&quot;usePrecomputed&quot;</span><span class="p">):</span>
+                        <span class="n">co</span><span class="o">.</span><span class="n">usePrecomputed</span> <span class="o">=</span> <span class="n">ivfpq_usePrecomputed</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">co</span><span class="p">,</span> <span class="s2">&quot;reserveVecs&quot;</span><span class="p">):</span>
+                        <span class="n">co</span><span class="o">.</span><span class="n">reserveVecs</span> <span class="o">=</span> <span class="n">ivfpq_reserveVecs</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">co</span><span class="p">,</span> <span class="s2">&quot;use_cuvs&quot;</span><span class="p">):</span>
+                        <span class="n">co</span><span class="o">.</span><span class="n">use_cuvs</span> <span class="o">=</span> <span class="n">ivfpq_use_cuvs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_cpu_to_gpu</span><span class="p">(</span><span class="n">gpu_res</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index_cpu</span><span class="p">,</span> <span class="n">co</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;ivf&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">nprobe</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ivf_nprobe&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;ivfpq&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">nprobe</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ivfpq_nprobe&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+            <span class="k">del</span> <span class="n">index_cpu</span>
+            <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;cagra&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;is_trained&quot;</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_trained</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">x_arr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;ntotal&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;add&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x_arr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x_arr</span><span class="p">)</span>
+
+        <span class="n">x_total</span> <span class="o">=</span> <span class="n">x_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">x_arr</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">k_search</span> <span class="o">&gt;</span> <span class="n">x_total</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;k_search=</span><span class="si">%d</span><span class="s2"> exceeds reference size (</span><span class="si">%d</span><span class="s2">); clipping.&quot;</span><span class="p">,</span> <span class="n">k_search</span><span class="p">,</span> <span class="n">x_total</span><span class="p">)</span>
+            <span class="n">k_search</span> <span class="o">=</span> <span class="n">x_total</span>
+
+        <span class="k">if</span> <span class="n">index_type</span> <span class="o">==</span> <span class="s2">&quot;cagra&quot;</span><span class="p">:</span>
+            <span class="n">SPCls</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">faiss</span><span class="p">,</span> <span class="s2">&quot;SearchParametersCagra&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">SPCls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sp</span> <span class="o">=</span> <span class="n">SPCls</span><span class="p">()</span>
+
+                <span class="k">def</span><span class="w"> </span><span class="nf">_set</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+                        <span class="nb">setattr</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+                <span class="n">cctl</span> <span class="o">=</span> <span class="n">faiss_ctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cagra&quot;</span><span class="p">,</span> <span class="p">{})</span>
+                <span class="n">_set</span><span class="p">(</span><span class="s2">&quot;itopk_size&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;itopk_size&quot;</span><span class="p">,</span> <span class="mi">64</span><span class="p">)))</span>
+                <span class="n">_set</span><span class="p">(</span><span class="s2">&quot;max_queries&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_queries&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+                <span class="n">_set</span><span class="p">(</span><span class="s2">&quot;team_size&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;team_size&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+                <span class="n">_set</span><span class="p">(</span><span class="s2">&quot;search_width&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;search_width&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+                <span class="n">_set</span><span class="p">(</span><span class="s2">&quot;min_iterations&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;min_iterations&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+                <span class="n">_set</span><span class="p">(</span><span class="s2">&quot;max_iterations&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_iterations&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+                <span class="n">_set</span><span class="p">(</span><span class="s2">&quot;thread_block_size&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;thread_block_size&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+                <span class="n">_set</span><span class="p">(</span><span class="s2">&quot;hashmap_min_bitlen&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hashmap_min_bitlen&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+                <span class="n">_set</span><span class="p">(</span>
+                    <span class="s2">&quot;hashmap_max_fill_rate&quot;</span><span class="p">,</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hashmap_max_fill_rate&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)),</span>
+                <span class="p">)</span>
+                <span class="n">_set</span><span class="p">(</span><span class="s2">&quot;num_random_samplings&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_random_samplings&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+                <span class="n">_set</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mh">0x128394</span><span class="p">)))</span>
+
+                <span class="n">algo_s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;algo&quot;</span><span class="p">,</span> <span class="s2">&quot;auto&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">SPCls</span><span class="p">,</span> <span class="s2">&quot;AUTO&quot;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">algo_s</span> <span class="o">==</span> <span class="s2">&quot;single_cta&quot;</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">SPCls</span><span class="p">,</span> <span class="s2">&quot;SINGLE_CTA&quot;</span><span class="p">):</span>
+                        <span class="n">sp</span><span class="o">.</span><span class="n">algo</span> <span class="o">=</span> <span class="n">SPCls</span><span class="o">.</span><span class="n">SINGLE_CTA</span>
+                    <span class="k">elif</span> <span class="n">algo_s</span> <span class="o">==</span> <span class="s2">&quot;multi_cta&quot;</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">SPCls</span><span class="p">,</span> <span class="s2">&quot;MULTI_CTA&quot;</span><span class="p">):</span>
+                        <span class="n">sp</span><span class="o">.</span><span class="n">algo</span> <span class="o">=</span> <span class="n">SPCls</span><span class="o">.</span><span class="n">MULTI_CTA</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">sp</span><span class="o">.</span><span class="n">algo</span> <span class="o">=</span> <span class="n">SPCls</span><span class="o">.</span><span class="n">AUTO</span>
+
+                <span class="n">hm_s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cctl</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hashmap_mode&quot;</span><span class="p">,</span> <span class="s2">&quot;auto&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">SPCls</span><span class="p">,</span> <span class="s2">&quot;AUTO&quot;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">hm_s</span> <span class="o">==</span> <span class="s2">&quot;small&quot;</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">SPCls</span><span class="p">,</span> <span class="s2">&quot;SMALL&quot;</span><span class="p">):</span>
+                        <span class="n">sp</span><span class="o">.</span><span class="n">hashmap_mode</span> <span class="o">=</span> <span class="n">SPCls</span><span class="o">.</span><span class="n">SMALL</span>
+                    <span class="k">elif</span> <span class="n">hm_s</span> <span class="o">==</span> <span class="s2">&quot;hash&quot;</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">SPCls</span><span class="p">,</span> <span class="s2">&quot;HASH&quot;</span><span class="p">):</span>
+                        <span class="n">sp</span><span class="o">.</span><span class="n">hashmap_mode</span> <span class="o">=</span> <span class="n">SPCls</span><span class="o">.</span><span class="n">HASH</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">sp</span><span class="o">.</span><span class="n">hashmap_mode</span> <span class="o">=</span> <span class="n">SPCls</span><span class="o">.</span><span class="n">AUTO</span>
+
+                <span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">y_arr</span><span class="p">,</span> <span class="n">k_search</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">sp</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">y_arr</span><span class="p">,</span> <span class="n">k_search</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">distances</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">y_arr</span><span class="p">,</span> <span class="n">k_search</span><span class="p">)</span>
+
+        <span class="n">y_n</span> <span class="o">=</span> <span class="n">y_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">y_arr</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">distance</span> <span class="o">==</span> <span class="s2">&quot;cosine&quot;</span> <span class="ow">and</span> <span class="n">index_type</span> <span class="o">!=</span> <span class="s2">&quot;ivfpq&quot;</span><span class="p">:</span>
+            <span class="n">distances</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">distances</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">indices</span><span class="p">,</span> <span class="n">distances</span> <span class="o">=</span> <span class="n">rearrange_array</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">distances</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_save_index</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="n">result_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">y_n</span><span class="p">),</span>
+                <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">indices</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="s2">&quot;dist&quot;</span><span class="p">:</span> <span class="n">distances</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="k">del</span> <span class="n">distances</span><span class="p">,</span> <span class="n">indices</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">result_df</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided path is not a directory&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">faiss</span><span class="p">,</span> <span class="s2">&quot;GpuIndexCagra&quot;</span><span class="p">,</span> <span class="p">())):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Saving CAGRA indices is not supported in this build.&quot;</span><span class="p">)</span>
+
+        <span class="n">index_cpu</span> <span class="o">=</span> <span class="n">faiss</span><span class="o">.</span><span class="n">index_gpu_to_cpu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="n">faiss_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;index.faiss&quot;</span><span class="p">)</span>
+        <span class="n">cols_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;index-colnames.txt&quot;</span><span class="p">)</span>
+
+        <span class="n">faiss</span><span class="o">.</span><span class="n">write_index</span><span class="p">(</span><span class="n">index_cpu</span><span class="p">,</span> <span class="n">faiss_path</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">cols_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_columns</span><span class="p">))</span>
+
+        <span class="k">del</span> <span class="n">index_cpu</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

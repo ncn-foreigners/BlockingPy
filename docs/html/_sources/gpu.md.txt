@@ -16,10 +16,12 @@ To use the package install FAISS-GPU via conda/mamba, then install `blockingpy-g
 # 1) Env
 mamba create -n blockingpy-gpu python=3.10 -y
 conda activate blockingpy-gpu
+conda config --env --set channel_priority flexible
 
 # 2) Install FAISS GPU (nightly cuVS build) - this version was tested
-mamba install -c pytorch/label/nightly \
-  faiss-gpu-cuvs=1.11.0=py3.10_ha3bacd1_55_cuda12.4.0_nightly -y
+mamba install -y \
+  -c pytorch/label/nightly -c rapidsai -c conda-forge \
+  "faiss-gpu-cuvs=1.11.0" "libcuvs=25.4.*"
 
 # 3) Install BlockingPy and the rest of deps with pip (or poetry, uv etc.)
 pip install blockingpy-gpu
