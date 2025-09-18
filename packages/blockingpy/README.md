@@ -36,7 +36,7 @@ You may need to run the following beforehand:
 sudo apt-get install -y libmlpack-dev # on Linux
 brew install mlpack # on MacOS
 ```
-for the GPU version: see [here](#gpu-support) or [docs](https://blockingpy.readthedocs.io/en/latest/gpu/index.html)
+for the GPU version: see [here](#gpu-support) or [docs](https://blockingpy.readthedocs.io/en/latest/gpu.html)
 
 ## Basic Usage
 ### Record Linkage
