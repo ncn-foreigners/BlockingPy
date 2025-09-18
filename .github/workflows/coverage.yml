@@ -25,21 +25,22 @@ jobs:
           pip install -e packages/blockingpy-core[dev]
           pip install pytest-cov coverage
 
-      - name: Test CPU (no GPU files)
+      - name: Test CPU
         env:
           COVERAGE_FILE: .coverage.cpu
         run: |
           pytest --ignore=tests/test_gpu_faiss.py \
-                 --cov=blockingpy --cov-branch --cov-report=term-missing
+                --cov=blockingpy --cov-branch --cov-report=term-missing
 
-      - name: Test GPU (mocked on CPU runner)
+      - name: Test GPU (mocked)
         env:
+          BPY_GPU_ONLY: "1"
           BPY_GPU_MOCK: "1"
           COVERAGE_FILE: .coverage.gpu_mock
         run: |
           pytest tests/test_gpu_faiss.py \
-                 --cov=blockingpy.blockingpy.gpu_faiss_blocker \
-                 --cov-branch --cov-report=term-missing
+                --cov=blockingpy.gpu_faiss_blocker \
+                --cov-branch --cov-report=term-missing
 
       - name: Combine + XML
         run: |

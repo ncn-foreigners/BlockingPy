@@ -10,6 +10,6 @@ source =
 
 [report]
 omit =
-    */__init__.py
     */tests/*
     */conftest.py
+    */__init__.py
