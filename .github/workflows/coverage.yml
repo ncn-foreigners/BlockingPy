@@ -1,59 +1,111 @@
-# .github/workflows/coverage.yml
 name: Coverage Report
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, gpu ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, gpu ]
+
+permissions:
+  contents: read
 
 jobs:
   coverage-cpu:
+    name: CPU coverage
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           cache: pip
 
-      - name: System deps (mlpack)
+      - name: Install system dependencies (Ubuntu)
         run: |
           sudo apt-get update
           sudo apt-get install -y libmlpack-dev
 
-      - name: Install deps
+      - name: Install Python deps
         run: |
-          pip install -U pip
-          pip install faiss-cpu
+          python -m pip install --upgrade pip
           pip install -e packages/blockingpy-core[dev]
-          pip install coverage pytest-cov
+          pip install faiss-cpu
+          pip install pytest pytest-cov coverage
 
-      - name: Run tests and collect coverage (CPU only)
+      - name: Write .coveragerc
         run: |
-          pytest --ignore=tests/test_gpu_faiss.py \
-                 --cov=blockingpy --cov-branch \
-                 --cov-report=xml:coverage.xml --cov-report=term-missing
+          cat > .coveragerc << 'EOF'
+          [run]
+          branch = True
+          relative_files = True
+          source =
+              packages/blockingpy-core/blockingpy
+          omit =
+              */tests/*
+              */test_*.py
+              */conftest.py
+              */__pycache__/*
+              */site-packages/*
 
-      - name: Upload coverage to Codecov (CPU)
-        uses: codecov/codecov-action@v5
+          [paths]
+          source =
+              packages/blockingpy-core/blockingpy
+              */site-packages/blockingpy
+
+          [report]
+          exclude_lines =
+              pragma: no cover
+              def __repr__
+              if self\.debug:
+              if settings\.DEBUG
+              raise AssertionError
+              raise NotImplementedError
+              if 0:
+              if __name__ == .__main__.:
+              if TYPE_CHECKING:
+          EOF
+
+      - name: Run pytest with coverage (CPU slice)
+        run: |
+          coverage erase
+          pytest -xvs \
+            --cov=packages/blockingpy-core/blockingpy \
+            --cov-branch \
+            --cov-config=.coveragerc \
+            --ignore=tests/test_gpu_faiss.py \
+            --cov-report=term-missing \
+            --cov-report= \
+            tests/
+          # Save raw coverage data
+          cp .coverage .coverage.cpu
+
+      - name: Upload raw coverage artifact (CPU)
+        uses: actions/upload-artifact@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage.xml
-          flags: cpu
-          fail_ci_if_error: true
+          name: coverage-cpu
+          path: .coverage.cpu
+          if-no-files-found: error
 
   coverage-gpu:
+    name: GPU coverage
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: mamba-org/setup-micromamba@v2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          environment-name: blockingpy-gpu
+          fetch-depth: 0
+
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: blockingpy-gpu-cov
           create-args: python=3.10
           init-shell: bash
           condarc: |
@@ -66,45 +118,206 @@ jobs:
       - name: Install FAISS cuVS nightly
         shell: bash -l {0}
         run: |
-          micromamba install -n blockingpy-gpu -y \
+          micromamba install -n blockingpy-gpu-cov -y \
             -c rapidsai-nightly -c rapidsai \
             -c pytorch/label/nightly -c nvidia -c conda-forge \
             'faiss-gpu-cuvs=1.11.*=*cuda12.4.0_nightly'
-          micromamba run -n blockingpy-gpu python - <<'PY'
-          import faiss
-          print("faiss ok, GPUs:", getattr(faiss, "get_num_gpus", lambda: 0)())
-          PY
 
       - name: Install base stack (conda)
         shell: bash -l {0}
         run: |
-          micromamba install -n blockingpy-gpu -y numpy scipy scikit-learn pandas python-igraph
+          micromamba install -n blockingpy-gpu-cov -y \
+            numpy scipy scikit-learn pandas python-igraph
 
       - name: Install Python deps (pip)
         shell: bash -l {0}
         run: |
-          micromamba run -n blockingpy-gpu pip install annoy hnswlib pynndescent nltk voyager model2vec
+          micromamba run -n blockingpy-gpu-cov pip install \
+            annoy hnswlib pynndescent nltk voyager model2vec
 
       - name: Install blockingpy-core
         shell: bash -l {0}
         run: |
-          micromamba run -n blockingpy-gpu pip install -e packages/blockingpy-core[dev]
+          micromamba run -n blockingpy-gpu-cov pip install -e packages/blockingpy-core[dev]
 
-      - name: Install coverage + pytest
+      - name: Install pytest and coverage
         shell: bash -l {0}
         run: |
-          micromamba run -n blockingpy-gpu pip install coverage pytest
+          micromamba install -n blockingpy-gpu-cov -y -c conda-forge pytest pytest-cov coverage
 
-      - name: Run GPU coverage slice
-        shell: bash -l {0}
+      - name: Write .coveragerc
         run: |
-          micromamba run -n blockingpy-gpu coverage run -m pytest -q tests/test_gpu_faiss.py
-          micromamba run -n blockingpy-gpu coverage xml -o coverage-gpu.xml
+          cat > .coveragerc << 'EOF'
+          [run]
+          branch = True
+          relative_files = True
+          source =
+              packages/blockingpy-core/blockingpy
+          omit =
+              */tests/*
+              */test_*.py
+              */conftest.py
+              */__pycache__/*
+              */site-packages/*
 
-      - name: Upload coverage to Codecov (GPU)
-        uses: codecov/codecov-action@v5
+          [paths]
+          source =
+              packages/blockingpy-core/blockingpy
+              */site-packages/blockingpy
+
+          [report]
+          exclude_lines =
+              pragma: no cover
+              def __repr__
+              if self\.debug:
+              if settings\.DEBUG
+              raise AssertionError
+              raise NotImplementedError
+              if 0:
+              if __name__ == .__main__.:
+              if TYPE_CHECKING:
+          EOF
+
+      - name: Run pytest with coverage (GPU slice)
+        shell: bash -l {0}
+        working-directory: ${{ github.workspace }}
+        run: |
+          micromamba run -n blockingpy-gpu-cov coverage erase
+          micromamba run -n blockingpy-gpu-cov pytest -xvs \
+            --cov=packages/blockingpy-core/blockingpy \
+            --cov-branch \
+            --cov-config=.coveragerc \
+            --cov-report=term-missing \
+            --cov-report= \
+            tests/test_gpu_faiss.py
+          # Save raw coverage data
+          cp .coverage .coverage.gpu
+
+      - name: Upload raw coverage artifact (GPU)
+        uses: actions/upload-artifact@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage-gpu.xml
-          flags: gpu
-          fail_ci_if_error: true
+          name: coverage-gpu
+          path: .coverage.gpu
+          if-no-files-found: error
+
+  merge-and-upload:
+    name: Merge coverage and upload to Codecov
+    needs:
+      - coverage-cpu
+      - coverage-gpu
+    runs-on: ubuntu-latest
+    if: always() && (needs.coverage-cpu.result == 'success' || needs.coverage-gpu.result == 'success')
+
+    steps:
+      - name: Checkout (for repo context)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python (for coverage cli)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install coverage
+        run: python -m pip install -U coverage
+
+      - name: Write .coveragerc for merging
+        run: |
+          cat > .coveragerc << 'EOF'
+          [run]
+          branch = True
+          relative_files = True
+          source =
+              packages/blockingpy-core/blockingpy
+          omit =
+              */tests/*
+              */test_*.py
+              */conftest.py
+              */__pycache__/*
+              */site-packages/*
+
+          [paths]
+          source =
+              packages/blockingpy-core/blockingpy
+              */site-packages/blockingpy
+
+          [report]
+          exclude_lines =
+              pragma: no cover
+              def __repr__
+              if self\.debug:
+              if settings\.DEBUG
+              raise AssertionError
+              raise NotImplementedError
+              if 0:
+              if __name__ == .__main__.:
+              if TYPE_CHECKING:
+          EOF
+
+      - name: Download CPU coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-cpu
+          path: .
+        continue-on-error: true
+
+      - name: Download GPU coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-gpu
+          path: .
+        continue-on-error: true
+
+      - name: Combine coverage files
+        run: |
+          echo "=== Available coverage files ==="
+          ls -la .coverage* || echo "No coverage files found"
+          
+          # Initialize empty coverage
+          coverage erase
+          
+          # Combine all available coverage files
+          if [ -f ".coverage.cpu" ] && [ -f ".coverage.gpu" ]; then
+            echo "Combining CPU and GPU coverage..."
+            coverage combine .coverage.cpu .coverage.gpu
+          elif [ -f ".coverage.cpu" ]; then
+            echo "Only CPU coverage available..."
+            coverage combine .coverage.cpu
+          elif [ -f ".coverage.gpu" ]; then
+            echo "Only GPU coverage available..."
+            coverage combine .coverage.gpu
+          else
+            echo "ERROR: No coverage files found!"
+            exit 1
+          fi
+          
+          # Generate reports
+          echo "=== Coverage Report ==="
+          coverage report -m --skip-covered
+          
+          # Generate XML for Codecov
+          coverage xml -o coverage.xml
+          
+          # Show what will be uploaded
+          echo "=== Coverage XML Summary ==="
+          python -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('coverage.xml')
+          root = tree.getroot()
+          print(f\"Lines covered: {root.attrib.get('lines-covered', 'N/A')}\")
+          print(f\"Lines valid: {root.attrib.get('lines-valid', 'N/A')}\")
+          print(f\"Line rate: {root.attrib.get('line-rate', 'N/A')}\")
+          print(f\"Branch rate: {root.attrib.get('branch-rate', 'N/A')}\")
+          "
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unit
+          name: combined-coverage
+          fail_ci_if_error: false
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
