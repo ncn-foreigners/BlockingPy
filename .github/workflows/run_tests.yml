@@ -36,6 +36,7 @@ jobs:
         run: |
           uv venv
           uv pip install -e packages/blockingpy-core[dev]
+          uv pip install pytest pytest-cov
           uv pip install faiss-cpu
       - name: Run CPU tests 
         run: uv run pytest --ignore=tests/test_gpu_faiss.py
