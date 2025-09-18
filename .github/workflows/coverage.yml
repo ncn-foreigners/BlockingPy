@@ -32,15 +32,15 @@ jobs:
           pytest --ignore=tests/test_gpu_faiss.py \
                 --cov=blockingpy --cov-branch --cov-report=term-missing
 
-      - name: Test GPU (mocked)
+      - name: Test GPU (mock)
         env:
           BPY_GPU_ONLY: "1"
           BPY_GPU_MOCK: "1"
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
           COVERAGE_FILE: .coverage.gpu_mock
         run: |
           pytest tests/test_gpu_faiss.py \
-                --cov=blockingpy.gpu_faiss_blocker \
-                --cov-branch --cov-report=term-missing
+            --cov=blockingpy.gpu_faiss_blocker --cov-branch --cov-report=term-missing
 
       - name: Combine + XML
         run: |
