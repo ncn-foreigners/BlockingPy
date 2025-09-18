@@ -12,6 +12,29 @@ from blockingpy.hnsw_blocker import HNSWBlocker
 from blockingpy.nnd_blocker import NNDBlocker
 from blockingpy.voyager_blocker import VoyagerBlocker
 
+import os
+
+@pytest.fixture(autouse=True)
+def mock_faiss_gpu(monkeypatch):
+    if os.getenv("BPY_GPU_MOCK") != "1":
+        return
+    import faiss
+
+    monkeypatch.setattr(faiss, "get_num_gpus", lambda: 1, raising=False)
+
+    def _to_all_gpus(index): return index
+    monkeypatch.setattr(faiss, "index_cpu_to_all_gpus", _to_all_gpus, raising=False)
+
+    class _StdRes: pass
+    monkeypatch.setattr(faiss, "StandardGpuResources", _StdRes, raising=False)
+
+    if not hasattr(faiss, "GpuParameterSpace"):
+        class GpuParameterSpace:
+            def initialize(self, index): pass
+            def set_index_parameter(self, index, key, val): pass
+        monkeypatch.setattr(faiss, "GpuParameterSpace", GpuParameterSpace, raising=False)
+
+
 
 @pytest.fixture
 def blocker():
