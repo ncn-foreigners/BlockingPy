@@ -17,6 +17,8 @@ blockingpy-core = { path = "packages/blockingpy-core", develop = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
+pytest-cov = "^7.0.0"
+coverage = "^7.10.6"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]

@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>blockingpy.voyager_blocker.VoyagerBlocker &mdash; BlockingPy 0.1.7 documentation</title>
+  <title>blockingpy.voyager_blocker.VoyagerBlocker &mdash; BlockingPy 0.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="Configuration" href="../../configuration.html" />
-    <link rel="prev" title="blockingpy.annoy_blocker.AnnoyBlocker" href="blockingpy.annoy_blocker.AnnoyBlocker.html" /> 
+    <link rel="next" title="blockingpy.gpu_faiss_blocker.GPUFaissBlocker" href="blockingpy.gpu_faiss_blocker.GPUFaissBlocker.html" />
+    <link rel="prev" title="blockingpy.mlpack_blocker.MLPackBlocker" href="blockingpy.mlpack_blocker.MLPackBlocker.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,11 +53,15 @@
 <li class="toctree-l2"><a class="reference internal" href="../../blocking_result.html">BlockingResult</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../../backends.html">Backends</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="blockingpy.faiss_blocker.FaissBlocker.html">blockingpy.faiss_blocker.FaissBlocker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blockingpy.hnsw_blocker.HNSWBlocker.html">blockingpy.hnsw_blocker.HNSWBlocker</a></li>
 <li class="toctree-l3"><a class="reference internal" href="blockingpy.annoy_blocker.AnnoyBlocker.html">blockingpy.annoy_blocker.AnnoyBlocker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blockingpy.nnd_blocker.NNDBlocker.html">blockingpy.nnd_blocker.NNDBlocker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blockingpy.mlpack_blocker.MLPackBlocker.html">blockingpy.mlpack_blocker.MLPackBlocker</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">blockingpy.voyager_blocker.VoyagerBlocker</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#blockingpy.voyager_blocker.VoyagerBlocker"><code class="docutils literal notranslate"><span class="pre">VoyagerBlocker</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="blockingpy.gpu_faiss_blocker.GPUFaissBlocker.html">blockingpy.gpu_faiss_blocker.GPUFaissBlocker</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
@@ -163,7 +167,7 @@ metrics and is designed for high-dimensional data.</p>
 <a class="reference external" href="https://github.com/spotify/voyager">https://github.com/spotify/voyager</a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="blockingpy.voyager_blocker.VoyagerBlocker.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/blockingpy/voyager_blocker.html#VoyagerBlocker.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.voyager_blocker.VoyagerBlocker.__init__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/blockingpy/voyager_blocker.html#VoyagerBlocker.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.voyager_blocker.VoyagerBlocker.__init__" title="Link to this definition"></a></dt>
 <dd><p>Initialize the VoyagerBlocker instance.</p>
 <p>Creates a new VoyagerBlocker with empty index.</p>
 </dd></dl>
@@ -174,7 +178,7 @@ metrics and is designed for high-dimensional data.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#blockingpy.voyager_blocker.VoyagerBlocker.__init__" title="blockingpy.voyager_blocker.VoyagerBlocker.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
 <td><p>Initialize the VoyagerBlocker instance.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">block</span></code>(x, y, k, verbose, controls)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#blockingpy.voyager_blocker.VoyagerBlocker.block" title="blockingpy.voyager_blocker.VoyagerBlocker.block"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block</span></code></a>(x, y, k, verbose, controls)</p></td>
 <td><p>Perform blocking using the Voyager algorithm.</p></td>
 </tr>
 </tbody>
@@ -182,11 +186,64 @@ metrics and is designed for high-dimensional data.</p>
 <p class="rubric">Attributes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#blockingpy.voyager_blocker.VoyagerBlocker.METRIC_MAP" title="blockingpy.voyager_blocker.VoyagerBlocker.METRIC_MAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">METRIC_MAP</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id0" title="blockingpy.voyager_blocker.VoyagerBlocker.METRIC_MAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">METRIC_MAP</span></code></a></p></td>
 <td><p></p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">METRIC_MAP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'cosine':</span> <span class="pre">voyager.Space.Cosine,</span> <span class="pre">'euclidean':</span> <span class="pre">voyager.Space.Euclidean,</span> <span class="pre">'inner_product':</span> <span class="pre">voyager.Space.InnerProduct}</span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blockingpy.voyager_blocker.VoyagerBlocker.block">
+<span class="sig-name descname"><span class="pre">block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">controls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/blockingpy/voyager_blocker.html#VoyagerBlocker.block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.voyager_blocker.VoyagerBlocker.block" title="Link to this definition"></a></dt>
+<dd><p>Perform blocking using the Voyager algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference internal" href="../ds/blockingpy.data_handler.DataHandler.html#blockingpy.data_handler.DataHandler" title="blockingpy.data_handler.DataHandler"><em>DataHandler</em></a>) – Reference dataset containing features for indexing</p></li>
+<li><p><strong>y</strong> (<a class="reference internal" href="../ds/blockingpy.data_handler.DataHandler.html#blockingpy.data_handler.DataHandler" title="blockingpy.data_handler.DataHandler"><em>DataHandler</em></a>) – Query dataset to find nearest neighbors for</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – Number of nearest neighbors to find</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, print detailed progress information</p></li>
+<li><p><strong>controls</strong> (<em>dict</em>) – <p>Algorithm control parameters with the following structure:
+{</p>
+<blockquote>
+<div><p>’random_seed’: int,
+‘voyager’: {</p>
+<blockquote>
+<div><p>’distance’: str,
+‘k_search’: int,
+‘path’: str,
+‘M’: int,
+‘ef_construction’: int,
+‘max_elements’: int,
+‘num_threads’: int,
+‘query_ef’: int</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame containing the blocking results with columns:
+- ‘y’: indices from query dataset
+- ‘x’: indices of matched items from reference dataset
+- ‘dist’: distances to matched items</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The algorithm uses a graph-based approach for approximate
+nearest neighbor search. The quality of approximation can be controlled
+through parameters like ef_construction and query_ef.</p>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -195,8 +252,8 @@ metrics and is designed for high-dimensional data.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="blockingpy.annoy_blocker.AnnoyBlocker.html" class="btn btn-neutral float-left" title="blockingpy.annoy_blocker.AnnoyBlocker" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../../configuration.html" class="btn btn-neutral float-right" title="Configuration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="blockingpy.mlpack_blocker.MLPackBlocker.html" class="btn btn-neutral float-left" title="blockingpy.mlpack_blocker.MLPackBlocker" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="blockingpy.gpu_faiss_blocker.GPUFaissBlocker.html" class="btn btn-neutral float-right" title="blockingpy.gpu_faiss_blocker.GPUFaissBlocker" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

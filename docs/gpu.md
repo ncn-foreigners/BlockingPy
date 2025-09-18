@@ -92,6 +92,6 @@ control_ann = {
 }
 ```
 
-From here everything works the same as in `blockingpy`. You can pass `ann='gpu_faiss'` to the `block` method and pass the controls dict with `'index_type'` and that's all. You can find an example of `blockingpy-gpu` workflow [here](blockingpy.readthedocs.io/en/latest/examples/gpu_example_dedup.html)
+From here everything works the same as in `blockingpy`. You can pass `ann='gpu_faiss'` to the `block` method and pass the controls dict with `'index_type'` and that's all. You can find an example of `blockingpy-gpu` workflow [here](https://blockingpy.readthedocs.io/en/latest/examples/gpu_example_dedup.html)
 
 For more info about FAISS GPU and the indexes see [here.](https://github.com/facebookresearch/faiss/wiki/Running-on-GPUs)

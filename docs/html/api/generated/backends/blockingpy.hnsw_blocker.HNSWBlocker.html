@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>blockingpy.hnsw_blocker.HNSWBlocker &mdash; BlockingPy 0.1.7 documentation</title>
+  <title>blockingpy.hnsw_blocker.HNSWBlocker &mdash; BlockingPy 0.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -59,7 +59,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="blockingpy.annoy_blocker.AnnoyBlocker.html">blockingpy.annoy_blocker.AnnoyBlocker</a></li>
 <li class="toctree-l3"><a class="reference internal" href="blockingpy.nnd_blocker.NNDBlocker.html">blockingpy.nnd_blocker.NNDBlocker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blockingpy.mlpack_blocker.MLPackBlocker.html">blockingpy.mlpack_blocker.MLPackBlocker</a></li>
 <li class="toctree-l3"><a class="reference internal" href="blockingpy.voyager_blocker.VoyagerBlocker.html">blockingpy.voyager_blocker.VoyagerBlocker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blockingpy.gpu_faiss_blocker.GPUFaissBlocker.html">blockingpy.gpu_faiss_blocker.GPUFaissBlocker</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
@@ -157,7 +159,7 @@ similarity search and nearest neighbor queries.</p>
 <a class="reference external" href="https://github.com/nmslib/hnswlib">https://github.com/nmslib/hnswlib</a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="blockingpy.hnsw_blocker.HNSWBlocker.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/blockingpy/hnsw_blocker.html#HNSWBlocker.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.hnsw_blocker.HNSWBlocker.__init__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/blockingpy/hnsw_blocker.html#HNSWBlocker.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.hnsw_blocker.HNSWBlocker.__init__" title="Link to this definition"></a></dt>
 <dd><p>Initialize the HNSWBlocker instance.</p>
 <p>Creates a new HNSWBlocker with empty index.</p>
 </dd></dl>
@@ -168,7 +170,7 @@ similarity search and nearest neighbor queries.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#blockingpy.hnsw_blocker.HNSWBlocker.__init__" title="blockingpy.hnsw_blocker.HNSWBlocker.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>()</p></td>
 <td><p>Initialize the HNSWBlocker instance.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">block</span></code>(x, y, k, verbose, controls)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#blockingpy.hnsw_blocker.HNSWBlocker.block" title="blockingpy.hnsw_blocker.HNSWBlocker.block"><code class="xref py py-obj docutils literal notranslate"><span class="pre">block</span></code></a>(x, y, k, verbose, controls)</p></td>
 <td><p>Perform blocking using the HNSW algorithm.</p></td>
 </tr>
 </tbody>
@@ -176,11 +178,65 @@ similarity search and nearest neighbor queries.</p>
 <p class="rubric">Attributes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#blockingpy.hnsw_blocker.HNSWBlocker.SPACE_MAP" title="blockingpy.hnsw_blocker.HNSWBlocker.SPACE_MAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPACE_MAP</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id0" title="blockingpy.hnsw_blocker.HNSWBlocker.SPACE_MAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPACE_MAP</span></code></a></p></td>
 <td><p></p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">SPACE_MAP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'cosine':</span> <span class="pre">'cosine',</span> <span class="pre">'euclidean':</span> <span class="pre">'l2',</span> <span class="pre">'ip':</span> <span class="pre">'ip',</span> <span class="pre">'l2':</span> <span class="pre">'l2'}</span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blockingpy.hnsw_blocker.HNSWBlocker.block">
+<span class="sig-name descname"><span class="pre">block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">controls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/blockingpy/hnsw_blocker.html#HNSWBlocker.block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.hnsw_blocker.HNSWBlocker.block" title="Link to this definition"></a></dt>
+<dd><p>Perform blocking using the HNSW algorithm.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>pandas.DataFrame</em>) – Reference dataset containing features for indexing</p></li>
+<li><p><strong>y</strong> (<em>pandas.DataFrame</em>) – Query dataset to find nearest neighbors for</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – Number of nearest neighbors to find. If k is larger than the number
+of reference points, it will be automatically adjusted</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, print detailed progress information</p></li>
+<li><p><strong>controls</strong> (<em>dict</em>) – <p>Algorithm control parameters with the following structure:
+{</p>
+<blockquote>
+<div><p>’random_seed’: int,
+‘hnsw’: {</p>
+<blockquote>
+<div><p>’k_search’: int,
+‘distance’: str,
+‘n_threads’: int,
+‘path’: str,
+‘ef_c’: int,
+‘ef_s’: int,
+‘M’: int,</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>DataFrame containing the blocking results with columns:
+- ‘y’: indices from query dataset
+- ‘x’: indices of matched items from reference dataset
+- ‘dist’: distances to matched items</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function builds an HNSW index from the reference dataset and finds
+the k-nearest neighbors for each point in the query dataset. The index
+parameters ef_c (construction) and ef_s (search) control the trade-off
+between search accuracy and speed.</p>
+</dd></dl>
+
 </dd></dl>
 
 </section>

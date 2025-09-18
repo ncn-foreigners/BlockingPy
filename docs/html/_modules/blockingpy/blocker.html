@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>blockingpy.blocker &mdash; BlockingPy 0.1.7 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -46,6 +46,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api/index.html">BlockingPy API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
 </ul>
 
@@ -79,39 +80,39 @@
 <span class="sd">and deduplication blocking.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">igraph</span> <span class="kn">import</span> <span class="n">Graph</span>
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">igraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">sparse</span>
 
-<span class="kn">from</span> <span class="nn">.annoy_blocker</span> <span class="kn">import</span> <span class="n">AnnoyBlocker</span>
-<span class="kn">from</span> <span class="nn">.blocking_result</span> <span class="kn">import</span> <span class="n">BlockingResult</span>
-<span class="kn">from</span> <span class="nn">.controls</span> <span class="kn">import</span> <span class="n">controls_ann</span><span class="p">,</span> <span class="n">controls_txt</span>
-<span class="kn">from</span> <span class="nn">.data_handler</span> <span class="kn">import</span> <span class="n">DataHandler</span>
-<span class="kn">from</span> <span class="nn">.helper_functions</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.annoy_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnnoyBlocker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.blocking_result</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlockingResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.controls</span><span class="w"> </span><span class="kn">import</span> <span class="n">controls_ann</span><span class="p">,</span> <span class="n">controls_txt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.data_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.helper_functions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DistanceMetricValidator</span><span class="p">,</span>
     <span class="n">InputValidator</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">.hnsw_blocker</span> <span class="kn">import</span> <span class="n">HNSWBlocker</span>
-<span class="kn">from</span> <span class="nn">.nnd_blocker</span> <span class="kn">import</span> <span class="n">NNDBlocker</span>
-<span class="kn">from</span> <span class="nn">.text_encoders.text_transformer</span> <span class="kn">import</span> <span class="n">TextTransformer</span>
-<span class="kn">from</span> <span class="nn">.voyager_blocker</span> <span class="kn">import</span> <span class="n">VoyagerBlocker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.hnsw_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="n">HNSWBlocker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.nnd_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="n">NNDBlocker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.text_encoders.text_transformer</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextTransformer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.voyager_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoyagerBlocker</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Blocker">
 <a class="viewcode-back" href="../../api/blocker.html#blockingpy.blocker.Blocker">[docs]</a>
-<span class="k">class</span> <span class="nc">Blocker</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Blocker</span><span class="p">:</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class implementing various blocking methods for record linkage and deduplication.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">confusion</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="o">=</span> <span class="kc">None</span>
@@ -128,7 +129,7 @@
 
 <div class="viewcode-block" id="Blocker.block">
 <a class="viewcode-back" href="../../api/blocker.html#blockingpy.blocker.Blocker.block">[docs]</a>
-    <span class="k">def</span> <span class="nf">block</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -257,6 +258,7 @@
             <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span><span class="p">)</span>
             <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;===== creating tokens =====&quot;</span><span class="p">)</span>
             <span class="n">transformer</span> <span class="o">=</span> <span class="n">TextTransformer</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span><span class="p">)</span>
             <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
@@ -266,6 +268,11 @@
         <span class="p">)</span>
         <span class="n">x_sub</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">x_dtm</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span> <span class="n">ix</span><span class="p">],</span> <span class="n">colnames_xy</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
         <span class="n">y_sub</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">y_dtm</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span> <span class="n">iy</span><span class="p">],</span> <span class="n">colnames_xy</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;===== starting search (</span><span class="si">{</span><span class="n">ann</span><span class="si">}</span><span class="s2">, x, y: </span><span class="si">{</span><span class="n">x_dtm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">,&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">y_dtm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, t: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">colnames_xy</span><span class="p">)</span><span class="si">}</span><span class="s2">) =====&quot;</span>
+                <span class="p">)</span>
 
         <span class="n">blocker_cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_blocker</span><span class="p">(</span><span class="n">ann</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">blocker_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -278,6 +285,7 @@
             <span class="n">controls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">,</span>
         <span class="p">)</span>
 
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;===== creating graph =====&quot;</span><span class="p">)</span>
         <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;query_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;q&quot;</span> <span class="o">+</span> <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
         <span class="n">x_df</span><span class="p">[</span><span class="s2">&quot;index_g&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
             <span class="n">deduplication</span><span class="p">,</span>
@@ -305,6 +313,7 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">true_blocks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;===== evaluating =====&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">deduplication</span><span class="p">:</span>
                 <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_rl</span><span class="p">(</span><span class="n">x_df</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -329,7 +338,7 @@
 
 <div class="viewcode-block" id="Blocker.eval">
 <a class="viewcode-back" href="../../api/blocker.html#blockingpy.blocker.Blocker.eval">[docs]</a>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blocking_result</span><span class="p">:</span> <span class="n">BlockingResult</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BlockingResult</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">blocking_result</span><span class="p">:</span> <span class="n">BlockingResult</span><span class="p">,</span> <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BlockingResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluate blocking results against true block assignments and return new BlockingResult.</span>
 
@@ -393,7 +402,7 @@
         <span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="nf">_eval_rl</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_eval_rl</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pred_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
         <span class="n">true_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
@@ -476,7 +485,7 @@
 
         <span class="k">return</span> <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span>
 
-    <span class="k">def</span> <span class="nf">_eval_dedup</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_eval_dedup</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pred_pairs_df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
         <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
@@ -534,7 +543,7 @@
 
         <span class="k">return</span> <span class="n">TP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> <span class="n">FN</span><span class="p">,</span> <span class="n">TN</span>
 
-    <span class="k">def</span> <span class="nf">_get_confusion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">tn</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_confusion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">tn</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a confusion matrix DataFrame from raw counts.</span>
 
@@ -567,7 +576,7 @@
         <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cm</span>
 
-    <span class="k">def</span> <span class="nf">_get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">tn</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fp</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">tn</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute standard evaluation metrics from raw counts.</span>
 
@@ -609,24 +618,24 @@
             <span class="p">}</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_blocker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ann</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_blocker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ann</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper to get the selected blocker&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ann</span> <span class="o">==</span> <span class="s2">&quot;faiss&quot;</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">.faiss_blocker</span> <span class="kn">import</span> <span class="n">FaissBlocker</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.faiss_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="n">FaissBlocker</span>
 
             <span class="k">return</span> <span class="n">FaissBlocker</span>
         <span class="k">if</span> <span class="n">ann</span> <span class="o">==</span> <span class="s2">&quot;gpu_faiss&quot;</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">.gpu_faiss_blocker</span> <span class="kn">import</span> <span class="n">GPUFaissBlocker</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.gpu_faiss_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="n">GPUFaissBlocker</span>
 
             <span class="k">return</span> <span class="n">GPUFaissBlocker</span>
         <span class="k">if</span> <span class="n">ann</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;lsh&quot;</span><span class="p">,</span> <span class="s2">&quot;kd&quot;</span><span class="p">}:</span>
-            <span class="kn">from</span> <span class="nn">.mlpack_blocker</span> <span class="kn">import</span> <span class="n">MLPackBlocker</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.mlpack_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="n">MLPackBlocker</span>
 
             <span class="k">return</span> <span class="n">MLPackBlocker</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">BLOCKER_MAP</span><span class="p">[</span><span class="n">ann</span><span class="p">]</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_reduction_ratio</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_reduction_ratio</span><span class="p">(</span>
         <span class="n">n_x</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">n_y</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">*</span><span class="p">,</span>

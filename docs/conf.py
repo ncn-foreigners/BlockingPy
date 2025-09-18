@@ -5,15 +5,18 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
-import os
-import sys
+import os, sys
+DOCS = os.path.dirname(__file__)
+ROOT = os.path.abspath(os.path.join(DOCS, ".."))
+sys.path.insert(0, os.path.join(ROOT, "packages", "blockingpy-core"))
+sys.path.insert(0, os.path.join(ROOT, "packages", "blockingpy"))
+sys.path.insert(0, os.path.join(ROOT, "packages", "blockingpy-gpu"))
 
-sys.path.insert(0, os.path.abspath(".."))
 
 project = "BlockingPy"
 copyright = "2025, Tymoteusz Strojny and Maciej Beręsewicz"
 author = "Tymoteusz Strojny, Maciej Beręsewicz"
-release = "0.1.7"
+release = "0.2.3"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -31,6 +34,16 @@ templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 autosummary_generate = True
+autodoc_default_options = {"members": True, "undoc-members": True, "inherited-members": True}
+
+autodoc_typehints = "none"
+autodoc_mock_imports = [
+    "faiss", "faiss_cpu", "faiss_gpu",
+    "mlpack", "hnswlib", "pynndescent", "voyager", "annoy",
+    "igraph", "model2vec", "torch", "cupy", "sklearn", "nltk",
+]
+autosummary_mock_imports = list(autodoc_mock_imports)
+
 
 
 # -- Options for HTML output -------------------------------------------------

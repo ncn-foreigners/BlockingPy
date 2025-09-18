@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>blockingpy.text_encoders.text_transformer.TextTransformer &mdash; BlockingPy 0.1.7 documentation</title>
+  <title>blockingpy.text_encoders.text_transformer.TextTransformer &mdash; BlockingPy 0.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -101,7 +101,7 @@
 <h1>blockingpy.text_encoders.text_transformer.TextTransformer<a class="headerlink" href="#blockingpy-text-encoders-text-transformer-texttransformer" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="blockingpy.text_encoders.text_transformer.TextTransformer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blockingpy.text_encoders.text_transformer.</span></span><span class="sig-name descname"><span class="pre">TextTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">control_txt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/blockingpy/text_encoders/text_transformer.html#TextTransformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.text_encoders.text_transformer.TextTransformer" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">blockingpy.text_encoders.text_transformer.</span></span><span class="sig-name descname"><span class="pre">TextTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">control_txt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/blockingpy/text_encoders/text_transformer.html#TextTransformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.text_encoders.text_transformer.TextTransformer" title="Link to this definition"></a></dt>
 <dd><p>Facade for selecting a concrete <code class="xref py py-class docutils literal notranslate"><span class="pre">TextEncoder</span></code> based on a control
 dictionary.</p>
 <dl class="field-list simple">
@@ -114,7 +114,7 @@ arguments.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="blockingpy.text_encoders.text_transformer.TextTransformer.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">control_txt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../../_modules/blockingpy/text_encoders/text_transformer.html#TextTransformer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.text_encoders.text_transformer.TextTransformer.__init__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">control_txt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/blockingpy/text_encoders/text_transformer.html#TextTransformer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.text_encoders.text_transformer.TextTransformer.__init__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <p class="rubric">Methods</p>
@@ -123,17 +123,78 @@ arguments.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#blockingpy.text_encoders.text_transformer.TextTransformer.__init__" title="blockingpy.text_encoders.text_transformer.TextTransformer.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(**control_txt)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code>(X[, y])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#blockingpy.text_encoders.text_transformer.TextTransformer.fit" title="blockingpy.text_encoders.text_transformer.TextTransformer.fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code></a>(X[, y])</p></td>
 <td><p>Learn stateful parameters from <em>X</em>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_transform</span></code>(X[, y])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#blockingpy.text_encoders.text_transformer.TextTransformer.fit_transform" title="blockingpy.text_encoders.text_transformer.TextTransformer.fit_transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_transform</span></code></a>(X[, y])</p></td>
 <td><p>Fit the encoder on <em>X</em> and return the transformed matrix.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code>(X)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#blockingpy.text_encoders.text_transformer.TextTransformer.transform" title="blockingpy.text_encoders.text_transformer.TextTransformer.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(X)</p></td>
 <td><p>Convert raw strings into a numeric feature matrix.</p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py method">
+<dt class="sig sig-object py" id="blockingpy.text_encoders.text_transformer.TextTransformer.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/blockingpy/text_encoders/text_transformer.html#TextTransformer.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.text_encoders.text_transformer.TextTransformer.fit" title="Link to this definition"></a></dt>
+<dd><p>Learn stateful parameters from <em>X</em>.</p>
+<p>The default implementation is a no-op that returns <em>self</em>; override in
+subclasses that need to build a vocabulary or train a model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – Series of input strings to learn from.</p></li>
+<li><p><strong>y</strong> – Ignored. Present for scikit-learn API compatibility.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">self</span></code> to allow method chaining.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TextEncoder</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blockingpy.text_encoders.text_transformer.TextTransformer.fit_transform">
+<span class="sig-name descname"><span class="pre">fit_transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/blockingpy/text_encoders/text_transformer.html#TextTransformer.fit_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.text_encoders.text_transformer.TextTransformer.fit_transform" title="Link to this definition"></a></dt>
+<dd><p>Fit the encoder on <em>X</em> and return the transformed matrix.</p>
+<p>Equivalent to calling <a class="reference internal" href="#blockingpy.text_encoders.text_transformer.TextTransformer.fit" title="blockingpy.text_encoders.text_transformer.TextTransformer.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></a> followed by <a class="reference internal" href="#blockingpy.text_encoders.text_transformer.TextTransformer.transform" title="blockingpy.text_encoders.text_transformer.TextTransformer.transform"><code class="xref py py-meth docutils literal notranslate"><span class="pre">transform()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> – Series of input strings.</p></li>
+<li><p><strong>y</strong> – Ignored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The encoded feature matrix together with its column names.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../ds/blockingpy.data_handler.DataHandler.html#blockingpy.data_handler.DataHandler" title="blockingpy.data_handler.DataHandler">DataHandler</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="blockingpy.text_encoders.text_transformer.TextTransformer.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/blockingpy/text_encoders/text_transformer.html#TextTransformer.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#blockingpy.text_encoders.text_transformer.TextTransformer.transform" title="Link to this definition"></a></dt>
+<dd><p>Convert raw strings into a numeric feature matrix.</p>
+<p>Subclasses must implement this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X</strong> – Series of raw text to encode.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Wrapper containing the encoded matrix and its feature names.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="../ds/blockingpy.data_handler.DataHandler.html#blockingpy.data_handler.DataHandler" title="blockingpy.data_handler.DataHandler">DataHandler</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
