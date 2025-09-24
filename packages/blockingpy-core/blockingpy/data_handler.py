@@ -41,7 +41,7 @@ class DataHandler:
     ) -> NDArray[Any]:
         data = self.data
         if _sp.issparse(data):
-            assert isinstance(data, csr_matrix) 
+            assert isinstance(data, csr_matrix)
             arr: NDArray[Any] = data.toarray()
         else:
             assert isinstance(data, np.ndarray)
