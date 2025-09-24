@@ -26,7 +26,7 @@ jobs:
       - name: Create venv and install tools
         run: |
           uv venv
-          uv pip install ruff==0.8.6 mypy==1.18.2 numpy==1.26.* pandas-stubs types-pytz scipy-stubs
+          uv pip install ruff==0.8.6 mypy==1.18.2 pandas-stubs types-pytz scipy-stubs
 
       - name: Ruff (format check + lint)
         run: |

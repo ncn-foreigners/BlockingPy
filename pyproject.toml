@@ -63,6 +63,7 @@ module = [
   "hnswlib", "hnswlib.*",
   "pynndescent", "pynndescent.*",
   "annoy", "annoy.*",
+  "scipy", "scipy.*",
   "model2vec", "model2vec.*",
 ]
 ignore_missing_imports = true
