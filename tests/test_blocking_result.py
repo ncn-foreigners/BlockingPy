@@ -84,12 +84,12 @@ def test_str_dedupulation_branch_with_metrics():
             "y": [2, 3, 10, 11],
         }
     )
-    metrics = {"precision": 0.9, "recall": 0.8}
+    metrics = pd.Series({"precision": 0.9, "recall": 0.8})
     br = _mk(df, deduplication=True, metrics=metrics, cols=("fname", "lname"), rr=0.5)
 
     s = str(br)
 
-    assert "Blocking based on the lsh method." in s
+    assert "Blocking based on the faiss method." in s
     assert "Number of columns created for blocking: 2" in s
     assert "Reduction ratio: 0.500000" in s
 
@@ -132,6 +132,6 @@ def test__format_metrics_none_and_values():
     br_none = _mk(df, deduplication=True, metrics=None)
     assert br_none._format_metrics() == {}
 
-    br_vals = _mk(df, deduplication=True, metrics={"f1": 0.3333333})
+    br_vals = _mk(df, deduplication=True, metrics=pd.Series({"f1": 0.3333333}))
     out = br_vals._format_metrics()
     assert out["f1"] == 33.3333

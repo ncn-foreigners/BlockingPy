@@ -23,21 +23,12 @@ jobs:
           python-version: "3.10"
 
       - name: Install uv
-        run: |
-          python -m pip install -U pip uv
+        run: python -m pip install -U pip uv
 
-      - name: Cache uv
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/uv
-          key: uv-${{ runner.os }}-py310-${{ hashFiles('pyproject.toml', '**/pyproject.toml') }}
-          restore-keys: |
-            uv-${{ runner.os }}-py310-
-
-      - name: Create venv and install dependencies
+      - name: Create venv and install tools
         run: |
           uv venv
-          uv pip install -e ".[dev]"
+          uv pip install ruff mypy pandas-stubs==2.3.2 types-pytz==2025.2.0
 
       - name: Ruff (format check + lint)
         run: |
@@ -45,5 +36,4 @@ jobs:
           uv run ruff check .
 
       - name: MyPy (type check)
-        run: |
-          uv run mypy packages/blockingpy-core
+        run: uv run mypy packages/blockingpy-core
