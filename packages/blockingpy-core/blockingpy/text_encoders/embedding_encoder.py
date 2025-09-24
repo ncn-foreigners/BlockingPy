@@ -11,7 +11,6 @@ from .base import TextEncoder
 
 
 class EmbeddingEncoder(TextEncoder):
-
     """
     Dense-vector encoder that wraps `model2vec.StaticModel`.
 
@@ -21,7 +20,7 @@ class EmbeddingEncoder(TextEncoder):
     are the synthetic column names ``emb_0 … emb_{d-1}``.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         model: str = "minishlab/potion-base-8M",
         normalize: bool | None = None,

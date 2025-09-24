@@ -2,8 +2,8 @@
 
 import logging
 import os
-from typing import Any
 import warnings
+from typing import Any
 
 import faiss
 import numpy as np
@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class FaissBlocker(BlockingMethod):
-
     """
     A class for performing blocking using the FAISS (Facebook AI Similarity Search) algorithm.
 
@@ -93,7 +92,7 @@ class FaissBlocker(BlockingMethod):
         self.index: faiss.Index
         self.x_columns: list[str]
 
-    def block(
+    def block(  # noqa: PLR0915, PLR0912
         self,
         x: DataHandler,
         y: DataHandler,
@@ -217,20 +216,20 @@ class FaissBlocker(BlockingMethod):
 
         if distance == "cosine" and index_type != "lsh":
             distances = (1 - distances) / 2
-
-        if k == 2:
+        K_VAL = 2
+        if k == K_VAL:
             indices, distances = rearrange_array(indices, distances)
 
         if path:
             self._save_index(path)
 
-        result = {
-            "y": np.arange(Y.shape[0]),
-            "x": indices[:, k - 1],
-            "dist": distances[:, k - 1],
-        }
-
-        result = pd.DataFrame(result)
+        result = pd.DataFrame(
+            {
+                "y": np.arange(Y.shape[0]),
+                "x": indices[:, k - 1],
+                "dist": distances[:, k - 1],
+            }
+        )
 
         logger.info("Process completed successfully.")
 

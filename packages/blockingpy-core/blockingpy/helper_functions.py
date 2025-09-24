@@ -11,7 +11,6 @@ from scipy import sparse
 
 
 class DistanceMetricValidator:
-
     """Centralized validation for distance metrics across different algorithms."""
 
     SUPPORTED_METRICS: dict[str, set[str]] = {
@@ -101,7 +100,6 @@ class DistanceMetricValidator:
 
 
 class InputValidator:
-
     """Validates input data and parameters for blocking operations."""
 
     @staticmethod

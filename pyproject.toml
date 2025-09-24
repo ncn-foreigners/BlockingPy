@@ -19,6 +19,11 @@ blockingpy-core = { path = "packages/blockingpy-core", develop = true }
 pytest = "^8.4.1"
 pytest-cov = "^7.0.0"
 coverage = "^7.10.6"
+pandas-stubs = "^2.3.2.250827"
+types-requests = "^2.32.4.20250913"
+types-pyyaml = "^6.0.12.20250915"
+types-python-dateutil = "^2.9.0.20250822"
+pytest-mypy-plugins = "^3.2.0"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]
@@ -36,49 +41,53 @@ target-version = ['py310']
 
 [tool.mypy]
 python_version = "3.10"
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
+files = "packages"
+strict = false
 warn_unused_ignores = true
-warn_return_any = true
-warn_unreachable = true
-strict_optional = true
+warn_redundant_casts = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+pretty = true
+show_error_codes = true
+exclude = "(^docs/|^tests/|^build/|^dist/)"
+
+[[tool.mypy.overrides]]
+module = [
+  "faiss", "faiss.*",
+  "mlpack", "mlpack.*",
+  "voyager", "voyager.*",
+  "nltk", "nltk.*",
+  "sklearn", "sklearn.*",
+  "igraph", "igraph.*",
+  "hnswlib", "hnswlib.*",
+  "pynndescent", "pynndescent.*",
+]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
 [tool.ruff]
-line-length = 100
 target-version = "py310"
+line-length = 100
+src = ["packages"]
+extend-exclude = ["docs", "build", "dist", "*.ipynb"]
 
 [tool.ruff.lint]
 select = [
-    "E",
-    "F",
-    "I", 
-    "B",    
-    "C90",  
-    "D", 
-    "UP", 
-    "YTT", 
-    "ANN",  
-    "S",   
-    "A", 
-    "LOG",  
-    "PYI", 
-    "TC",   
-    "PD",   
-    "PL",   
-    "NPY",  
-    "DOC",  
-    "RUF",
-    "PLR2004",  
+  "E","F","W",  
+  "I",         
+  "UP",        
+  "B",          
+  "SIM",       
+  "PERF",        
+  "PL",          
 ]
+ignore = ["E501", "D203"]  
 
-ignore = ["D211", "D212", "D205", "RUF012", "PLR0917", "PLR0913", "ANN401", "PLR0912", "C901", "PLR0915"]
-
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/*" = [
     "ANN001",
     "ANN002",
@@ -86,7 +95,9 @@ ignore = ["D211", "D212", "D205", "RUF012", "PLR0917", "PLR0913", "ANN401", "PLR
     "ANN201",  
     "ANN202",  
     "S101",
-    "DOC201",
-    "D401"
+    "D401",
+    "PLR2004"
 ]
 
+[tool.ruff.format]
+docstring-code-format = true

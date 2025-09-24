@@ -1,12 +1,13 @@
 """Utility functions for handling dataset files."""
 
+from collections.abc import Iterator
 from contextlib import contextmanager
-from importlib.resources import files, as_file
+from importlib.resources import as_file, files
 from pathlib import Path
 
 
 @contextmanager
-def open_package_data(name: str):
+def open_package_data(name: str) -> Iterator[Path]:
     """
     Yield a filesystem path to a bundled dataset file inside
     blockingpy.datasets/data, working for wheels and zipped installs.
@@ -15,7 +16,8 @@ def open_package_data(name: str):
     if not ref.is_file():
         raise FileNotFoundError(f"Bundled dataset not found: {name}")
     with as_file(ref) as p:
-        yield p  
+        yield p
+
 
 def resolve_external_file(filename: str, data_home: str) -> Path:
     """
@@ -28,6 +30,4 @@ def resolve_external_file(filename: str, data_home: str) -> Path:
         p = data_dir / cand
         if p.exists():
             return p
-    raise FileNotFoundError(
-        f"Neither {data_dir/filename} nor {data_dir/(filename+'.gz')} found."
-    )
+    raise FileNotFoundError(f"Neither {data_dir/filename} nor {data_dir/(filename+'.gz')} found.")

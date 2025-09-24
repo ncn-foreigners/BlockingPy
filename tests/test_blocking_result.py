@@ -6,22 +6,26 @@ import pytest
 
 from blockingpy.blocking_result import BlockingResult
 
-def _mk(df, *, deduplication, metrics, method="faiss", cols=("a","b"), rr=0.123456):
+
+def _mk(df, *, deduplication, metrics, cols=("a", "b"), rr=0.123456):
     """Helper for some tests."""
-    br = BlockingResult.__new__(BlockingResult) 
+    br = BlockingResult.__new__(BlockingResult)
     br.result = df
     br.deduplication = deduplication
-    br.method = method
+    br.method = "faiss"
     br.colnames = list(cols)
     br.reduction_ratio = rr
     br.metrics = metrics
     if not hasattr(br, "_format_metrics"):
+
         def _format_metrics():
             if br.metrics is None:
                 return {}
             return {k: float(f"{v * 100:.4f}") for k, v in br.metrics.items()}
+
         br._format_metrics = _format_metrics
     return br
+
 
 @pytest.fixture
 def make_br_dedup():
@@ -75,13 +79,13 @@ def test_add_block_column_reclink_orphans():
 def test_str_dedupulation_branch_with_metrics():
     df = pd.DataFrame(
         {
-            "block": [1,1,2,2],
-            "x":     [1,2,10,10],
-            "y":     [2,3,10,11],
+            "block": [1, 1, 2, 2],
+            "x": [1, 2, 10, 10],
+            "y": [2, 3, 10, 11],
         }
     )
     metrics = {"precision": 0.9, "recall": 0.8}
-    br = _mk(df, deduplication=True, metrics=metrics, method="lsh", cols=("fname","lname"), rr=0.5)
+    br = _mk(df, deduplication=True, metrics=metrics, cols=("fname", "lname"), rr=0.5)
 
     s = str(br)
 
@@ -104,11 +108,11 @@ def test_str_linkage_branch_without_metrics():
     df = pd.DataFrame(
         {
             "block": [1, 1, 2, 2, 2],
-            "x":     [1,1,2,3,3],
-            "y":     [4,5,5,5,6],
+            "x": [1, 1, 2, 3, 3],
+            "y": [4, 5, 5, 5, 6],
         }
     )
-    br = _mk(df, deduplication=False, metrics=None, method="faiss", cols=("txt",), rr=0.123456)
+    br = _mk(df, deduplication=False, metrics=None, cols=("txt",), rr=0.123456)
 
     s = str(br)
 
@@ -122,6 +126,7 @@ def test_str_linkage_branch_without_metrics():
 
     assert "Evaluation metrics" not in s
 
+
 def test__format_metrics_none_and_values():
     df = pd.DataFrame({"block": [], "x": [], "y": []})
     br_none = _mk(df, deduplication=True, metrics=None)
@@ -129,4 +134,4 @@ def test__format_metrics_none_and_values():
 
     br_vals = _mk(df, deduplication=True, metrics={"f1": 0.3333333})
     out = br_vals._format_metrics()
-    assert out["f1"] == 33.3333 
+    assert out["f1"] == 33.3333

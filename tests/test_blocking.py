@@ -118,12 +118,16 @@ def test_verbosity_levels(small_named_txt_data, caplog):
     caplog.clear()
     with caplog.at_level(logging.INFO, logger="blockingpy"):
         blocker.block(x_txt["txt"], verbose=0, ann="faiss", control_ann={"faiss": {"k_search": 3}})
-    assert not any(r.name.startswith("blockingpy") and r.levelno == logging.INFO for r in caplog.records)
+    assert not any(
+        r.name.startswith("blockingpy") and r.levelno == logging.INFO for r in caplog.records
+    )
 
     caplog.clear()
     with caplog.at_level(logging.INFO, logger="blockingpy"):
         blocker.block(x_txt["txt"], verbose=1)
-    assert any(r.name.startswith("blockingpy") and r.levelno == logging.INFO for r in caplog.records)
+    assert any(
+        r.name.startswith("blockingpy") and r.levelno == logging.INFO for r in caplog.records
+    )
 
 
 def test_text_data_with_names(small_named_txt_data, small_named_csr_data):
@@ -285,7 +289,7 @@ def test_eval_input_validation(small_named_txt_data):
     blocker = Blocker()
     x_txt, _ = small_named_txt_data
 
-    block_result = blocker.block(x_txt["txt"])
+    _ = blocker.block(x_txt["txt"])
 
     with pytest.raises(ValueError, match="must be a BlockingResult instance"):
         blocker.eval(pd.DataFrame(), pd.DataFrame({"x": [0], "block": [0]}))

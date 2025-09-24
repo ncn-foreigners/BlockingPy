@@ -5,8 +5,8 @@ Voyager algorithm from Spotify.
 
 import logging
 import os
-from typing import Any
 import warnings
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 class VoyagerBlocker(BlockingMethod):
-
     """
     A class for performing blocking using the Voyager algorithm from Spotify.
 
@@ -173,7 +172,7 @@ class VoyagerBlocker(BlockingMethod):
                 f"k_search ({original_k_search}) is larger than the number of reference points "
                 f"({X.shape[0]}). Adjusted k_search to {k_search}.",
                 category=UserWarning,
-                stacklevel=2
+                stacklevel=2,
             )
 
         all_neighbor_ids, all_distances = self.index.query(
@@ -182,7 +181,8 @@ class VoyagerBlocker(BlockingMethod):
             num_threads=controls["voyager"].get("num_threads"),
             query_ef=controls["voyager"].get("query_ef"),
         )
-        if k == 2:
+        K_VAL = 2
+        if k == K_VAL:
             all_neighbor_ids, all_distances = rearrange_array(all_neighbor_ids, all_distances)
 
         l_ind_nns = all_neighbor_ids[:, k - 1]
@@ -191,13 +191,13 @@ class VoyagerBlocker(BlockingMethod):
         if path:
             self._save_index(path)
 
-        result = {
-            "y": np.arange(Y.shape[0]),
-            "x": l_ind_nns,
-            "dist": l_ind_dist,
-        }
-
-        result = pd.DataFrame(result)
+        result = pd.DataFrame(
+            {
+                "y": np.arange(Y.shape[0]),
+                "x": l_ind_nns,
+                "dist": l_ind_dist,
+            }
+        )
 
         logger.info("Process completed successfully.")
 

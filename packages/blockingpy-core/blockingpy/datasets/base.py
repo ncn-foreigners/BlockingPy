@@ -1,12 +1,20 @@
 """Functions to load built-in BlockingPy datasets."""
 
+from pathlib import Path
+
+import numpy as np
 import pandas as pd
+
 from .utils import open_package_data, resolve_external_file
 
-def _read_csv_any(pathlike):
+
+def _read_csv_any(pathlike: str | Path) -> pd.DataFrame:
     return pd.read_csv(pathlike)
 
-def load_census_cis_data(as_frame: bool = True, data_home: str | None = None):
+
+def load_census_cis_data(
+    as_frame: bool = True, data_home: str | None = None
+) -> tuple[pd.DataFrame | np.ndarray, pd.DataFrame | np.ndarray]:
     census_names = ("census.csv.gz", "census.csv")
     cis_names = ("cis.csv.gz", "cis.csv")
 
@@ -27,15 +35,20 @@ def load_census_cis_data(as_frame: bool = True, data_home: str | None = None):
                 continue
     else:
         census = _read_csv_any(resolve_external_file("census.csv", data_home))
-        cis    = _read_csv_any(resolve_external_file("cis.csv", data_home))
+        cis = _read_csv_any(resolve_external_file("cis.csv", data_home))
 
-    if not as_frame:
-        census, cis = census.to_numpy(), cis.to_numpy()
-    return census, cis
+    return (census, cis) if as_frame else (census.to_numpy(), cis.to_numpy())
 
-def load_deduplication_data(as_frame: bool = True, data_home: str | None = None):
-    candidates = ("RL_data_10000.csv.gz", "rldata10000.csv.gz",
-                  "RL_data_10000.csv",    "rldata10000.csv")
+
+def load_deduplication_data(
+    as_frame: bool = True, data_home: str | None = None
+) -> pd.DataFrame | np.ndarray:
+    candidates = (
+        "RL_data_10000.csv.gz",
+        "rldata10000.csv.gz",
+        "RL_data_10000.csv",
+        "rldata10000.csv",
+    )
 
     if data_home is None:
         for name in candidates:
@@ -50,6 +63,4 @@ def load_deduplication_data(as_frame: bool = True, data_home: str | None = None)
     else:
         data = _read_csv_any(resolve_external_file("RL_data_10000.csv", data_home))
 
-    if not as_frame:
-        data = data.to_numpy()
-    return data
+    return data if as_frame else data.to_numpy()

@@ -13,7 +13,6 @@ from .base import TextEncoder
 
 
 class NgramEncoder(TextEncoder):
-
     """
     Encoder that converts text strings into a sparse document-term matrix
     of character *n*-gram counts, packaged in a :class:`DataHandler`.

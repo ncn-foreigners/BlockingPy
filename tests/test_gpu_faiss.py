@@ -1,6 +1,5 @@
 """Tests for the GPU FAISS blocker."""
 
-import logging
 import os
 from tempfile import TemporaryDirectory
 

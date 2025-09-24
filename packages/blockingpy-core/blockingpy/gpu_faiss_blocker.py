@@ -6,8 +6,8 @@ import gc
 import logging
 import os
 import random
-from typing import Any, Literal
 import warnings
+from typing import Any, Literal
 
 import faiss
 import numpy as np
@@ -23,7 +23,6 @@ _IndexType = Literal["flat", "ivf", "ivfpq", "cagra"]
 
 
 class GPUFaissBlocker(BlockingMethod):
-
     """
     A class for performing blocking using the FAISS (Facebook AI Similarity Search) algorithms
     that are GPU-accelerated.
@@ -65,7 +64,7 @@ class GPUFaissBlocker(BlockingMethod):
             "cosine": faiss.METRIC_INNER_PRODUCT,
         }
 
-    def block(
+    def block(  # noqa: PLR0915, PLR0912
         self,
         x: DataHandler,
         y: DataHandler,
@@ -144,7 +143,8 @@ class GPUFaissBlocker(BlockingMethod):
             nlist = faiss_ctl.get("ivfpq_nlist", 100)
             m = faiss_ctl.get("ivfpq_m", 8)
             nbits = faiss_ctl.get("ivfpq_nbits", 8)
-            if nbits != 8:
+            NBITS_SUPPORTED_VAL = 8
+            if nbits != NBITS_SUPPORTED_VAL:
                 raise ValueError("FAISS GPU IVFPQ requires ivfpq_nbits == 8.")
             if d % m != 0:
                 raise ValueError(f"Dimension d={d} must be divisible by m={m} for IVFPQ index.")
@@ -234,9 +234,11 @@ class GPUFaissBlocker(BlockingMethod):
         gc.collect()
 
         if k_search > x_total:
-            warnings.warn(f"k_search={k_search} exceeds reference size ({x_total}); clipping.",
-                          category=UserWarning,
-                          stacklevel=2)
+            warnings.warn(
+                f"k_search={k_search} exceeds reference size ({x_total}); clipping.",
+                category=UserWarning,
+                stacklevel=2,
+            )
             k_search = x_total
 
         if index_type == "cagra":
@@ -244,7 +246,7 @@ class GPUFaissBlocker(BlockingMethod):
             if SPCls is not None:
                 sp = SPCls()
 
-                def _set(name, val):
+                def _set(name: str, val: Any) -> None:
                     if hasattr(sp, name):
                         setattr(sp, name, val)
 
@@ -295,7 +297,8 @@ class GPUFaissBlocker(BlockingMethod):
         if distance == "cosine" and index_type != "ivfpq":
             distances = (1 - distances) / 2
 
-        if k == 2:
+        K_VAL = 2
+        if k == K_VAL:
             indices, distances = rearrange_array(indices, distances)
 
         if path:

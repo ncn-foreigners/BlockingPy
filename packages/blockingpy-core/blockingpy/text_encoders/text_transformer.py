@@ -19,7 +19,6 @@ _ENCODER_MAP: dict[str, type[TextEncoder]] = {
 
 
 class TextTransformer(TextEncoder):
-
     """
     Facade for selecting a concrete :class:`TextEncoder` based on a control
     dictionary.
@@ -34,14 +33,31 @@ class TextTransformer(TextEncoder):
 
     """
 
-    def __init__(self, **control_txt: Mapping[str, Any]) -> None:
-        encoder_key = control_txt.get("encoder", "shingle")
-        if encoder_key not in _ENCODER_MAP:
-            raise ValueError(
-                f"Unknown encoder '{encoder_key}'. Valid options: {list(_ENCODER_MAP)}"
-            )
-        encoder_cls = _ENCODER_MAP[encoder_key]
-        specific: Mapping[str, Any] = control_txt.get(encoder_key, {})
+    def __init__(self, **control_txt: Mapping[str, Any] | str) -> None:
+        enc_val = control_txt.get("encoder", "shingle")
+
+        if isinstance(enc_val, str):
+            name = enc_val
+            inline_cfg: Mapping[str, Any] = {}
+        elif isinstance(enc_val, Mapping):
+            n = enc_val.get("name", "shingle")
+            if not isinstance(n, str):
+                raise TypeError("encoder.name must be str")
+            name = n
+            inline_cfg = enc_val
+        else:
+            raise TypeError("encoder must be str or mapping")
+
+        if name not in _ENCODER_MAP:
+            raise ValueError(f"Unknown encoder '{name}'. Valid options: {list(_ENCODER_MAP)}")
+
+        encoder_cls = _ENCODER_MAP[name]
+
+        spec_from_control = control_txt.get(name)
+        if not isinstance(spec_from_control, Mapping):
+            spec_from_control = {}
+
+        specific: dict[str, Any] = {**spec_from_control, **inline_cfg}
         self.encoder: TextEncoder = encoder_cls(**specific)
 
     def fit(self, X: Series, y: Series | None = None) -> TextTransformer:
