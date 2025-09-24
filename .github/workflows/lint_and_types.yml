@@ -28,7 +28,7 @@ jobs:
       - name: Create venv and install tools
         run: |
           uv venv
-          uv pip install ruff mypy pandas-stubs==2.3.2 types-pytz==2025.2.0
+          uv pip install ruff mypy "pandas-stubs>=2.2,<3" types-pytz==2025.2.0
 
       - name: Ruff (format check + lint)
         run: |
