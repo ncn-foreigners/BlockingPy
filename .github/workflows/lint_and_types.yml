@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   lint_mypy:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -26,7 +26,14 @@ jobs:
       - name: Create venv and install tools
         run: |
           uv venv
-          uv pip install ruff==0.8.6 mypy==1.18.2 pandas-stubs types-pytz scipy-stubs
+          uv pip install mypy==1.18.2 ruff==0.8.0 "numpy==1.26.*" pandas-stubs types-pytz
+
+      - name: Show versions
+        run: |
+          uv run python -V
+          uv run mypy --version
+          uv run ruff --version
+          uv run python -c "import numpy as np; print('numpy', np.__version__)"
 
       - name: Ruff (format check + lint)
         run: |
@@ -34,4 +41,5 @@ jobs:
           uv run ruff check .
 
       - name: MyPy (type check)
-        run: uv run mypy packages/blockingpy-core
+        run: |
+          uv run mypy --config-file pyproject.toml packages/blockingpy-core

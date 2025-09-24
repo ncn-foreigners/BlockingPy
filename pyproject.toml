@@ -51,6 +51,7 @@ no_implicit_optional = true
 pretty = true
 show_error_codes = true
 exclude = "(^docs/|^tests/|^build/|^dist/)"
+plugins = ["numpy.typing.mypy_plugin"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -67,6 +68,8 @@ module = [
   "model2vec", "model2vec.*",
 ]
 ignore_missing_imports = true
+
+
 
 [[tool.mypy.overrides]]
 module = "tests.*"
