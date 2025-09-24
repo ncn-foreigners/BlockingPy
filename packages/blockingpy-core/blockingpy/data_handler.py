@@ -4,13 +4,15 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TypeAlias, cast
+from typing import Any, TypeAlias, cast
 
 import numpy as np
-from numpy.typing import DTypeLike
+from numpy.typing import DTypeLike, NDArray
 from scipy import sparse as _sp
+from scipy.sparse import csr_matrix
 
-ArrayLike: TypeAlias = np.ndarray | _sp.csr_matrix
+ArrayLike: TypeAlias = np.ndarray | csr_matrix
+data: NDArray[Any] | csr_matrix
 
 
 @dataclass(slots=True, frozen=True)
@@ -36,15 +38,17 @@ class DataHandler:
         *,
         dtype: DTypeLike | None = np.float32,
         contiguous: bool = True,
-    ) -> np.ndarray:
-        """
-        Convert the feature matrix to a dense NumPy array.
-        """
-        arr = self.data.toarray() if _sp.issparse(self.data) else self.data
+    ) -> NDArray[Any]:
+        data = self.data
+        if _sp.issparse(data):
+            assert isinstance(data, csr_matrix) 
+            arr: NDArray[Any] = data.toarray()
+        else:
+            assert isinstance(data, np.ndarray)
+            arr = data
 
         if dtype is not None and arr.dtype != dtype:
             arr = arr.astype(dtype, copy=False)
-
         if contiguous:
             arr = np.ascontiguousarray(arr)
         return arr
