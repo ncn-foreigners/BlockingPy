@@ -62,6 +62,8 @@ module = [
   "igraph", "igraph.*",
   "hnswlib", "hnswlib.*",
   "pynndescent", "pynndescent.*",
+  "annoy", "annoy.*",
+  "model2vec", "model2vec.*",
 ]
 ignore_missing_imports = true
 
