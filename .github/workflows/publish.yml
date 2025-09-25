@@ -11,52 +11,52 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           cache: pip
 
-      - name: Install uv and tools
+      - name: Install uv and create venv
         run: |
-          pip install -U pip
-          pip install uv
+          python -m pip install -U pip uv
+          uv venv .venv
+          echo ".venv/bin" >> $GITHUB_PATH
+
+      - name: Install build tools in venv
+        run: |
           uv pip install build twine tomli
 
       - name: Verify version sync
         run: |
-          uv run python - <<'PY'
-          import tomli, pathlib, sys
-          def ver(path):
-              t = tomli.loads(pathlib.Path(path).read_text('utf-8'))
-              if "project" in t and "version" in t["project"]:
-                  return t["project"]["version"]
-              return t["tool"]["poetry"]["version"]
+          python - <<'PY'
+          import tomli, pathlib
+          def ver(p):
+              t = tomli.loads(pathlib.Path(p).read_text('utf-8'))
+              return t.get("project",{}).get("version") or t["tool"]["poetry"]["version"]
           core = ver("packages/blockingpy-core/pyproject.toml")
           cpu  = ver("packages/blockingpy/pyproject.toml")
           gpu  = ver("packages/blockingpy-gpu/pyproject.toml")
-          assert core == cpu == gpu, f"Version mismatch: {core=} {cpu=} {gpu=}"
+          assert core == cpu == gpu, (core, cpu, gpu)
           print("Version OK:", core)
           PY
 
       - name: Build blockingpy-core
-        run: uv run python -m build -o packages/blockingpy-core/dist packages/blockingpy-core
+        run: python -m build -o packages/blockingpy-core/dist packages/blockingpy-core
 
       - name: Build blockingpy (meta CPU)
-        run: uv run python -m build -o packages/blockingpy/dist packages/blockingpy
+        run: python -m build -o packages/blockingpy/dist packages/blockingpy
 
       - name: Build blockingpy-gpu (meta GPU)
-        run: uv run python -m build -o packages/blockingpy-gpu/dist packages/blockingpy-gpu
+        run: python -m build -o packages/blockingpy-gpu/dist packages/blockingpy-gpu
 
       - name: Upload to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          uv run twine upload \
+          python -m twine upload \
             packages/blockingpy-core/dist/* \
             packages/blockingpy/dist/* \
             packages/blockingpy-gpu/dist/*

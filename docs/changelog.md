@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.2.5
+- fixed issue in the publish workflow
+
 ## v0.2.4
 - improved logging and warnings across the package
 - improved coverage of tests
