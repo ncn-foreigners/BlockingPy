@@ -185,7 +185,7 @@ pip install blockingpy-gpu
 
 ## Example Datasets
 
-BlockingPy comes with built-in example datasets:
+BlockingPy comes with example datasets fetched via [Pooch](https://www.fatiando.org/pooch/latest/) library:
 
 - Census-Cis dataset created by Paula McLeod, Dick Heasman and Ian Forbes, ONS,
     for the ESSnet DI on-the-job training course, Southampton,
@@ -193,6 +193,8 @@ BlockingPy comes with built-in example datasets:
 
 - Deduplication dataset taken from [RecordLinkage](https://cran.r-project.org/package=RecordLinkage) R package developed by Murat Sariyar
     and Andreas Borg. Package is licensed under GPL-3 license. Also known as [RLdata10000](https://www.rdocumentation.org/packages/RecordLinkage/versions/0.4-12.4/topics/RLdata).
+
+The files are hosted on GitHub Releases and can be downloaded via the provided links.
 
 
 ## License

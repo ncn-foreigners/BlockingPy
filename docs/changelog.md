@@ -1,10 +1,14 @@
 # Changelog
 
-## v0.2.4 (Unreleased)
+## v0.2.4
 - improved logging and warnings across the package
 - improved coverage of tests
 - updated API section
 - updated README files
+- added linting, formatting, and type checking workflow
+- improved tests workflow
+- datasets are now fetched via Pooch instead of being included in the package
+- minor changes
 
 ## v0.2.3
 - minor fixes in workflows

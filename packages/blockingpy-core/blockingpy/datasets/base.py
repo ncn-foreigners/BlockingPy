@@ -1,66 +1,66 @@
-"""Functions to load built-in BlockingPy datasets."""
+from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from .utils import open_package_data, resolve_external_file
+from .utils import fetch_example_file
 
 
-def _read_csv_any(pathlike: str | Path) -> pd.DataFrame:
-    return pd.read_csv(pathlike)
+def _read_csv_any(pathlike: str | Path, **read_csv_kw: Any) -> pd.DataFrame:
+    return pd.read_csv(pathlike, **read_csv_kw)
 
 
 def load_census_cis_data(
-    as_frame: bool = True, data_home: str | None = None
+    as_frame: bool = True,
+    data_home: str | None = None,
+    **read_csv_kw: Any,
 ) -> tuple[pd.DataFrame | np.ndarray, pd.DataFrame | np.ndarray]:
-    census_names = ("census.csv.gz", "census.csv")
-    cis_names = ("cis.csv.gz", "cis.csv")
+    """
+    Returns (census, cis) in the same shapes as before.
+    If data_home is provided, read from there. Otherwise download via Pooch.
+    """
+    census_path: str | Path
+    cis_path: str | Path
 
     if data_home is None:
-        for name in census_names:
-            try:
-                with open_package_data(name) as p:
-                    census = _read_csv_any(p)
-                    break
-            except FileNotFoundError:
-                continue
-        for name in cis_names:
-            try:
-                with open_package_data(name) as p:
-                    cis = _read_csv_any(p)
-                    break
-            except FileNotFoundError:
-                continue
+        census_path = fetch_example_file("census.csv")
+        cis_path = fetch_example_file("cis.csv")
     else:
-        census = _read_csv_any(resolve_external_file("census.csv", data_home))
-        cis = _read_csv_any(resolve_external_file("cis.csv", data_home))
+        census_path = Path(data_home) / "census.csv"
+        cis_path = Path(data_home) / "cis.csv"
 
-    return (census, cis) if as_frame else (census.to_numpy(), cis.to_numpy())
+    census = _read_csv_any(census_path, **read_csv_kw)
+    cis = _read_csv_any(cis_path, **read_csv_kw)
+
+    if as_frame:
+        return census, cis
+    return census.to_numpy(), cis.to_numpy()
 
 
 def load_deduplication_data(
-    as_frame: bool = True, data_home: str | None = None
+    as_frame: bool = True,
+    data_home: str | None = None,
+    **read_csv_kw: Any,
 ) -> pd.DataFrame | np.ndarray:
-    candidates = (
-        "RL_data_10000.csv.gz",
-        "rldata10000.csv.gz",
-        "RL_data_10000.csv",
-        "rldata10000.csv",
-    )
+    """
+    Returns RLdata10000 in the same shape as before.
+    Accepts legacy filename in data_home but downloads 'rldata10000.csv' by default.
+    """
+    path: str | Path
 
     if data_home is None:
-        for name in candidates:
-            try:
-                with open_package_data(name) as p:
-                    data = _read_csv_any(p)
-                    break
-            except FileNotFoundError:
-                continue
-        else:
-            raise FileNotFoundError("Bundled RLdata file not found in package data/")
+        path = fetch_example_file("rldata10000.csv")
     else:
-        data = _read_csv_any(resolve_external_file("RL_data_10000.csv", data_home))
+        for name in ("RL_data_10000.csv", "rldbata10000.csv", "rldata10000.csv"):
+            candidate = Path(data_home) / name
+            if candidate.exists():
+                path = candidate
+                break
+        else:
+            path = Path(data_home) / "rldata10000.csv"
 
-    return data if as_frame else data.to_numpy()
+    df = _read_csv_any(path, **read_csv_kw)
+    return df if as_frame else df.to_numpy()

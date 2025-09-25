@@ -66,6 +66,7 @@ module = [
   "annoy", "annoy.*",
   "scipy", "scipy.*",
   "model2vec", "model2vec.*",
+  "pooch", "pooch.*",
 ]
 ignore_missing_imports = true
 
