@@ -1,11 +1,9 @@
 """Utility functions for handling dataset files."""
 
 import os
-from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 import pooch
-from packaging.version import InvalidVersion, Version
 
 _BASE_URL = "https://github.com/ncn-foreigners/BlockingPy/releases/download/data-0.2.4/"
 
@@ -14,15 +12,6 @@ _REGISTRY = {
     "cis.csv": "sha256:d7917de312d3847fcfa28bf3dfd0f49367a2d412b1b30b8af23813ef9151eac2",
     "census.csv": "sha256:5c103f0a556363321cfda7705c1b67c6b66517e9b7905f8217c11df49b2f2f4e",
 }
-
-
-def _pkg_version_or_none() -> str | None:
-    try:
-        v = version("blockingpy")
-        Version(v)
-        return v
-    except (PackageNotFoundError, InvalidVersion):
-        return None
 
 
 def _create_pooch(data_dir: str | None = None) -> pooch.Pooch:
@@ -37,7 +26,7 @@ def _create_pooch(data_dir: str | None = None) -> pooch.Pooch:
     return pooch.create(
         path=str(cache_dir),
         base_url=_BASE_URL,
-        version=_pkg_version_or_none(),
+        version=None,
         version_dev="main",
         registry=_REGISTRY,
         env="BLOCKINGPY_DATA",
