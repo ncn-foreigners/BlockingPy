@@ -40,7 +40,7 @@ autodoc_typehints = "none"
 autodoc_mock_imports = [
     "faiss", "faiss_cpu", "faiss_gpu",
     "mlpack", "hnswlib", "pynndescent", "voyager", "annoy",
-    "igraph", "model2vec", "torch", "cupy", "sklearn", "nltk",
+    "igraph", "model2vec", "torch", "cupy", "sklearn", "nltk", "pooch",
 ]
 autosummary_mock_imports = list(autodoc_mock_imports)
 
