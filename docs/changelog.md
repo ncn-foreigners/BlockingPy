@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.6
+- fixed minor issue when running tests with `blockingpy-core`
+- improved error handling when `faiss` is not installed
+
 ## v0.2.5
 - fixed issue in the publish workflow
 

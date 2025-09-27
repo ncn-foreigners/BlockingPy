@@ -542,7 +542,17 @@ class Blocker:
     def _get_blocker(self, ann: str) -> type[BlockingMethod]:
         """Helper to get the selected blocker"""
         if ann == "faiss":
-            from .faiss_blocker import FaissBlocker
+            try:
+                from .faiss_blocker import FaissBlocker
+            except ModuleNotFoundError as e:
+                raise ModuleNotFoundError(
+                    "FAISS backend requested but the 'faiss' package is not installed.\n"
+                    "\nInstall one of:\n"
+                    "  • CPU: pip install 'blockingpy-core[faiss]' (if a wheel is available)"
+                    " or simply `pip install blockingpy`\n"
+                    "  • GPU (blockingpy-gpu): conda install -c conda-forge faiss-gpu\n"
+                    "\nAlternatively, set ann='hnsw' (or 'annoy'/'nnd'/'voyager')."
+                ) from e
 
             return FaissBlocker
         if ann == "gpu_faiss":

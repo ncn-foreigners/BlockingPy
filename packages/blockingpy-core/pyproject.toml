@@ -60,6 +60,9 @@ myst-parser = "^4.0.0"
 sphinx-rtd-theme = "^3.0.2"
 sphinx-autobuild = "^2024.10.3"
 
+[tool.poetry.extras]
+faiss = ["faiss-cpu>=1.7.4"]
+
 [tool.pytest.ini_options]
 markers = [
   "requires_faiss_gpu: needs faiss-gpu and a CUDA device",

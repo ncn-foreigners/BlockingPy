@@ -203,7 +203,7 @@ BlockingPy is released under [MIT license](https://github.com/ncn-foreigners/Blo
 ## Third Party
 BlockingPy benefits from many open-source packages such as [Faiss](https://github.com/facebookresearch/faiss) or [Annoy](https://github.com/spotify/annoy). For detailed information see [third party notice](https://github.com/ncn-foreigners/BlockingPy/blob/main/THIRD_PARTY).
 
-## Contributing
+## Contributing & Development
 
 Please see [CONTRIBUTING.md](https://github.com/ncn-foreigners/BlockingPy/blob/main/CONTRIBUTING.md) for more information.
 
