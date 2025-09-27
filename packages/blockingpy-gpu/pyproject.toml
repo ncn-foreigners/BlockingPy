@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "blockingpy-gpu"
-version = "0.2.5"
+version = "0.2.6"
 description = "BlockingPy meta package (GPU)"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -25,7 +25,7 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Information Analysis",
   "Topic :: Software Development :: Libraries :: Python Modules"
 ]
-dependencies = ["blockingpy-core>=0.2.5"]
+dependencies = ["blockingpy-core>=0.2.6"]
 
 [project.urls]
 Repository = "https://github.com/ncn-foreigners/BlockingPy"

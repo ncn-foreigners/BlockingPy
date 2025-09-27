@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "blockingpy"
-version = "0.2.5"
+version = "0.2.6"
 description = "Blocking records for record linkage and data deduplication based on ANN algorithms."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -26,7 +26,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 dependencies = [
-  "blockingpy-core>=0.2.5",
+  "blockingpy-core>=0.2.6",
   "faiss-cpu>=1.7.4"
 ]
 
