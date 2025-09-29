@@ -45,18 +45,22 @@ poetry run mypy packages/blockingpy-core
 ```
 ### GPU development (conda + poetry)
 ```bash
-# 1) Conda env + faiss-gpu
+# 1) Clone
+git clone https://github.com/ncn-foreigners/BlockingPy.git
+cd BlockingPy
+
+# 2) Conda env + faiss-gpu
 conda create -n blockingpy-gpu python=3.12 -y
 conda activate blockingpy-gpu
 conda install -c pytorch -c nvidia faiss-gpu -y
 
-# 2) Point Poetry at this same env
+# 3) Point Poetry at this same env
 poetry config virtualenvs.create false 
 
-# 3) Dev install from repo root
+# 4) Dev install from repo root
 poetry install --with dev,gpu
 
-# 4) Test
+# 5) Test
 poetry run pytest -q
 poetry run ruff check .
 poetry run mypy 
