@@ -121,7 +121,7 @@ develop = true
 annoy = "^1.17.3"
 hnswlib = "^0.8.0"
 igraph = "^0.11.9"
-mlpack = ">=4.4.0, <5.0.0"
+mlpack = ">=4.4.0, <4.6.1"
 model2vec = ">=0.4.1,<1.0.0"
 nltk = "^3.9.1"
 numpy = "^1.26.4"
@@ -1374,43 +1374,66 @@ files = [
 
 [[package]]
 name = "mlpack"
-version = "4.6.2"
+version = "4.6.0"
 description = "a flexible, fast machine learning library"
 optional = false
 python-versions = "*"
 groups = ["cpu", "gpu"]
 files = [
-    {file = "mlpack-4.6.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:2e9716ef782f170df7f13947d9f7d66154350c673224e428e637be23c372cb83"},
-    {file = "mlpack-4.6.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:2c1a01c7147e8544eb61f10c3ffa237127dfe3fba9e3a8b6742d4924bcb9e788"},
-    {file = "mlpack-4.6.2-cp310-cp310-win_amd64.whl", hash = "sha256:eb9dbc3e99abe9b72ca918786dd577da281810f10426b7a18dc44285eaabc908"},
-    {file = "mlpack-4.6.2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:8ed1e3165e9fce403a2d4d3838ad9c080a5bbe4c5cfb1492a7714f351a1c6bc2"},
-    {file = "mlpack-4.6.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:65231da11e88e9bea7dface25e5826080e8d21f93a8519899eca3b1d024ff571"},
-    {file = "mlpack-4.6.2-cp311-cp311-win_amd64.whl", hash = "sha256:826986e04bc17f0058845aa008d7b3a174ebb82e9989bbd670a84bea39efab1f"},
-    {file = "mlpack-4.6.2-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:440d69b683e6484a47734bf59cc8d5dffb5c11f461560701522b1316e78b72ae"},
-    {file = "mlpack-4.6.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:d51b7cf41c851395d6bbfcdae723919bffeb67e45b5ffa8d6f06bbfb96f7cffa"},
-    {file = "mlpack-4.6.2-cp312-cp312-win_amd64.whl", hash = "sha256:db13e53828b48e4273c011d1055f473f0a2525f424989c2e19f13c469c82b1f1"},
-    {file = "mlpack-4.6.2-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:4fbce5bee69233937beb7740c3e4f74decdd31dc3c2ee01bafc0bce1167d36e4"},
-    {file = "mlpack-4.6.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:9050695c28de83340689d02f9b1d430ba0559ca028c2dd63ca9416800cfce40c"},
-    {file = "mlpack-4.6.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f7f8462149415130a9753cbc879129b2edcb67c79a4127eb49c7fe3ff859ca5d"},
-    {file = "mlpack-4.6.2-cp313-cp313-win_amd64.whl", hash = "sha256:972ac3c0bbf70879d030e68c1155bef659ae9840867f81d27d7fa6e792a73ab2"},
-    {file = "mlpack-4.6.2-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:31b7caf53d7bfc7109657005f6ee16fd7f4ddf551a8545e4096911aa95cb37c0"},
-    {file = "mlpack-4.6.2-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:f7b4cc6845ce6fa4cea12361f21a085c53f791cc04d708b635b9c27da5fd6424"},
-    {file = "mlpack-4.6.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d7c236327b140b517a95f6ebd4930b38763d27375c4e729b21a6e1fc43c278eb"},
-    {file = "mlpack-4.6.2-cp38-cp38-win_amd64.whl", hash = "sha256:7f059367dad7e06d37f525a3b39f0d1ef3dfa217a6067aa17a463085ef6b5e41"},
-    {file = "mlpack-4.6.2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:401329eef635c1842a92cf7b7833cac3fa276b2b782a3fed7b686872c66481b3"},
-    {file = "mlpack-4.6.2-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:0c4bc13594858b24c6407034e9b4d52cceb8b81c10d98e985ce049a63542bd4d"},
-    {file = "mlpack-4.6.2-cp39-cp39-win_amd64.whl", hash = "sha256:5b6537f1dab730b07d675499cafdec18a12dec7260c37d3be67e402848d2795d"},
-    {file = "mlpack-4.6.2-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:2c0f166c304a79ed0d0d2cec69bf76bf8db72c2a265245a8a9b0052b8af6ba50"},
-    {file = "mlpack-4.6.2-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:43165ee5527ddae20570f4375d98a74123349bc5e8c130ddedaf86937027eacd"},
+    {file = "mlpack-4.6.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:4a8b08060647ee66283bf04af57ffd0257bbac8c806a751ec2fcaed287279236"},
+    {file = "mlpack-4.6.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:5cbefe3d81ca0daf3c68f859a902978a6bc19a4aa80924cdab34ed57c220b76c"},
+    {file = "mlpack-4.6.0-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:5738db24739bda15b7f14c60cd90b1693f18f268c04885526d17c06091005a31"},
+    {file = "mlpack-4.6.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:49864b0ec2fe4da34e4dad99fe703bd0a7e47d4be162c494fcaf6aaaafeb7dca"},
+    {file = "mlpack-4.6.0-cp310-cp310-musllinux_1_2_i686.whl", hash = "sha256:ed9889b776eb96632a3fd9289b83d0d98f46ecc6b3ceb9dc023556e2d4dcda00"},
+    {file = "mlpack-4.6.0-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:86b3491167dec78818525be91663426aa8292a87218f5b0626ecc6664edd88c1"},
+    {file = "mlpack-4.6.0-cp310-cp310-win32.whl", hash = "sha256:ae7190a4c3717e648cd5b7e538cec7b76808673bdc6117124fb15a7e101c86bd"},
+    {file = "mlpack-4.6.0-cp310-cp310-win_amd64.whl", hash = "sha256:c94a554395958caa01bde0575bcab3c8258b25fb5680c10c576cc00c29d17179"},
+    {file = "mlpack-4.6.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:e3aadd98f63d0850e56fbd6afdd8b9feaacb73c4659b1f40456bb1c9747c0ca2"},
+    {file = "mlpack-4.6.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:32d94d2b287c3b9ada4924443193b06d98de51f33e95a9ac78ad773c10aa747d"},
+    {file = "mlpack-4.6.0-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:257d6c24b5ec1352d6d21428126c04fdc2219cd80a2f34085c6ca7336d0ac114"},
+    {file = "mlpack-4.6.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e3e4026c1fd3f3f3ebdb802b170296d1047c4bb59296eba80bd174407c376739"},
+    {file = "mlpack-4.6.0-cp311-cp311-musllinux_1_2_i686.whl", hash = "sha256:61c5d73c07586e6a84300fcdf44d42faed94eedf11cfcb0a9a4e6122de38d785"},
+    {file = "mlpack-4.6.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:908862d7b5050db5d92c66b5c5d0c06dea3e3d9d4476a23bd87c3c40de1ab7e6"},
+    {file = "mlpack-4.6.0-cp311-cp311-win32.whl", hash = "sha256:0b21610414f4e3dc931acb44cb2ea571b2394c488e007dae7ee4322f532555ff"},
+    {file = "mlpack-4.6.0-cp311-cp311-win_amd64.whl", hash = "sha256:e4892f15bedd3bf49855f8757204fde59ca461658bfc123bf2b8da6c0631a65e"},
+    {file = "mlpack-4.6.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:245fb9509ed03a7e122ed20f61b14391a9016a64423280bc3644a7c02dc1dbe1"},
+    {file = "mlpack-4.6.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:9e2f51ee6a68d68eb38aff8a9ed41ec01b389c97556add341f825dfa4559340c"},
+    {file = "mlpack-4.6.0-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:6b760254eefedeadc675c66ef6387e82dca2e1562129dd4fc5f9b94d9224fb48"},
+    {file = "mlpack-4.6.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8a53ef67b36e212a3ba3f336b57c7401599dc9cefb5e9b8aa11a65c9c84d1b17"},
+    {file = "mlpack-4.6.0-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:79c11a1fca5efec972fb0f5ef08ebaebc95de392d9fcc520fe57bf0005d1451d"},
+    {file = "mlpack-4.6.0-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:ac978b3c529eec6627daebcc868b7fbdd9e946eea7c09f51d036bc066a9f1a52"},
+    {file = "mlpack-4.6.0-cp312-cp312-win32.whl", hash = "sha256:1337bba5397756c14556070420875d9736ec4c15409d7c2bb18cce18d2b2e511"},
+    {file = "mlpack-4.6.0-cp312-cp312-win_amd64.whl", hash = "sha256:485c37775efa405297494a4ddf4a090c730ed5d74a15da6db62f6b290a1aff39"},
+    {file = "mlpack-4.6.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:c2bbe7047c895863858b60044fb1ee0ddad81aa25bf2c2a1af0235da40b953b1"},
+    {file = "mlpack-4.6.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:e847225dd70182f7fad5ea9da8cfad2df45b85caeca8c1acc56bb454060bcae9"},
+    {file = "mlpack-4.6.0-cp313-cp313-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:72d4284cda8cdba20428988b2253c95c52a1b76b15976712b2f95acd85ea8872"},
+    {file = "mlpack-4.6.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6b0d38420eee86d93502267c1dde0816ff80ceb4c9dd5c7b3e1a29a80904f470"},
+    {file = "mlpack-4.6.0-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:506b0bd2d95e1b555c5c8366bef9824dfca8f9ced966d0f5be98f5200b4dff63"},
+    {file = "mlpack-4.6.0-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:9b0f7435a6a8412ded685162657005f466416e5e019d4d08edf60fcd0d67f0b9"},
+    {file = "mlpack-4.6.0-cp313-cp313-win_amd64.whl", hash = "sha256:2050c658c10ccdd587f9e9452a435e55688e9176f7fef1a1809b7d7247505c46"},
+    {file = "mlpack-4.6.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:a46d55c2341369a31490903dc8a68eefe35b4f90898242ae37b6456b4504d3c6"},
+    {file = "mlpack-4.6.0-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:41bf8e66ce7bdc97823805a2cee40937a6cdca887596747316b3acaecfcb9198"},
+    {file = "mlpack-4.6.0-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8f1ba5f4653c0ded68564fc39de653a725dd64d907c93b850b73250f73dac3c8"},
+    {file = "mlpack-4.6.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1a1f796839313dc4c60f639a3703c0faec23e098d0bb3dfaadb5f227993d3f85"},
+    {file = "mlpack-4.6.0-cp38-cp38-win_amd64.whl", hash = "sha256:3dfe864609d26a51019a497eb23d157538ed89e70846f0e48a4f342b6ce98c47"},
+    {file = "mlpack-4.6.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:4b97056b5f45cf8ecf08785576a5c003c066ff41137a8d0df20bf678d1bae74b"},
+    {file = "mlpack-4.6.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:c7bb88ac089c1dc38e329449c9da303ce86dff3f4cf4568132ac26090a6e2c04"},
+    {file = "mlpack-4.6.0-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:93801f179586afec038e506dd185cfd0ed9899e3ea69204533e761ee9962cd71"},
+    {file = "mlpack-4.6.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:38f7f9876954b8339fe9b813438feed48d968b150505b2c66bdb34a91ec8ac1d"},
+    {file = "mlpack-4.6.0-cp39-cp39-musllinux_1_2_i686.whl", hash = "sha256:bc1da5e553aad7e291179b170d6b43619dbac8513e022ed740fbf9b1410b643e"},
+    {file = "mlpack-4.6.0-cp39-cp39-musllinux_1_2_x86_64.whl", hash = "sha256:1a6d423ed8a55a695554250279a0358c70350b4742f3a5d50b5a0e8a3803ee32"},
+    {file = "mlpack-4.6.0-cp39-cp39-win32.whl", hash = "sha256:e706f9025b9cbdc3a6cb15d2de47e5a7417f48b6c431399161eb4e5c102b97c0"},
+    {file = "mlpack-4.6.0-cp39-cp39-win_amd64.whl", hash = "sha256:75383a768238fd290c8d3184fa88a3c2ca63fc28b331ed3f0b56e127cd7c4fc8"},
+    {file = "mlpack-4.6.0-pp37-pypy37_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:b60d1abab0ad4d1d5c0b07ba71f1eb03978db91b86d228f08162a469c59870ba"},
+    {file = "mlpack-4.6.0-pp37-pypy37_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fa3968c57fc259d797b7d17d5b60300c1589e58741c7a5c7207584e3e33c51f8"},
+    {file = "mlpack-4.6.0-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:04d6380661adb68a3932b6c7faa7cf373255a34812492f502c3abbd0ea310ff8"},
+    {file = "mlpack-4.6.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:206cd26c019b64797e61eb0ceb1e266d8e2d6c63c87a2d6e77e55237083ddd86"},
 ]
 
 [package.dependencies]
 cython = ">=0.24"
 numpy = "*"
 pandas = "*"
-
-[package.extras]
-tests = ["pytest (>3) ; python_version > \"3.4\"", "pytest (>3,<=4.6) ; python_version <= \"3.4\""]
 
 [[package]]
 name = "model2vec"
