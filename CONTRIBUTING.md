@@ -24,7 +24,7 @@ Requirements:
 
 - CPU: Python ≥ 3.10
 - Poetry ≥ 1.8
-- GPU: Conda environment with Python = 3.10 (required by `faiss-gpu`).
+- GPU: Conda/Mamba environment with Python = 3.10 (required by `faiss-gpu`).
 
 ### CPU development (poetry):
 ```bash
@@ -49,10 +49,13 @@ poetry run mypy packages/blockingpy-core
 git clone https://github.com/ncn-foreigners/BlockingPy.git
 cd BlockingPy
 
-# 2) Conda env + faiss-gpu
-conda create -n blockingpy-gpu python=3.10 -y
+# 2) mamba env + faiss-gpu
+mamba create -n blockingpy-gpu python=3.10 -y
 conda activate blockingpy-gpu
-conda install -c pytorch -c nvidia faiss-gpu -y
+conda config --env --set channel_priority flexible
+mamba install -y \
+  -c pytorch/label/nightly -c rapidsai -c conda-forge \
+  "faiss-gpu-cuvs=1.11.0" "libcuvs=25.4.*"
 
 # 3) Point Poetry at this same env
 poetry config virtualenvs.create false 

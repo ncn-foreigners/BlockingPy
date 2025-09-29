@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-15-intel]
+        os: [ubuntu-latest, windows-latest, macos-13]
         python-version: ["3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -27,11 +27,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libmlpack-dev
-      - name: Install system dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew update
-          brew install mlpack
+      # - name: Install system dependencies (macOS)
+      #   if: runner.os == 'macOS'
+      #   run: |
+      #     brew update
+      #     brew install mlpack
       - name: Create venv and install deps (CPU)
         run: |
           uv venv
