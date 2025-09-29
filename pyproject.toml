@@ -31,12 +31,12 @@ sphinx-rtd-theme = "^3.0.2"
 sphinx-autobuild = "^2024.10.3"
 
 [tool.poetry.group.cpu.dependencies]
+blockingpy-core = { path = "packages/blockingpy-core", develop = true, extras = ["faiss"] }
 blockingpy      = { path = "packages/blockingpy",      develop = true }
-blockingpy-core = { path = "packages/blockingpy-core", develop = true }
 
 [tool.poetry.group.gpu.dependencies]
-blockingpy-gpu  = { path = "packages/blockingpy-gpu",  develop = true }
 blockingpy-core = { path = "packages/blockingpy-core", develop = true }
+blockingpy-gpu  = { path = "packages/blockingpy-gpu",  develop = true }
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]

@@ -119,6 +119,7 @@ develop = true
 
 [package.dependencies]
 annoy = "^1.17.3"
+faiss-cpu = {version = ">=1.7.4", optional = true}
 hnswlib = "^0.8.0"
 igraph = "^0.11.9"
 mlpack = ">=4.4.0, <4.6.1"
@@ -3471,4 +3472,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "ce518607f71177e4dfe405f324a1c7eae2ef9428c603cebada8f9fe88612f66e"
+content-hash = "e0ba3f9188598b4468ff0ff91b2f65e075420ec809fff8542b01274a4a63e89a"

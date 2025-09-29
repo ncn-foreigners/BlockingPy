@@ -36,7 +36,7 @@ cd BlockingPy
 poetry config virtualenvs.in-project true
 
 # 3) Install for CPU development (package + core, editable; with faiss-cpu)
-poetry install --with dev,cpu
+poetry install --with dev,cpu --without gpu
 
 # 4) Run checks
 poetry run pytest -q
@@ -50,7 +50,7 @@ git clone https://github.com/ncn-foreigners/BlockingPy.git
 cd BlockingPy
 
 # 2) Conda env + faiss-gpu
-conda create -n blockingpy-gpu python=3.12 -y
+conda create -n blockingpy-gpu python=3.10 -y
 conda activate blockingpy-gpu
 conda install -c pytorch -c nvidia faiss-gpu -y
 
@@ -58,7 +58,7 @@ conda install -c pytorch -c nvidia faiss-gpu -y
 poetry config virtualenvs.create false 
 
 # 4) Dev install from repo root
-poetry install --with dev,gpu
+poetry install --with dev,gpu  --without cpu
 
 # 5) Test
 poetry run pytest -q
