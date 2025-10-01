@@ -29,18 +29,14 @@ BlockingPy requires Python 3.10 or later. Installation is handled via PIP as fol
 ```bash
 pip install blockingpy
 ```
-or i.e. with poetry:
 
-```bash
-poetry add blockingpy
-```
 ### Note
 You may need to run the following beforehand:
 ```bash
 sudo apt-get install -y libmlpack-dev # on Linux
 brew install mlpack # on MacOS
 ```
-for the GPU version: see [here](#gpu-support) or [docs](https://blockingpy.readthedocs.io/en/latest/gpu/index.html)
+for the GPU version: see [here](#gpu-support) or [docs](https://blockingpy.readthedocs.io/en/latest/gpu.html)
 
 ## Basic Usage
 ### Record Linkage
@@ -132,6 +128,9 @@ print(dedup_result.result)
 # 4  4  6      1  0.105573
 # 5  5  7      1  0.278312
 ```
+
+You can find more comprehensive examples in [examples](https://blockingpy.readthedocs.io/en/latest/examples/index.html) section.
+
 ## Features
 - Multiple ANN implementations available:
     - [FAISS](https://github.com/facebookresearch/faiss) (Facebook AI Similarity Search) (`lsh`, `hnsw`, `flat`)
@@ -186,7 +185,7 @@ pip install blockingpy-gpu
 
 ## Example Datasets
 
-BlockingPy comes with built-in example datasets:
+BlockingPy comes with example datasets fetched via [Pooch](https://www.fatiando.org/pooch/latest/) library:
 
 - Census-Cis dataset created by Paula McLeod, Dick Heasman and Ian Forbes, ONS,
     for the ESSnet DI on-the-job training course, Southampton,
@@ -195,6 +194,8 @@ BlockingPy comes with built-in example datasets:
 - Deduplication dataset taken from [RecordLinkage](https://cran.r-project.org/package=RecordLinkage) R package developed by Murat Sariyar
     and Andreas Borg. Package is licensed under GPL-3 license. Also known as [RLdata10000](https://www.rdocumentation.org/packages/RecordLinkage/versions/0.4-12.4/topics/RLdata).
 
+The files are hosted on GitHub Releases and can be downloaded via the provided links.
+
 
 ## License
 BlockingPy is released under [MIT license](https://github.com/ncn-foreigners/BlockingPy/blob/main/LICENSE).
@@ -202,7 +203,7 @@ BlockingPy is released under [MIT license](https://github.com/ncn-foreigners/Blo
 ## Third Party
 BlockingPy benefits from many open-source packages such as [Faiss](https://github.com/facebookresearch/faiss) or [Annoy](https://github.com/spotify/annoy). For detailed information see [third party notice](https://github.com/ncn-foreigners/BlockingPy/blob/main/THIRD_PARTY).
 
-## Contributing
+## Contributing & Development
 
 Please see [CONTRIBUTING.md](https://github.com/ncn-foreigners/BlockingPy/blob/main/CONTRIBUTING.md) for more information.
 

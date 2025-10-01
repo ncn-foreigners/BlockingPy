@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blockingpy.mlpack_blocker &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blockingpy.mlpack_blocker</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blockingpy.mlpack_blocker</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Contains the MLPackBlocker class for performing blocking using MLPack algorithms.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">mlpack</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlockingMethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.data_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.helper_functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">rearrange_array</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="MLPackBlocker">
+<a class="viewcode-back" href="../../api/generated/backends/blockingpy.mlpack_blocker.MLPackBlocker.html#blockingpy.mlpack_blocker.MLPackBlocker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MLPackBlocker</span><span class="p">(</span><span class="n">BlockingMethod</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for performing blocking using MLPack algorithms (LSH or k-d tree).</span>
+
+<span class="sd">    This class implements blocking functionality using either Locality-Sensitive</span>
+<span class="sd">    Hashing (LSH) or k-d tree algorithms from the MLPack library for efficient</span>
+<span class="sd">    similarity search and nearest neighbor queries.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    algo : str or None</span>
+<span class="sd">        The selected algorithm (&#39;lsh&#39; or &#39;kd&#39;)</span>
+<span class="sd">    ALGO_MAP : dict</span>
+<span class="sd">        Mapping of algorithm names to their MLPack implementations</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    BlockingMethod : Abstract base class defining the blocking interface</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For more details about the MLPack library and its algorithms, see:</span>
+<span class="sd">    https://github.com/mlpack</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MLPackBlocker.__init__">
+<a class="viewcode-back" href="../../api/generated/backends/blockingpy.mlpack_blocker.MLPackBlocker.html#blockingpy.mlpack_blocker.MLPackBlocker.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the MLPackBlocker instance.</span>
+
+<span class="sd">        Creates a new MLPackBlocker with no algorithm selected.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algo</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ALGO_MAP</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;lsh&quot;</span><span class="p">:</span> <span class="s2">&quot;lsh&quot;</span><span class="p">,</span> <span class="s2">&quot;kd&quot;</span><span class="p">:</span> <span class="s2">&quot;knn&quot;</span><span class="p">}</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">,</span>
+        <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">controls</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform blocking using MLPack algorithm (LSH or k-d tree).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : DataHandler</span>
+<span class="sd">            Reference dataset containing features for indexing</span>
+<span class="sd">        y : DataHandler</span>
+<span class="sd">            Query dataset to find nearest neighbors for</span>
+<span class="sd">        k : int</span>
+<span class="sd">            Number of nearest neighbors to find</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            If True, print detailed progress information</span>
+<span class="sd">        controls : dict</span>
+<span class="sd">            Algorithm control parameters with the following structure:</span>
+<span class="sd">            {</span>
+<span class="sd">                &#39;random_seed&#39;: int,</span>
+<span class="sd">                &#39;algo&#39;: str # &#39;lsh&#39; or &#39;kd&#39;,</span>
+<span class="sd">                &#39;lsh&#39;: {  # if using LSH</span>
+<span class="sd">                    &#39;k_search&#39;: int,</span>
+<span class="sd">                    &#39;bucket_size&#39;: int,</span>
+<span class="sd">                    &#39;hash_width&#39;: float,</span>
+<span class="sd">                    &#39;num_probes&#39;: int,</span>
+<span class="sd">                    &#39;projections&#39;: int,</span>
+<span class="sd">                    &#39;tables&#39;: int</span>
+<span class="sd">                },</span>
+<span class="sd">                &#39;kd&#39;: {   # if using k-d tree</span>
+<span class="sd">                    &#39;k_search&#39;: int,</span>
+<span class="sd">                    &#39;algorithm&#39;: str,</span>
+<span class="sd">                    &#39;leaf_size&#39;: int,</span>
+<span class="sd">                    &#39;tree_type&#39;: str,</span>
+<span class="sd">                    &#39;epsilon&#39;: float,</span>
+<span class="sd">                    &#39;rho&#39;: float,</span>
+<span class="sd">                    &#39;tau&#39;: float,</span>
+<span class="sd">                    &#39;random_basis&#39;: bool</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            DataFrame containing the blocking results with columns:</span>
+<span class="sd">            - &#39;y&#39;: indices from query dataset</span>
+<span class="sd">            - &#39;x&#39;: indices of matched items from reference dataset</span>
+<span class="sd">            - &#39;dist&#39;: distances to matched items</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The function supports two different algorithms:</span>
+<span class="sd">        - LSH (Locality-Sensitive Hashing): Better for high-dimensional data</span>
+<span class="sd">        - k-d tree: Better for low-dimensional data</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span> <span class="k">if</span> <span class="n">verbose</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">algo</span> <span class="o">=</span> <span class="n">controls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;algo&quot;</span><span class="p">,</span> <span class="s2">&quot;lsh&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_algo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">algo</span><span class="p">)</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="n">controls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;random_seed&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;lsh&quot;</span><span class="p">:</span>
+            <span class="n">k_search</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;lsh&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;k_search&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">k_search</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;kd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;k_search&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">k_search</span> <span class="o">&gt;</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">original_k_search</span> <span class="o">=</span> <span class="n">k_search</span>
+            <span class="n">k_search</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k_search</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;k_search (</span><span class="si">{</span><span class="n">original_k_search</span><span class="si">}</span><span class="s2">) is larger than the number of reference points &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">). Adjusted k_search to </span><span class="si">{</span><span class="n">k_search</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+            <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initializing MLPack </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">algo</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2"> index...&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">algo</span> <span class="o">==</span> <span class="s2">&quot;lsh&quot;</span><span class="p">:</span>
+            <span class="n">query_result</span> <span class="o">=</span> <span class="n">mlpack</span><span class="o">.</span><span class="n">lsh</span><span class="p">(</span>
+                <span class="n">k</span><span class="o">=</span><span class="n">k_search</span><span class="p">,</span>
+                <span class="n">query</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span>
+                <span class="n">reference</span><span class="o">=</span><span class="n">X</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                <span class="n">bucket_size</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;lsh&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bucket_size&quot;</span><span class="p">),</span>
+                <span class="n">hash_width</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;lsh&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hash_width&quot;</span><span class="p">),</span>
+                <span class="n">num_probes</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;lsh&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_probes&quot;</span><span class="p">),</span>
+                <span class="n">projections</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;lsh&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;projections&quot;</span><span class="p">),</span>
+                <span class="n">tables</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;lsh&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tables&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">query_result</span> <span class="o">=</span> <span class="n">mlpack</span><span class="o">.</span><span class="n">knn</span><span class="p">(</span>
+                <span class="n">k</span><span class="o">=</span><span class="n">k_search</span><span class="p">,</span>
+                <span class="n">query</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span>
+                <span class="n">reference</span><span class="o">=</span><span class="n">X</span><span class="p">,</span>
+                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+                <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                <span class="n">algorithm</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;kd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;algorithm&quot;</span><span class="p">),</span>
+                <span class="n">leaf_size</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;kd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;leaf_size&quot;</span><span class="p">),</span>
+                <span class="n">tree_type</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;kd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tree_type&quot;</span><span class="p">),</span>
+                <span class="n">epsilon</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;kd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;epsilon&quot;</span><span class="p">),</span>
+                <span class="n">rho</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;kd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rho&quot;</span><span class="p">),</span>
+                <span class="n">tau</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;kd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tau&quot;</span><span class="p">),</span>
+                <span class="n">random_basis</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;kd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;random_basis&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;MLPack index query completed.&quot;</span><span class="p">)</span>
+
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">query_result</span><span class="p">[</span><span class="s2">&quot;neighbors&quot;</span><span class="p">]</span>
+        <span class="n">distances</span> <span class="o">=</span> <span class="n">query_result</span><span class="p">[</span><span class="s2">&quot;distances&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">indices</span><span class="p">,</span> <span class="n">distances</span> <span class="o">=</span> <span class="n">rearrange_array</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">distances</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">indices</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="s2">&quot;dist&quot;</span><span class="p">:</span> <span class="n">distances</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Blocking process completed successfully.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_algo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">algo</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validate the provided algorithm.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        algo : str</span>
+<span class="sd">            The algorithm to validate</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the provided algorithm is not in the ALGO_MAP</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Valid algorithms are defined in the ALGO_MAP class attribute.</span>
+<span class="sd">        Currently supports &#39;lsh&#39; for Locality-Sensitive Hashing and</span>
+<span class="sd">        &#39;kd&#39; for k-d tree based search.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">algo</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ALGO_MAP</span><span class="p">:</span>
+            <span class="n">valid_algos</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ALGO_MAP</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid algorithm &#39;</span><span class="si">{</span><span class="n">algo</span><span class="si">}</span><span class="s2">&#39;. Accepted values are: </span><span class="si">{</span><span class="n">valid_algos</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

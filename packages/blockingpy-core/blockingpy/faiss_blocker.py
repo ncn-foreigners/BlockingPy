@@ -2,6 +2,7 @@
 
 import logging
 import os
+import warnings
 from typing import Any
 
 import faiss
@@ -16,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class FaissBlocker(BlockingMethod):
-
     """
     A class for performing blocking using the FAISS (Facebook AI Similarity Search) algorithm.
 
@@ -92,7 +92,7 @@ class FaissBlocker(BlockingMethod):
         self.index: faiss.Index
         self.x_columns: list[str]
 
-    def block(
+    def block(  # noqa: PLR0915, PLR0912
         self,
         x: DataHandler,
         y: DataHandler,
@@ -202,9 +202,11 @@ class FaissBlocker(BlockingMethod):
         if k_search > X.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, X.shape[0])
-            logger.warning(
+            warnings.warn(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({X.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}.",
+                category=UserWarning,
+                stacklevel=2,
             )
 
         if distance == "cosine":
@@ -214,20 +216,20 @@ class FaissBlocker(BlockingMethod):
 
         if distance == "cosine" and index_type != "lsh":
             distances = (1 - distances) / 2
-
-        if k == 2:
+        K_VAL = 2
+        if k == K_VAL:
             indices, distances = rearrange_array(indices, distances)
 
         if path:
             self._save_index(path)
 
-        result = {
-            "y": np.arange(Y.shape[0]),
-            "x": indices[:, k - 1],
-            "dist": distances[:, k - 1],
-        }
-
-        result = pd.DataFrame(result)
+        result = pd.DataFrame(
+            {
+                "y": np.arange(Y.shape[0]),
+                "x": indices[:, k - 1],
+                "dist": distances[:, k - 1],
+            }
+        )
 
         logger.info("Process completed successfully.")
 

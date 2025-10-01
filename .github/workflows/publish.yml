@@ -1,41 +1,48 @@
 name: Publish to PyPI
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+          cache: pip
 
-      - name: Install build tools
+      - name: Install uv and create venv
         run: |
-          python -m pip install --upgrade pip
-          pip install build twine tomli
+          python -m pip install -U pip uv
+          uv venv .venv
+          echo ".venv/bin" >> $GITHUB_PATH
+
+      - name: Install build tools in venv
+        run: |
+          uv pip install build twine tomli
 
       - name: Verify version sync
         run: |
           python - <<'PY'
           import tomli, pathlib
-          def ver(path):
-            t = tomli.loads(pathlib.Path(path).read_text("utf-8"))
-            if "project" in t and "version" in t["project"]:
-              return t["project"]["version"]
-            return t["tool"]["poetry"]["version"]
+          def ver(p):
+              t = tomli.loads(pathlib.Path(p).read_text('utf-8'))
+              return t.get("project",{}).get("version") or t["tool"]["poetry"]["version"]
           core = ver("packages/blockingpy-core/pyproject.toml")
           cpu  = ver("packages/blockingpy/pyproject.toml")
           gpu  = ver("packages/blockingpy-gpu/pyproject.toml")
-          assert core == cpu == gpu, f"Version mismatch: core={core}, blockingpy={cpu}, blockingpy-gpu={gpu}"
-          print("Version:", core)
+          assert core == cpu == gpu, (core, cpu, gpu)
+          print("Version OK:", core)
           PY
 
-      - name: Build core
+      - name: Build blockingpy-core
         run: python -m build -o packages/blockingpy-core/dist packages/blockingpy-core
 
       - name: Build blockingpy (meta CPU)
@@ -49,7 +56,7 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          twine upload \
+          python -m twine upload \
             packages/blockingpy-core/dist/* \
             packages/blockingpy/dist/* \
             packages/blockingpy-gpu/dist/*

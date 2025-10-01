@@ -2,6 +2,7 @@
 
 import logging
 import os
+import warnings
 from typing import Any
 
 import hnswlib
@@ -15,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class HNSWBlocker(BlockingMethod):
-
     """
     A class for performing blocking using the Hierarchical Navigable Small World (HNSW) algorithm.
 
@@ -152,16 +152,19 @@ class HNSWBlocker(BlockingMethod):
         if k_search > X.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, X.shape[0])
-            logger.warning(
+            warnings.warn(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({X.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}.",
+                category=UserWarning,
+                stacklevel=2,
             )
 
         l_1nn = self.index.knn_query(Y, k=k_search, num_threads=n_threads)
         indices = l_1nn[0]
         distances = l_1nn[1]
 
-        if k == 2:
+        K_VAL = 2
+        if k == K_VAL:
             indices, distances = rearrange_array(indices, distances)
 
         if path:

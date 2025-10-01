@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Integration with splink package &mdash; BlockingPy 0.1.7 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>Integration with splink package &mdash; BlockingPy 0.2.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -51,6 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="deduplication.html">Deduplication</a></li>
 <li class="toctree-l2"><a class="reference internal" href="deduplication_2.html">Deduplication No. 2</a></li>
 <li class="toctree-l2"><a class="reference internal" href="embedding_dedup.html">Deduplication with Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gpu_example_dedup.html">Deduplication on GPU (adaptation of Example No. 2)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="recordlinkage_integration.html">Integration with recordlinkage package</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Integration with splink package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#setup">Setup</a></li>
@@ -72,6 +73,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api/index.html">BlockingPy API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
 </ul>
 
@@ -111,11 +113,11 @@ This example will show how to deduplicate the <code class="docutils literal notr
 </pre></div>
 </div>
 <p>Import necessary components:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">splink</span> <span class="kn">import</span> <span class="n">splink_datasets</span><span class="p">,</span> <span class="n">SettingsCreator</span><span class="p">,</span> <span class="n">Linker</span><span class="p">,</span> <span class="n">block_on</span><span class="p">,</span> <span class="n">DuckDBAPI</span>
-<span class="kn">import</span> <span class="nn">splink.comparison_library</span> <span class="k">as</span> <span class="nn">cl</span>
-<span class="kn">from</span> <span class="nn">blockingpy</span> <span class="kn">import</span> <span class="n">Blocker</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">splink</span><span class="w"> </span><span class="kn">import</span> <span class="n">splink_datasets</span><span class="p">,</span> <span class="n">SettingsCreator</span><span class="p">,</span> <span class="n">Linker</span><span class="p">,</span> <span class="n">block_on</span><span class="p">,</span> <span class="n">DuckDBAPI</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">splink.comparison_library</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">blockingpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Blocker</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
 </div>

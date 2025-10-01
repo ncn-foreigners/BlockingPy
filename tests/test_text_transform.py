@@ -74,9 +74,7 @@ def dummy_static_model(monkeypatch):
     yield _DummyModel
 
 
-def test_embedding_encoder_basic(
-    sample_text_series: pd.Series, dummy_static_model
-) -> None:
+def test_embedding_encoder_basic(sample_text_series: pd.Series, dummy_static_model) -> None:
     """EmbeddingEncoder should return DataHandler with expected embedding columns."""
     encoder = EmbeddingEncoder(model="dummy/unused", normalize=True)
     dh = encoder.transform(sample_text_series)

@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "blockingpy"
-version = "0.2.3"
+name = "blockingpy-root-controller"
+version = "0.2.6"
 description = "Dev-only toml"
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>", "Maciej Beręsewicz <maciej.beresewicz@ue.poznan.pl>"]
 readme = "README.md"
@@ -9,13 +9,34 @@ repository = "https://github.com/ncn-foreigners/BlockingPy"
 documentation = "https://blockingpy.readthedocs.io/en/latest/"
 keywords = ["record-linkage", "deduplication", "ANN", "blocking", "data-matching"]
 packages = []
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-blockingpy-core = { path = "packages/blockingpy-core", develop = true }
+
+
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.4.1"
+pytest = "^8.3.3"
+pytest-cov = "^6.0.0"
+ruff = "^0.8.0"
+mypy = "^1.13.0"
+ipykernel = "^6.29.5"
+pandas-stubs = "2.3.2.250827"
+types-pytz = "2025.2.0.20250809"
+sphinx = "^8.1.3"
+sphinxcontrib-napoleon = "^0.7"
+myst-parser = "^4.0.0"
+sphinx-rtd-theme = "^3.0.2"
+sphinx-autobuild = "^2024.10.3"
+
+[tool.poetry.group.cpu.dependencies]
+blockingpy-core = { path = "packages/blockingpy-core", develop = true, extras = ["faiss"] }
+blockingpy      = { path = "packages/blockingpy",      develop = true }
+
+[tool.poetry.group.gpu.dependencies]
+blockingpy-core = { path = "packages/blockingpy-core", develop = true }
+blockingpy-gpu  = { path = "packages/blockingpy-gpu",  develop = true }
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]
@@ -27,55 +48,62 @@ markers = [
   "requires_mlpack: needs mlpack",
 ]
 
-[tool.black]
-line-length = 100
-target-version = ['py310']
-
 [tool.mypy]
 python_version = "3.10"
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
+files = "packages"
+strict = false
 warn_unused_ignores = true
-warn_return_any = true
-warn_unreachable = true
-strict_optional = true
+warn_redundant_casts = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+pretty = true
+show_error_codes = true
+exclude = "(^docs/|^tests/|^build/|^dist/)"
+plugins = ["numpy.typing.mypy_plugin"]
+
+[[tool.mypy.overrides]]
+module = [
+  "faiss", "faiss.*",
+  "mlpack", "mlpack.*",
+  "voyager", "voyager.*",
+  "nltk", "nltk.*",
+  "sklearn", "sklearn.*",
+  "igraph", "igraph.*",
+  "hnswlib", "hnswlib.*",
+  "pynndescent", "pynndescent.*",
+  "annoy", "annoy.*",
+  "scipy", "scipy.*",
+  "model2vec", "model2vec.*",
+  "pooch", "pooch.*",
+]
 ignore_missing_imports = true
 
+
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
 [tool.ruff]
-line-length = 100
 target-version = "py310"
+line-length = 100
+src = ["packages"]
+extend-exclude = ["docs", "build", "dist", "*.ipynb"]
 
 [tool.ruff.lint]
 select = [
-    "E",
-    "F",
-    "I", 
-    "B",    
-    "C90",  
-    "D", 
-    "UP", 
-    "YTT", 
-    "ANN",  
-    "S",   
-    "A", 
-    "LOG",  
-    "PYI", 
-    "TC",   
-    "PD",   
-    "PL",   
-    "NPY",  
-    "DOC",  
-    "RUF",
-    "PLR2004",  
+  "E","F","W",  
+  "I",         
+  "UP",        
+  "B",          
+  "SIM",       
+  "PERF",        
+  "PL",          
 ]
+ignore = ["E501", "D203"]  
 
-ignore = ["D211", "D212", "D205", "RUF012", "PLR0917", "PLR0913", "ANN401", "PLR0912", "C901", "PLR0915"]
-
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/*" = [
     "ANN001",
     "ANN002",
@@ -83,7 +111,9 @@ ignore = ["D211", "D212", "D205", "RUF012", "PLR0917", "PLR0913", "ANN401", "PLR
     "ANN201",  
     "ANN202",  
     "S101",
-    "DOC201",
-    "D401"
+    "D401",
+    "PLR2004"
 ]
 
+[tool.ruff.format]
+docstring-code-format = true

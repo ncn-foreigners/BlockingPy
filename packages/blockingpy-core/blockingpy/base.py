@@ -9,7 +9,6 @@ from .data_handler import DataHandler
 
 
 class BlockingMethod(ABC):
-
     """
     Abstract base class for blocking methods.
 

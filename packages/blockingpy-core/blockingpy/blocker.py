@@ -4,6 +4,7 @@ and deduplication blocking.
 """
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 import numpy as np
@@ -12,6 +13,7 @@ from igraph import Graph
 from scipy import sparse
 
 from .annoy_blocker import AnnoyBlocker
+from .base import BlockingMethod
 from .blocking_result import BlockingResult
 from .controls import controls_ann, controls_txt
 from .data_handler import DataHandler
@@ -28,19 +30,18 @@ logger = logging.getLogger(__name__)
 
 
 class Blocker:
-
     """
     A class implementing various blocking methods for record linkage and deduplication.
     """
 
     def __init__(self) -> None:
-        self.eval_metrics = None
-        self.confusion = None
-        self.x_colnames = None
-        self.y_colnames = None
-        self.reduction_ratio = None
-        self.control_ann: dict[str, Any] = {}
-        self.control_txt: dict[str, Any] = {}
+        self.eval_metrics: pd.Series | None = None
+        self.confusion: pd.DataFrame | None = None
+        self.x_colnames: list[str] | None = None
+        self.y_colnames: list[str] | None = None
+        self.reduction_ratio: float = 0.0
+        self.control_ann: Mapping[str, Mapping[str, Any]] = {}
+        self.control_txt: Mapping[str, Mapping[str, Any]] = {}
         self.BLOCKER_MAP = {
             "annoy": AnnoyBlocker,
             "hnsw": HNSWBlocker,
@@ -48,7 +49,7 @@ class Blocker:
             "voyager": VoyagerBlocker,
         }
 
-    def block(
+    def block(  # noqa: PLR0915, PLR0912, PLR0913
         self,
         x: pd.Series | sparse.csr_matrix | np.ndarray,
         y: np.ndarray | pd.Series | sparse.csr_matrix | None = None,
@@ -56,8 +57,8 @@ class Blocker:
         ann: str = "faiss",
         true_blocks: pd.DataFrame | None = None,
         verbose: int = 0,
-        control_txt: dict[str, Any] = {},
-        control_ann: dict[str, Any] = {},
+        control_txt: Mapping[str, Mapping[str, Any]] | None = None,
+        control_ann: Mapping[str, Mapping[str, Any]] | None = None,
         x_colnames: list[str] | None = None,
         y_colnames: list[str] | None = None,
         random_seed: int | None = 2025,
@@ -123,6 +124,8 @@ class Blocker:
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
 
+        control_txt = {} if control_txt is None else dict(control_txt)
+        control_ann = {} if control_ann is None else dict(control_ann)
         self.x_colnames = x_colnames
         self.y_colnames = y_colnames
         InputValidator.validate_controls_txt(control_txt)
@@ -135,9 +138,9 @@ class Blocker:
             self.control_ann["random_seed"] = random_seed
 
         if ann == "nnd":
-            distance = self.control_ann.get("nnd").get("metric")
+            distance = self.control_ann.get("nnd", {}).get("metric")
         elif ann in {"annoy", "voyager", "hnsw", "faiss", "gpu_faiss"}:
-            distance = self.control_ann.get(ann).get("distance")
+            distance = self.control_ann.get(ann, {}).get("distance")
         else:
             distance = None
         if distance is None:
@@ -166,17 +169,20 @@ class Blocker:
         InputValidator.validate_true_blocks(true_blocks, deduplication)
         len_x = x.shape[0]
 
-        if sparse.issparse(x):
+        if sparse.issparse(x) and sparse.issparse(y):
             if self.x_colnames is None or self.y_colnames is None:
                 raise ValueError("Column names must be provided for sparse input.")
             x_dtm = DataHandler(x, self.x_colnames)
             y_dtm = DataHandler(y, self.y_colnames)
-        elif isinstance(x, np.ndarray):
+        elif isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
             if self.x_colnames is None or self.y_colnames is None:
                 raise ValueError("Column names must be provided for ndarray input.")
             x_dtm = DataHandler(np.ascontiguousarray(x, dtype=np.float32), self.x_colnames)
             y_dtm = DataHandler(np.ascontiguousarray(y, dtype=np.float32), self.y_colnames)
         else:
+            if not isinstance(x, pd.Series) or not isinstance(y, pd.Series):
+                raise ValueError("For text input, x and y must be pandas Series.")
+            logger.info("===== creating tokens =====")
             transformer = TextTransformer(**self.control_txt)
             x_dtm = transformer.transform(x)
             y_dtm = transformer.transform(y)
@@ -187,17 +193,24 @@ class Blocker:
         x_sub = DataHandler(x_dtm.data[:, ix], colnames_xy.tolist())
         y_sub = DataHandler(y_dtm.data[:, iy], colnames_xy.tolist())
 
+        logger.info(
+            f"===== starting search ({ann}, x, y: {x_dtm.shape[0]},"
+            f"{y_dtm.shape[0]}, t: {len(colnames_xy)}) ====="
+        )
+
         blocker_cls = self._get_blocker(ann)
         if blocker_cls is None:
             raise ValueError(f"Unsupported algorithm: {ann}")
+        VERBOSE_INFO_LVL = 2
         x_df = blocker_cls().block(
             x=x_sub,
             y=y_sub,
             k=k,
-            verbose=(verbose >= 2),
+            verbose=(verbose >= VERBOSE_INFO_LVL),
             controls=self.control_ann,
         )
 
+        logger.info("===== creating graph =====")
         x_df["query_g"] = "q" + x_df["y"].astype(str)
         x_df["index_g"] = np.where(
             deduplication,
@@ -225,6 +238,7 @@ class Blocker:
         )
 
         if true_blocks is not None:
+            logger.info("===== evaluating =====")
             if not deduplication:
                 TP, FP, FN, TN = self._eval_rl(x_df, true_blocks)
             else:
@@ -525,10 +539,20 @@ class Blocker:
             }
         )
 
-    def _get_blocker(self, ann: str):
+    def _get_blocker(self, ann: str) -> type[BlockingMethod]:
         """Helper to get the selected blocker"""
         if ann == "faiss":
-            from .faiss_blocker import FaissBlocker
+            try:
+                from .faiss_blocker import FaissBlocker
+            except ModuleNotFoundError as e:
+                raise ModuleNotFoundError(
+                    "FAISS backend requested but the 'faiss' package is not installed.\n"
+                    "\nInstall one of:\n"
+                    "  • CPU: pip install 'blockingpy-core[faiss]' (if a wheel is available)"
+                    " or simply `pip install blockingpy`\n"
+                    "  • GPU (blockingpy-gpu): conda install -c conda-forge faiss-gpu\n"
+                    "\nAlternatively, set ann='hnsw' (or 'annoy'/'nnd'/'voyager')."
+                ) from e
 
             return FaissBlocker
         if ann == "gpu_faiss":

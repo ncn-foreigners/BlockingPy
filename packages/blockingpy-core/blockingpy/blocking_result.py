@@ -10,7 +10,6 @@ import pandas as pd
 
 
 class BlockingResult:
-
     """
     A class to represent and analyze the results of a blocking operation.
 
@@ -64,12 +63,12 @@ class BlockingResult:
 
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         x_df: pd.DataFrame,
         ann: str,
         deduplication: bool,
-        n_original_records: tuple[int, int],
+        n_original_records: tuple[int, int | None],
         true_blocks: pd.DataFrame | None,
         eval_metrics: pd.Series | None,
         confusion: pd.DataFrame | None,
@@ -185,8 +184,8 @@ class BlockingResult:
 
         Examples
         --------
-        >>> x = blocking_result.add_block_column(org_x_df) #dedup
-        >>> x, y = blocking_result.add_block_column(org_x_df, org_y_df) #rec-lin
+        >>> x = blocking_result.add_block_column(org_x_df)  # dedup
+        >>> x, y = blocking_result.add_block_column(org_x_df, org_y_df)  # rec-lin
 
         """
 
@@ -258,4 +257,9 @@ class BlockingResult:
         if self.metrics is None:
             return {}
 
-        return {name: float(f"{value * 100:.4f}") for name, value in self.metrics.items()}
+        self.metrics.index = self.metrics.index.map(str)
+        self.metrics = self.metrics.astype(float) if self.metrics is not None else None
+        return {
+            name: round(value * 100.0, 4)
+            for name, value in zip(self.metrics.index, self.metrics.values, strict=False)
+        }

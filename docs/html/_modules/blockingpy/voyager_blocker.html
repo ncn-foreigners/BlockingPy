@@ -1,0 +1,351 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>blockingpy.voyager_blocker &mdash; BlockingPy 0.1.7 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            BlockingPy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../user_guide/index.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">BlockingPy API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../blocklib_comp.html">BlockingPy vs blocklib - comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gpu.html">GPU SUPPORT (<code class="docutils literal notranslate"><span class="pre">blockingpy-gpu</span></code>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BlockingPy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">blockingpy.voyager_blocker</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for blockingpy.voyager_blocker</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Contains the VoyagerBlocker class for performing blocking using the</span>
+<span class="sd">Voyager algorithm from Spotify.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">voyager</span><span class="w"> </span><span class="kn">import</span> <span class="n">Index</span><span class="p">,</span> <span class="n">Space</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlockingMethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.data_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.helper_functions</span><span class="w"> </span><span class="kn">import</span> <span class="n">rearrange_array</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="VoyagerBlocker">
+<a class="viewcode-back" href="../../api/generated/backends/blockingpy.voyager_blocker.VoyagerBlocker.html#blockingpy.voyager_blocker.VoyagerBlocker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VoyagerBlocker</span><span class="p">(</span><span class="n">BlockingMethod</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for performing blocking using the Voyager algorithm from Spotify.</span>
+
+<span class="sd">    This class implements blocking functionality using Spotify&#39;s Voyager algorithm</span>
+<span class="sd">    for efficient approximate nearest neighbor search. It supports multiple distance</span>
+<span class="sd">    metrics and is designed for high-dimensional data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    index : voyager.Index or None</span>
+<span class="sd">        The Voyager index used for nearest neighbor search</span>
+<span class="sd">    x_columns : array-like or None</span>
+<span class="sd">        Column names of the reference dataset</span>
+<span class="sd">    METRIC_MAP : dict</span>
+<span class="sd">        Mapping of distance metric names to Voyager Space types</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    BlockingMethod : Abstract base class defining the blocking interface</span>
+<span class="sd">    voyager.Index : The underlying Voyager index implementation</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If path is provided but incorrect</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For more details about the Voyager algorithm and implementation, see:</span>
+<span class="sd">    https://github.com/spotify/voyager</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">METRIC_MAP</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Space</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;euclidean&quot;</span><span class="p">:</span> <span class="n">Space</span><span class="o">.</span><span class="n">Euclidean</span><span class="p">,</span>
+        <span class="s2">&quot;cosine&quot;</span><span class="p">:</span> <span class="n">Space</span><span class="o">.</span><span class="n">Cosine</span><span class="p">,</span>
+        <span class="s2">&quot;inner_product&quot;</span><span class="p">:</span> <span class="n">Space</span><span class="o">.</span><span class="n">InnerProduct</span><span class="p">,</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="VoyagerBlocker.__init__">
+<a class="viewcode-back" href="../../api/generated/backends/blockingpy.voyager_blocker.VoyagerBlocker.html#blockingpy.voyager_blocker.VoyagerBlocker.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the VoyagerBlocker instance.</span>
+
+<span class="sd">        Creates a new VoyagerBlocker with empty index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">:</span> <span class="n">Index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_columns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">,</span>
+        <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">controls</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform blocking using the Voyager algorithm.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : DataHandler</span>
+<span class="sd">            Reference dataset containing features for indexing</span>
+<span class="sd">        y : DataHandler</span>
+<span class="sd">            Query dataset to find nearest neighbors for</span>
+<span class="sd">        k : int</span>
+<span class="sd">            Number of nearest neighbors to find</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            If True, print detailed progress information</span>
+<span class="sd">        controls : dict</span>
+<span class="sd">            Algorithm control parameters with the following structure:</span>
+<span class="sd">            {</span>
+<span class="sd">                &#39;random_seed&#39;: int,</span>
+<span class="sd">                &#39;voyager&#39;: {</span>
+<span class="sd">                    &#39;distance&#39;: str,</span>
+<span class="sd">                    &#39;k_search&#39;: int,</span>
+<span class="sd">                    &#39;path&#39;: str,</span>
+<span class="sd">                    &#39;M&#39;: int,</span>
+<span class="sd">                    &#39;ef_construction&#39;: int,</span>
+<span class="sd">                    &#39;max_elements&#39;: int,</span>
+<span class="sd">                    &#39;num_threads&#39;: int,</span>
+<span class="sd">                    &#39;query_ef&#39;: int</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pandas.DataFrame</span>
+<span class="sd">            DataFrame containing the blocking results with columns:</span>
+<span class="sd">            - &#39;y&#39;: indices from query dataset</span>
+<span class="sd">            - &#39;x&#39;: indices of matched items from reference dataset</span>
+<span class="sd">            - &#39;dist&#39;: distances to matched items</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The algorithm uses a graph-based approach for approximate</span>
+<span class="sd">        nearest neighbor search. The quality of approximation can be controlled</span>
+<span class="sd">        through parameters like ef_construction and query_ef.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span> <span class="k">if</span> <span class="n">verbose</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="n">X</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
+
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;voyager&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">)</span>
+        <span class="n">space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">METRIC_MAP</span><span class="p">[</span><span class="n">distance</span><span class="p">]</span>
+        <span class="n">k_search</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;voyager&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;k_search&quot;</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">controls</span><span class="p">[</span><span class="s2">&quot;voyager&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">)</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="n">controls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;random_seed&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">seed</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Reference dataset `x` must not be empty.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Query dataset `y` must not be empty.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">Index</span><span class="p">(</span>
+            <span class="n">space</span><span class="o">=</span><span class="n">space</span><span class="p">,</span>
+            <span class="n">num_dimensions</span><span class="o">=</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">M</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;voyager&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;M&quot;</span><span class="p">),</span>
+            <span class="n">ef_construction</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;voyager&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ef_construction&quot;</span><span class="p">),</span>
+            <span class="n">random_seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">max_elements</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;voyager&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_elements&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Building index...&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">add_items</span><span class="p">(</span>
+            <span class="n">X</span><span class="p">,</span>
+            <span class="n">num_threads</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;voyager&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_threads&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Querying index...&quot;</span><span class="p">)</span>
+
+        <span class="n">l_ind_nns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">l_ind_dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">k_search</span> <span class="o">&gt;</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">original_k_search</span> <span class="o">=</span> <span class="n">k_search</span>
+            <span class="n">k_search</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">k_search</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;k_search (</span><span class="si">{</span><span class="n">original_k_search</span><span class="si">}</span><span class="s2">) is larger than the number of reference points &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">). Adjusted k_search to </span><span class="si">{</span><span class="n">k_search</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+                <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+            <span class="p">)</span>
+
+        <span class="n">all_neighbor_ids</span><span class="p">,</span> <span class="n">all_distances</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="n">vectors</span><span class="o">=</span><span class="n">Y</span><span class="p">,</span>
+            <span class="n">k</span><span class="o">=</span><span class="n">k_search</span><span class="p">,</span>
+            <span class="n">num_threads</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;voyager&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_threads&quot;</span><span class="p">),</span>
+            <span class="n">query_ef</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;voyager&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;query_ef&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">all_neighbor_ids</span><span class="p">,</span> <span class="n">all_distances</span> <span class="o">=</span> <span class="n">rearrange_array</span><span class="p">(</span><span class="n">all_neighbor_ids</span><span class="p">,</span> <span class="n">all_distances</span><span class="p">)</span>
+
+        <span class="n">l_ind_nns</span> <span class="o">=</span> <span class="n">all_neighbor_ids</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">l_ind_dist</span> <span class="o">=</span> <span class="n">all_distances</span><span class="p">[:,</span> <span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_save_index</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">l_ind_nns</span><span class="p">,</span>
+            <span class="s2">&quot;dist&quot;</span><span class="p">:</span> <span class="n">l_ind_dist</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Process completed successfully.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the Voyager index and column names to files.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            Directory path where the files will be saved</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the provided path is incorrect</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Creates two files:</span>
+<span class="sd">            - &#39;index.voyager&#39;: The Voyager index file</span>
+<span class="sd">            - &#39;index-colnames.txt&#39;: A text file with column names</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided path is incorrect&quot;</span><span class="p">)</span>
+
+        <span class="n">path_voy</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;index.voyager&quot;</span><span class="p">)</span>
+        <span class="n">path_voy_cols</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;index-colnames.txt&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Writing an index to </span><span class="si">{</span><span class="n">path_voy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">path_voy</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_voy_cols</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_columns</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Tymoteusz Strojny and Maciej Beręsewicz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

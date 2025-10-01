@@ -77,18 +77,14 @@ def test_seed_reproducibility(voyager_blocker, large_sparse_data, voyager_contro
     pd.testing.assert_frame_equal(result1, result2)
 
 
-def test_k_search_warning(voyager_blocker, small_sparse_data, voyager_controls, caplog):
+def test_k_search_warning(voyager_blocker, small_sparse_data, voyager_controls):
     """Test warning when k_search is larger than reference points."""
     x, y = small_sparse_data
-    caplog.set_level(logging.WARNING)
 
     voyager_controls["voyager"]["k_search"] = x.shape[0] + 10
-    voyager_blocker.block(x=x, y=y, k=1, verbose=True, controls=voyager_controls)
 
-    warning_message = (
-        f"k_search ({x.shape[0] + 10}) is larger than the number of reference points ({x.shape[0]})"
-    )
-    assert any(warning_message in record.message for record in caplog.records)
+    with pytest.warns(UserWarning, match=r"k_search.*larger.*reference"):
+        voyager_blocker.block(x=x, y=y, k=1, verbose=True, controls=voyager_controls)
 
 
 def test_verbose_logging(voyager_blocker, small_sparse_data, voyager_controls, caplog):

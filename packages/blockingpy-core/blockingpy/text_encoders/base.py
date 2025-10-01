@@ -10,7 +10,6 @@ from ..data_handler import DataHandler
 
 
 class TextEncoder(ABC):
-
     """
     Abstract base class for text-to-matrix transformers.
 

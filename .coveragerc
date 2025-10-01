@@ -1,0 +1,15 @@
+[run]
+branch = True
+parallel = True
+source = packages/blockingpy-core/blockingpy
+
+[paths]
+source =
+    packages/blockingpy-core/blockingpy
+    **/site-packages/blockingpy
+
+[report]
+omit =
+    */tests/*
+    */conftest.py
+    */__init__.py

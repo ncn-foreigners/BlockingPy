@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import warnings
 from tempfile import NamedTemporaryFile
 from typing import Any, Literal
 
@@ -20,7 +21,6 @@ MetricType = Literal["angular", "euclidean", "manhattan", "hamming", "dot"]
 
 
 class AnnoyBlocker(BlockingMethod):
-
     """Blocking with Spotify *Annoy* (Approximate Nearest Neighbors Oh Yeah)."""
 
     METRIC_MAP: dict[str, MetricType] = {
@@ -122,7 +122,9 @@ class AnnoyBlocker(BlockingMethod):
         logger.info("Querying index…")
         if k_search > X.shape[0]:
             k_search = X.shape[0]
-            logger.warning("k_search larger than reference set; adjusted.")
+            warnings.warn(
+                "k_search larger than reference set; adjusted.", category=UserWarning, stacklevel=2
+            )
 
         ind_nns = np.empty((Y.shape[0], k_search), dtype=int)
         ind_dist = np.empty((Y.shape[0], k_search), dtype=float)
@@ -132,7 +134,8 @@ class AnnoyBlocker(BlockingMethod):
             ind_nns[i] = ids
             ind_dist[i] = dists
 
-        if k == 2:
+        K_VAL = 2
+        if k == K_VAL:
             ind_nns, ind_dist = rearrange_array(ind_nns, ind_dist)
 
         if path:

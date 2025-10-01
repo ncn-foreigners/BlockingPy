@@ -1,5 +1,6 @@
 """Tests for the main blocker."""
 
+import importlib.util
 import logging
 
 import numpy as np
@@ -10,6 +11,15 @@ from blockingpy.blocker import (
     Blocker,
     BlockingResult,
 )
+
+HAS_FAISS = importlib.util.find_spec("faiss") is not None
+
+
+def available_algos():
+    algos = ["nnd", "hnsw", "annoy", "voyager"]
+    if HAS_FAISS:
+        algos.append("faiss")
+    return algos
 
 
 def test_input_validation_types(
@@ -22,7 +32,7 @@ def test_input_validation_types(
     x_txt, y_txt = small_named_txt_data
 
     result_csr = blocker.block(
-        x_csr, y=y_csr, x_colnames=x_cols_csr, y_colnames=y_cols_csr, ann="faiss"
+        x_csr, y=y_csr, x_colnames=x_cols_csr, y_colnames=y_cols_csr, ann="hnsw"
     )
     assert isinstance(result_csr, BlockingResult)
 
@@ -31,20 +41,20 @@ def test_input_validation_types(
         y=y_ndarray,
         x_colnames=x_cols_ndarray,
         y_colnames=y_cols_ndarray,
-        ann="faiss",
+        ann="hnsw",
     )
     assert isinstance(result_ndarray, BlockingResult)
 
-    result_txt = blocker.block(x_txt["txt"], y=y_txt["txt"], ann="faiss")
+    result_txt = blocker.block(x_txt["txt"], y=y_txt["txt"], ann="hnsw")
     assert isinstance(result_txt, BlockingResult)
 
     with pytest.raises(ValueError):
-        blocker.block([1, 2, 3], ann="faiss")
+        blocker.block([1, 2, 3], ann="hnsw")
     with pytest.raises(ValueError):
-        blocker.block(pd.DataFrame({"a": [1, 2, 3]}), ann="faiss")
+        blocker.block(pd.DataFrame({"a": [1, 2, 3]}), ann="hnsw")
 
 
-@pytest.mark.parametrize("algo", ["nnd", "hnsw", "annoy", "faiss", "voyager"])
+@pytest.mark.parametrize("algo", available_algos())
 def test_algorithm_selection(algo, small_named_csr_data, small_named_txt_data):
     """Test different algorithms with both matrix and text inputs."""
     blocker = Blocker()
@@ -60,7 +70,7 @@ def test_algorithm_selection(algo, small_named_csr_data, small_named_txt_data):
     assert result_txt.method == algo
 
 
-@pytest.mark.parametrize("algo", ["nnd", "hnsw", "annoy", "faiss", "voyager"])
+@pytest.mark.parametrize("algo", available_algos())
 def test_algos_with_embedding(algo, small_named_txt_data):
     """Test different algorithms with embeddings."""
     blocker = Blocker()
@@ -112,18 +122,22 @@ def test_column_intersection(small_named_csr_data):
 
 
 def test_verbosity_levels(small_named_txt_data, caplog):
-    """Test different verbosity levels."""
     blocker = Blocker()
     x_txt, _ = small_named_txt_data
 
-    with caplog.at_level(logging.INFO):
-        blocker.block(x_txt["txt"], verbose=0, ann="faiss", control_ann={"faiss": {"k_search": 3}})
-    assert len(caplog.records) == 0
+    caplog.clear()
+    with caplog.at_level(logging.INFO, logger="blockingpy"):
+        blocker.block(x_txt["txt"], verbose=0, ann="hnsw", control_ann={"hnsw": {"k_search": 3}})
+    assert not any(
+        r.name.startswith("blockingpy") and r.levelno == logging.INFO for r in caplog.records
+    )
 
     caplog.clear()
-    with caplog.at_level(logging.INFO):
+    with caplog.at_level(logging.INFO, logger="blockingpy"):
         blocker.block(x_txt["txt"], verbose=1)
-    assert len(caplog.records) > 0
+    assert any(
+        r.name.startswith("blockingpy") and r.levelno == logging.INFO for r in caplog.records
+    )
 
 
 def test_text_data_with_names(small_named_txt_data, small_named_csr_data):
@@ -222,7 +236,9 @@ def test_true_blocks_validation_errors(small_named_txt_data):
         blocker.block(x_txt["txt"], true_blocks=invalid_dedup, deduplication=True)
 
 
-@pytest.mark.parametrize("algo", ["hnsw", "annoy", "faiss", "voyager"])
+@pytest.mark.parametrize(
+    "algo", ["hnsw", "annoy", "faiss", "voyager"] if HAS_FAISS else ["hnsw", "annoy", "voyager"]
+)
 def test_metric_validations_error(small_named_txt_data, algo):
     """Test error handling for invalid distance metric."""
     blocker = Blocker()
@@ -249,7 +265,7 @@ def test_input_x_validation(bad_input):
     """Test input validation for x."""
     with pytest.raises(ValueError):
         blocker = Blocker()
-        blocker.block(bad_input, ann="faiss")
+        blocker.block(bad_input, ann="hnsw")
 
 
 # Tests for eval method:
@@ -285,7 +301,7 @@ def test_eval_input_validation(small_named_txt_data):
     blocker = Blocker()
     x_txt, _ = small_named_txt_data
 
-    block_result = blocker.block(x_txt["txt"])
+    _ = blocker.block(x_txt["txt"])
 
     with pytest.raises(ValueError, match="must be a BlockingResult instance"):
         blocker.eval(pd.DataFrame(), pd.DataFrame({"x": [0], "block": [0]}))
@@ -329,7 +345,7 @@ def test_eval_metrics_structure(small_named_txt_data):
     assert (eval_result.confusion >= 0).all().all()
 
 
-@pytest.mark.parametrize("algo", ["faiss", "hnsw", "annoy", "voyager"])
+@pytest.mark.parametrize("algo", available_algos())
 def test_eval_different_algorithms(small_named_txt_data, algo):
     """Test eval method works with different blocking algos."""
     blocker = Blocker()

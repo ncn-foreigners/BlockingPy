@@ -1,16 +1,10 @@
-"""Set up logging for blockingpy package."""
+"""Public API for blockingpy."""
 
 import logging
-import sys
 
 from .blocker import Blocker
+from .blocking_result import BlockingResult
+from .datasets import load_census_cis_data, load_deduplication_data
 
-__all__ = ["Blocker", "load_census_cis_data", "load_deduplication_data"]
-
+__all__ = ["Blocker", "BlockingResult", "load_census_cis_data", "load_deduplication_data"]
 logger = logging.getLogger("blockingpy")
-handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter("%(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
-logger.propagate = True

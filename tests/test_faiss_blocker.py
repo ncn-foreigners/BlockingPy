@@ -99,19 +99,13 @@ def test_result_reproducibility(faiss_blocker, small_sparse_data, faiss_controls
     pd.testing.assert_frame_equal(result1, result2)
 
 
-def test_k_search_warning(faiss_blocker, small_sparse_data, faiss_controls, caplog):
-    """Test warning when k_search is larger than reference points."""
+def test_k_search_warning(faiss_blocker, small_sparse_data, faiss_controls):
+    """Warn when k_search exceeds reference size."""
     x, y = small_sparse_data
-
     faiss_controls["faiss"]["k_search"] = x.shape[0] + 10
-    with caplog.at_level(logging.WARNING):
-        faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=faiss_controls)
 
-    warning_message = (
-        f"k_search ({faiss_controls['faiss']['k_search']}) is larger than the number of reference points "
-        f"({x.shape[0]}). Adjusted k_search to {x.shape[0]}."
-    )
-    assert warning_message in caplog.text
+    with pytest.warns(UserWarning, match=r"k_search.*larger.*reference"):
+        faiss_blocker.block(x=x, y=y, k=1, verbose=False, controls=faiss_controls)
 
 
 def test_verbose_logging(faiss_blocker, small_sparse_data, faiss_controls, caplog):

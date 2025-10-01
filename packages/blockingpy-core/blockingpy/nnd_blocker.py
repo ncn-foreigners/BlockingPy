@@ -1,6 +1,7 @@
 """Contains the NNDBlocker class for blocking using the Nearest Neighbor Descent algorithm."""
 
 import logging
+import warnings
 from typing import Any
 
 import numpy as np
@@ -15,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class NNDBlocker(BlockingMethod):
-
     """
     A blocker class that uses the Nearest Neighbor Descent (NND) algorithm.
 
@@ -127,9 +127,11 @@ class NNDBlocker(BlockingMethod):
         if k_search > X.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, X.shape[0])
-            logger.warning(
+            warnings.warn(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({X.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}.",
+                category=UserWarning,
+                stacklevel=2,
             )
 
         logger.info(f"Initializing NND index with {distance} metric.")
@@ -155,7 +157,7 @@ class NNDBlocker(BlockingMethod):
             delta=controls["nnd"].get("delta"),
             compressed=controls["nnd"].get("compressed"),
             parallel_batch_queries=controls["nnd"].get("parallel_batch_queries"),
-            random_state=controls.get("random_seed", None),
+            random_state=controls.get("random_seed"),
         )
 
         logger.info("Querying index...")
@@ -164,7 +166,8 @@ class NNDBlocker(BlockingMethod):
         indices = l_1nn[0]
         distances = l_1nn[1]
 
-        if k == 2:
+        K_VAL = 2
+        if k == K_VAL:
             indices, distances = rearrange_array(indices, distances)
 
         result = pd.DataFrame(

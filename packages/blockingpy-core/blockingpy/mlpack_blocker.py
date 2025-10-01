@@ -1,6 +1,7 @@
 """Contains the MLPackBlocker class for performing blocking using MLPack algorithms."""
 
 import logging
+import warnings
 from typing import Any
 
 import mlpack
@@ -14,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class MLPackBlocker(BlockingMethod):
-
     """
     A class for performing blocking using MLPack algorithms (LSH or k-d tree).
 
@@ -122,7 +122,7 @@ class MLPackBlocker(BlockingMethod):
 
         self.algo = controls.get("algo", "lsh")
         self._check_algo(self.algo)
-        seed = controls.get("random_seed", None)
+        seed = controls.get("random_seed")
         if self.algo == "lsh":
             k_search = controls["lsh"].get("k_search")
         else:
@@ -131,9 +131,11 @@ class MLPackBlocker(BlockingMethod):
         if k_search > X.shape[0]:
             original_k_search = k_search
             k_search = min(k_search, X.shape[0])
-            logger.warning(
+            warnings.warn(
                 f"k_search ({original_k_search}) is larger than the number of reference points "
-                f"({X.shape[0]}). Adjusted k_search to {k_search}."
+                f"({X.shape[0]}). Adjusted k_search to {k_search}.",
+                category=UserWarning,
+                stacklevel=2,
             )
 
         logger.info(f"Initializing MLPack {self.algo.upper()} index...")
@@ -172,7 +174,8 @@ class MLPackBlocker(BlockingMethod):
         indices = query_result["neighbors"]
         distances = query_result["distances"]
 
-        if k == 2:
+        K_VAL = 2
+        if k == K_VAL:
             indices, distances = rearrange_array(indices, distances)
 
         result = pd.DataFrame(

@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.2.6
+- fixed minor issue when running tests with `blockingpy-core`
+- improved error handling when `faiss` is not installed
+
+## v0.2.5
+- fixed issue in the publish workflow
+
+## v0.2.4
+- improved logging and warnings across the package
+- improved coverage of tests
+- updated API section
+- updated README files
+- added linting, formatting, and type checking workflow
+- improved tests workflow
+- datasets are now fetched via Pooch instead of being included in the package
+- minor changes
+
+## v0.2.3
+- minor fixes in workflows
+
+## v0.2.2
+- minor fixes in workflows
+
+## v0.2.1
+- minor fixes in workflows
+
 ## v0.2.0
 - ***GPU SUPPORT*** - through `faiss_gpu`, available indexes (`flat`, `ivf`, `ivfpq`, `cagra`)
 - Custom `DataHandler` class to wrap data replacing pandas dataframe

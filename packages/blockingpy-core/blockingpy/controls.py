@@ -91,7 +91,7 @@ def controls_ann(controls: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
 
     Examples
     --------
-    >>> config = controls_ann(hnsw={'M': 30, 'ef_c': 300})
+    >>> config = controls_ann(hnsw={"M": 30, "ef_c": 300})
 
     """
     defaults = {

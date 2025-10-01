@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.2.4 (Unreleased)
+- improved logging and warnings across the package
+- improved coverage of tests
+- updated API section
+- updated README files
+
+## v0.2.3
+- minor fixes in workflows
+
+## v0.2.2
+- minor fixes in workflows
+
+## v0.2.1
+- minor fixes in workflows
+
 ## v0.2.0
 - ***GPU SUPPORT*** - through `faiss_gpu`, available indexes (`flat`, `ivf`, `ivfpq`, `cagra`)
 - Custom `DataHandler` class to wrap data replacing pandas dataframe
