@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.7
+- new release with zenodo activation
+
 ## v0.2.6
 - fixed minor issue when running tests with `blockingpy-core`
 - improved error handling when `faiss` is not installed
