@@ -61,7 +61,7 @@ class Blocker:
         control_ann: Mapping[str, Mapping[str, Any]] | None = None,
         x_colnames: list[str] | None = None,
         y_colnames: list[str] | None = None,
-        random_seed: int | None = 2025,
+        random_seed: int | None = None,
     ) -> BlockingResult:
         """
         Perform blocking using the specified algorithm.
@@ -123,6 +123,10 @@ class Blocker:
 
         """
         logger.setLevel(logging.INFO if verbose else logging.WARNING)
+        if not logger.hasHandlers():
+            h = logging.StreamHandler()
+            h.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+            logger.addHandler(h)
 
         control_txt = {} if control_txt is None else dict(control_txt)
         control_ann = {} if control_ann is None else dict(control_ann)

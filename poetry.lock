@@ -91,7 +91,7 @@ dev = ["backports.zoneinfo ; python_version < \"3.9\"", "freezegun (>=1.0,<2.0)"
 
 [[package]]
 name = "blockingpy"
-version = "0.2.7"
+version = "0.2.8"
 description = "Blocking records for record linkage and data deduplication based on ANN algorithms."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -100,7 +100,7 @@ files = []
 develop = true
 
 [package.dependencies]
-blockingpy-core = ">=0.2.7"
+blockingpy-core = ">=0.2.8"
 faiss-cpu = ">=1.7.4"
 
 [package.source]
@@ -109,7 +109,7 @@ url = "packages/blockingpy"
 
 [[package]]
 name = "blockingpy-core"
-version = "0.2.7"
+version = "0.2.8"
 description = "Core library for BlockingPy."
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -142,7 +142,7 @@ url = "packages/blockingpy-core"
 
 [[package]]
 name = "blockingpy-gpu"
-version = "0.2.7"
+version = "0.2.8"
 description = "BlockingPy meta package (GPU)"
 optional = false
 python-versions = ">=3.10,<3.13"
@@ -151,7 +151,7 @@ files = []
 develop = true
 
 [package.dependencies]
-blockingpy-core = ">=0.2.7"
+blockingpy-core = ">=0.2.8"
 
 [package.source]
 type = "directory"

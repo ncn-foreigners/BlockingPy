@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>blockingpy.text_encoders.shingle_encoder &mdash; BlockingPy 0.1.7 documentation</title>
+  <title>blockingpy.text_encoders.shingle_encoder &mdash; BlockingPy 0.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -92,7 +92,6 @@
 <div class="viewcode-block" id="NgramEncoder">
 <a class="viewcode-back" href="../../../api/generated/encoders/blockingpy.text_encoders.shingle_encoder.NgramEncoder.html#blockingpy.text_encoders.shingle_encoder.NgramEncoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NgramEncoder</span><span class="p">(</span><span class="n">TextEncoder</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Encoder that converts text strings into a sparse document-term matrix</span>
 <span class="sd">    of character *n*-gram counts, packaged in a :class:`DataHandler`.</span>
@@ -128,10 +127,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">max_features</span> <span class="o">=</span> <span class="n">max_features</span></div>
 
 
+<div class="viewcode-block" id="NgramEncoder.fit">
+<a class="viewcode-back" href="../../../api/generated/encoders/blockingpy.text_encoders.shingle_encoder.NgramEncoder.html#blockingpy.text_encoders.shingle_encoder.NgramEncoder.fit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">Series</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">Series</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NgramEncoder</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Stateless encoder; fitting is a no-op, returned for API parity.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
+
+<div class="viewcode-block" id="NgramEncoder.transform">
+<a class="viewcode-back" href="../../../api/generated/encoders/blockingpy.text_encoders.shingle_encoder.NgramEncoder.html#blockingpy.text_encoders.shingle_encoder.NgramEncoder.transform">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataHandler</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transform a series of strings into a sparse shingle count matrix.</span>
@@ -155,7 +159,8 @@
             <span class="n">token_pattern</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">mat</span> <span class="o">=</span> <span class="n">vectorizer</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">mat</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">vectorizer</span><span class="o">.</span><span class="n">get_feature_names_out</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">mat</span><span class="p">,</span> <span class="n">cols</span><span class="o">=</span><span class="n">vectorizer</span><span class="o">.</span><span class="n">get_feature_names_out</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_tokenize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Split *text* into character shingles of length ``self.n_shingles``.&quot;&quot;&quot;</span>

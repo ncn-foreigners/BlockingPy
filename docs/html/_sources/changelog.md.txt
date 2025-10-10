@@ -1,10 +1,28 @@
 # Changelog
 
-## v0.2.4 (Unreleased)
+## v0.2.8
+- improved reproducibility
+- improved logging
+
+## v0.2.7
+- new release with zenodo activation
+
+## v0.2.6
+- fixed minor issue when running tests with `blockingpy-core`
+- improved error handling when `faiss` is not installed
+
+## v0.2.5
+- fixed issue in the publish workflow
+
+## v0.2.4
 - improved logging and warnings across the package
 - improved coverage of tests
 - updated API section
 - updated README files
+- added linting, formatting, and type checking workflow
+- improved tests workflow
+- datasets are now fetched via Pooch instead of being included in the package
+- minor changes
 
 ## v0.2.3
 - minor fixes in workflows

@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>blockingpy.datasets.base &mdash; BlockingPy 0.1.7 documentation</title>
+  <title>blockingpy.datasets.base &mdash; BlockingPy 0.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -75,66 +75,77 @@
            <div itemprop="articleBody">
              
   <h1>Source code for blockingpy.datasets.base</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Functions to load built-in BlockingPy datasets.&quot;&quot;&quot;</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_package_data</span><span class="p">,</span> <span class="n">resolve_external_file</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_read_csv_any</span><span class="p">(</span><span class="n">pathlike</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">pathlike</span><span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch_example_file</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_csv_any</span><span class="p">(</span><span class="n">pathlike</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="o">**</span><span class="n">read_csv_kw</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">pathlike</span><span class="p">,</span> <span class="o">**</span><span class="n">read_csv_kw</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="load_census_cis_data">
 <a class="viewcode-back" href="../../../api/generated/datasets/blockingpy.datasets.load_census_cis_data.html#blockingpy.datasets.load_census_cis_data">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">load_census_cis_data</span><span class="p">(</span><span class="n">as_frame</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data_home</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-    <span class="n">census_names</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;census.csv.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;census.csv&quot;</span><span class="p">)</span>
-    <span class="n">cis_names</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cis.csv.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;cis.csv&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_census_cis_data</span><span class="p">(</span>
+    <span class="n">as_frame</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">data_home</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">read_csv_kw</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns (census, cis) in the same shapes as before.</span>
+<span class="sd">    If data_home is provided, read from there. Otherwise download via Pooch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">census_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span>
+    <span class="n">cis_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span>
 
     <span class="k">if</span> <span class="n">data_home</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">census_names</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">with</span> <span class="n">open_package_data</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
-                    <span class="n">census</span> <span class="o">=</span> <span class="n">_read_csv_any</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-                    <span class="k">break</span>
-            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-                <span class="k">continue</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">cis_names</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">with</span> <span class="n">open_package_data</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
-                    <span class="n">cis</span> <span class="o">=</span> <span class="n">_read_csv_any</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-                    <span class="k">break</span>
-            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-                <span class="k">continue</span>
+        <span class="n">census_path</span> <span class="o">=</span> <span class="n">fetch_example_file</span><span class="p">(</span><span class="s2">&quot;census.csv&quot;</span><span class="p">)</span>
+        <span class="n">cis_path</span> <span class="o">=</span> <span class="n">fetch_example_file</span><span class="p">(</span><span class="s2">&quot;cis.csv&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">census</span> <span class="o">=</span> <span class="n">_read_csv_any</span><span class="p">(</span><span class="n">resolve_external_file</span><span class="p">(</span><span class="s2">&quot;census.csv&quot;</span><span class="p">,</span> <span class="n">data_home</span><span class="p">))</span>
-        <span class="n">cis</span>    <span class="o">=</span> <span class="n">_read_csv_any</span><span class="p">(</span><span class="n">resolve_external_file</span><span class="p">(</span><span class="s2">&quot;cis.csv&quot;</span><span class="p">,</span> <span class="n">data_home</span><span class="p">))</span>
+        <span class="n">census_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_home</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;census.csv&quot;</span>
+        <span class="n">cis_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_home</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;cis.csv&quot;</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">as_frame</span><span class="p">:</span>
-        <span class="n">census</span><span class="p">,</span> <span class="n">cis</span> <span class="o">=</span> <span class="n">census</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span> <span class="n">cis</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">census</span><span class="p">,</span> <span class="n">cis</span></div>
+    <span class="n">census</span> <span class="o">=</span> <span class="n">_read_csv_any</span><span class="p">(</span><span class="n">census_path</span><span class="p">,</span> <span class="o">**</span><span class="n">read_csv_kw</span><span class="p">)</span>
+    <span class="n">cis</span> <span class="o">=</span> <span class="n">_read_csv_any</span><span class="p">(</span><span class="n">cis_path</span><span class="p">,</span> <span class="o">**</span><span class="n">read_csv_kw</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">as_frame</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">census</span><span class="p">,</span> <span class="n">cis</span>
+    <span class="k">return</span> <span class="n">census</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span> <span class="n">cis</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span></div>
+
 
 
 <div class="viewcode-block" id="load_deduplication_data">
 <a class="viewcode-back" href="../../../api/generated/datasets/blockingpy.datasets.load_deduplication_data.html#blockingpy.datasets.load_deduplication_data">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">load_deduplication_data</span><span class="p">(</span><span class="n">as_frame</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">data_home</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-    <span class="n">candidates</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;RL_data_10000.csv.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;rldata10000.csv.gz&quot;</span><span class="p">,</span>
-                  <span class="s2">&quot;RL_data_10000.csv&quot;</span><span class="p">,</span>    <span class="s2">&quot;rldata10000.csv&quot;</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_deduplication_data</span><span class="p">(</span>
+    <span class="n">as_frame</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">data_home</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">read_csv_kw</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns RLdata10000 in the same shape as before.</span>
+<span class="sd">    Accepts legacy filename in data_home but downloads &#39;rldata10000.csv&#39; by default.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span>
 
     <span class="k">if</span> <span class="n">data_home</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">with</span> <span class="n">open_package_data</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
-                    <span class="n">data</span> <span class="o">=</span> <span class="n">_read_csv_any</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-                    <span class="k">break</span>
-            <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-                <span class="k">continue</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;Bundled RLdata file not found in package data/&quot;</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">fetch_example_file</span><span class="p">(</span><span class="s2">&quot;rldata10000.csv&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">_read_csv_any</span><span class="p">(</span><span class="n">resolve_external_file</span><span class="p">(</span><span class="s2">&quot;RL_data_10000.csv&quot;</span><span class="p">,</span> <span class="n">data_home</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;RL_data_10000.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;rldbata10000.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;rldata10000.csv&quot;</span><span class="p">):</span>
+            <span class="n">candidate</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_home</span><span class="p">)</span> <span class="o">/</span> <span class="n">name</span>
+            <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">candidate</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data_home</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;rldata10000.csv&quot;</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">as_frame</span><span class="p">:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">data</span></div>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">_read_csv_any</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">read_csv_kw</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">df</span> <span class="k">if</span> <span class="n">as_frame</span> <span class="k">else</span> <span class="n">df</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span></div>
 
 </pre></div>
 

@@ -156,6 +156,7 @@ class FaissBlocker(BlockingMethod):
         k_search = controls["faiss"].get("k_search")
         path = controls["faiss"].get("path")
         index_type = controls["faiss"].get("index_type", "hnsw")
+        seed = controls.get("random_seed")
 
         if index_type not in {"flat", "hnsw", "lsh"}:
             raise ValueError(
@@ -184,12 +185,20 @@ class FaissBlocker(BlockingMethod):
             self.index = faiss.IndexHNSWFlat(X.shape[1], M, metric)
             self.index.hnsw.efConstruction = ef_construction
             self.index.hnsw.efSearch = ef_search
+            if seed is not None:
+                self.index.hnsw.rng = faiss.RandomGenerator(int(seed))
         elif index_type == "lsh":
             nbits = controls["faiss"].get("lsh_nbits") * X.shape[1]
             if not isinstance(nbits, int):
                 nbits = round(nbits)
             rotate_data = controls["faiss"].get("lsh_rotate_data")
-            self.index = faiss.IndexLSH(X.shape[1], nbits, rotate_data)
+            if seed is None:
+                self.index = faiss.IndexLSH(X.shape[1], nbits, rotate_data)
+            else:
+                rot = faiss.RandomRotationMatrix(X.shape[1], X.shape[1])
+                rot.init(int(seed))
+                base = faiss.IndexLSH(X.shape[1], nbits, False, False)
+                self.index = faiss.IndexPreTransform(rot, base)
 
         logger.info("Building index...")
         if distance == "cosine":

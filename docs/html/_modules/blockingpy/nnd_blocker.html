@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>blockingpy.nnd_blocker &mdash; BlockingPy 0.1.7 documentation</title>
+  <title>blockingpy.nnd_blocker &mdash; BlockingPy 0.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -78,12 +78,12 @@
 <span></span><span class="sd">&quot;&quot;&quot;Contains the NNDBlocker class for blocking using the Nearest Neighbor Descent algorithm.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pynndescent</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlockingMethod</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.data_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataHandler</span>
@@ -95,7 +95,6 @@
 <div class="viewcode-block" id="NNDBlocker">
 <a class="viewcode-back" href="../../api/generated/backends/blockingpy.nnd_blocker.NNDBlocker.html#blockingpy.nnd_blocker.NNDBlocker">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NNDBlocker</span><span class="p">(</span><span class="n">BlockingMethod</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A blocker class that uses the Nearest Neighbor Descent (NND) algorithm.</span>
 
@@ -135,6 +134,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">:</span> <span class="n">pynndescent</span><span class="o">.</span><span class="n">NNDescent</span></div>
 
 
+<div class="viewcode-block" id="NNDBlocker.block">
+<a class="viewcode-back" href="../../api/generated/backends/blockingpy.nnd_blocker.NNDBlocker.html#blockingpy.nnd_blocker.NNDBlocker.block">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">DataHandler</span><span class="p">,</span>
@@ -214,7 +215,7 @@
                 <span class="sa">f</span><span class="s2">&quot;k_search (</span><span class="si">{</span><span class="n">original_k_search</span><span class="si">}</span><span class="s2">) is larger than the number of reference points &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">). Adjusted k_search to </span><span class="si">{</span><span class="n">k_search</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
                 <span class="n">category</span><span class="o">=</span><span class="ne">UserWarning</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initializing NND index with </span><span class="si">{</span><span class="n">distance</span><span class="si">}</span><span class="s2"> metric.&quot;</span><span class="p">)</span>
@@ -240,7 +241,7 @@
             <span class="n">delta</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;nnd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;delta&quot;</span><span class="p">),</span>
             <span class="n">compressed</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;nnd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;compressed&quot;</span><span class="p">),</span>
             <span class="n">parallel_batch_queries</span><span class="o">=</span><span class="n">controls</span><span class="p">[</span><span class="s2">&quot;nnd&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;parallel_batch_queries&quot;</span><span class="p">),</span>
-            <span class="n">random_state</span><span class="o">=</span><span class="n">controls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;random_seed&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">random_state</span><span class="o">=</span><span class="n">controls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;random_seed&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Querying index...&quot;</span><span class="p">)</span>
@@ -249,7 +250,8 @@
         <span class="n">indices</span> <span class="o">=</span> <span class="n">l_1nn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">distances</span> <span class="o">=</span> <span class="n">l_1nn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">K_VAL</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="n">K_VAL</span><span class="p">:</span>
             <span class="n">indices</span><span class="p">,</span> <span class="n">distances</span> <span class="o">=</span> <span class="n">rearrange_array</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">distances</span><span class="p">)</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
@@ -263,6 +265,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Process completed successfully.&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">result</span></div>
+</div>
 
 </pre></div>
 
