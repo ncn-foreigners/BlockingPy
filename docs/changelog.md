@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.2.7
+## v0.2.8
+- improved reproducibility
+- improved logging
+
+## v0.2.7
 - new release with zenodo activation
 
 ## v0.2.6

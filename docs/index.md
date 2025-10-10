@@ -3,13 +3,18 @@
 [![License](https://img.shields.io/github/license/ncn-foreigners/BlockingPy)](https://github.com/ncn-foreigners/BlockingPy/blob/main/LICENSE) 
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Python version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
-[![codecov](https://codecov.io/gh/ncn-foreigners/BlockingPy/graph/badge.svg?token=BF41O220NY)](https://codecov.io/gh/ncn-foreigners/BlockingPy)\
+[![codecov](https://codecov.io/gh/ncn-foreigners/BlockingPy/graph/badge.svg?token=BF41O220NY)](https://codecov.io/gh/ncn-foreigners/BlockingPy)
 [![PyPI version](https://img.shields.io/pypi/v/blockingpy.svg)](https://pypi.org/project/blockingpy/) 
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://github.com/ncn-foreigners/BlockingPy/actions/workflows/run_tests.yml/badge.svg)](https://github.com/ncn-foreigners/BlockingPy/actions/workflows/run_tests.yml)
+[![Tests](https://github.com/ncn-foreigners/BlockingPy/actions/workflows/run_tests.yml/badge.svg)](https://github.com/ncn-foreigners/BlockingPy/actions/workflows/run_tests.yml)\
 [![GitHub last commit](https://img.shields.io/github/last-commit/ncn-foreigners/BlockingPy)](https://github.com/ncn-foreigners/BlockingPy/commits/main)
 [![Documentation Status](https://readthedocs.org/projects/blockingpy/badge/?version=latest)](https://blockingpy.readthedocs.io/en/latest/?badge=latest)
 ![PyPI Downloads](https://img.shields.io/pypi/dm/blockingpy)
+[![PyPI (GPU)](https://img.shields.io/pypi/v/blockingpy-gpu.svg?label=blockingpy-gpu)](https://pypi.org/project/blockingpy-gpu/)
+![CUDA ≥12.4](https://img.shields.io/badge/CUDA-%E2%89%A5%2012.4-76b900)\
+\
+[![pyOpenSci Peer-Reviewed](https://pyopensci.org/badges/peer-reviewed.svg)](https://github.com/pyOpenSci/software-review/issues/232)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17258409.svg)](https://doi.org/10.5281/zenodo.17258409)
 
 ```{toctree}
 :maxdepth: 2

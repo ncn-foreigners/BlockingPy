@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blockingpy-core"
-version = "0.2.7"
+version = "0.2.8"
 description = "Core library for BlockingPy."
 authors = ["Tymoteusz Strojny <tymek.strojny@gmail.com>", "Maciej Beręsewicz <maciej.beresewicz@ue.poznan.pl>"]
 readme = "README.md"

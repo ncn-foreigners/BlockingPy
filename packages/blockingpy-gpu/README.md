@@ -10,7 +10,9 @@
 ![PyPI Downloads](https://img.shields.io/pypi/dm/blockingpy)
 [![PyPI (GPU)](https://img.shields.io/pypi/v/blockingpy-gpu.svg?label=blockingpy-gpu)](https://pypi.org/project/blockingpy-gpu/)
 ![CUDA ≥12.4](https://img.shields.io/badge/CUDA-%E2%89%A5%2012.4-76b900)\
+\
 [![pyOpenSci Peer-Reviewed](https://pyopensci.org/badges/peer-reviewed.svg)](https://github.com/pyOpenSci/software-review/issues/232)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17258409.svg)](https://doi.org/10.5281/zenodo.17258409)
 
 # BlockingPy
 

@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>blockingpy.blocker &mdash; BlockingPy 0.1.7 documentation</title>
+  <title>blockingpy.blocker &mdash; BlockingPy 0.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=ca7ad2ea"></script>
+      <script src="../../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -81,6 +81,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -89,6 +90,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">sparse</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.annoy_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnnoyBlocker</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlockingMethod</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.blocking_result</span><span class="w"> </span><span class="kn">import</span> <span class="n">BlockingResult</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.controls</span><span class="w"> </span><span class="kn">import</span> <span class="n">controls_ann</span><span class="p">,</span> <span class="n">controls_txt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.data_handler</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataHandler</span>
@@ -107,19 +109,18 @@
 <div class="viewcode-block" id="Blocker">
 <a class="viewcode-back" href="../../api/blocker.html#blockingpy.blocker.Blocker">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Blocker</span><span class="p">:</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class implementing various blocking methods for record linkage and deduplication.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">confusion</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reduction_ratio</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_metrics</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confusion</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduction_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">BLOCKER_MAP</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;annoy&quot;</span><span class="p">:</span> <span class="n">AnnoyBlocker</span><span class="p">,</span>
             <span class="s2">&quot;hnsw&quot;</span><span class="p">:</span> <span class="n">HNSWBlocker</span><span class="p">,</span>
@@ -129,7 +130,7 @@
 
 <div class="viewcode-block" id="Blocker.block">
 <a class="viewcode-back" href="../../api/blocker.html#blockingpy.blocker.Blocker.block">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span>  <span class="c1"># noqa: PLR0915, PLR0912, PLR0913</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -137,11 +138,11 @@
         <span class="n">ann</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;faiss&quot;</span><span class="p">,</span>
         <span class="n">true_blocks</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="n">control_txt</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
-        <span class="n">control_ann</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">control_txt</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">control_ann</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">x_colnames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">y_colnames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="mi">2025</span><span class="p">,</span>
+        <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BlockingResult</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Perform blocking using the specified algorithm.</span>
@@ -203,7 +204,13 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span> <span class="k">if</span> <span class="n">verbose</span> <span class="k">else</span> <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">logger</span><span class="o">.</span><span class="n">hasHandlers</span><span class="p">():</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+            <span class="n">h</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> - </span><span class="si">%(levelname)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
 
+        <span class="n">control_txt</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">control_txt</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">control_txt</span><span class="p">)</span>
+        <span class="n">control_ann</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">control_ann</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">control_ann</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="o">=</span> <span class="n">x_colnames</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="o">=</span> <span class="n">y_colnames</span>
         <span class="n">InputValidator</span><span class="o">.</span><span class="n">validate_controls_txt</span><span class="p">(</span><span class="n">control_txt</span><span class="p">)</span>
@@ -216,9 +223,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">[</span><span class="s2">&quot;random_seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">random_seed</span>
 
         <span class="k">if</span> <span class="n">ann</span> <span class="o">==</span> <span class="s2">&quot;nnd&quot;</span><span class="p">:</span>
-            <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nnd&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metric&quot;</span><span class="p">)</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;nnd&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;metric&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">ann</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;annoy&quot;</span><span class="p">,</span> <span class="s2">&quot;voyager&quot;</span><span class="p">,</span> <span class="s2">&quot;hnsw&quot;</span><span class="p">,</span> <span class="s2">&quot;faiss&quot;</span><span class="p">,</span> <span class="s2">&quot;gpu_faiss&quot;</span><span class="p">}:</span>
-            <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ann</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">)</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ann</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;distance&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">distance</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">distance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -247,17 +254,19 @@
         <span class="n">InputValidator</span><span class="o">.</span><span class="n">validate_true_blocks</span><span class="p">(</span><span class="n">true_blocks</span><span class="p">,</span> <span class="n">deduplication</span><span class="p">)</span>
         <span class="n">len_x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="k">if</span> <span class="n">sparse</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sparse</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sparse</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Column names must be provided for sparse input.&quot;</span><span class="p">)</span>
             <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span><span class="p">)</span>
             <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Column names must be provided for ndarray input.&quot;</span><span class="p">)</span>
             <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_colnames</span><span class="p">)</span>
             <span class="n">y_dtm</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_colnames</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;For text input, x and y must be pandas Series.&quot;</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;===== creating tokens =====&quot;</span><span class="p">)</span>
             <span class="n">transformer</span> <span class="o">=</span> <span class="n">TextTransformer</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">control_txt</span><span class="p">)</span>
             <span class="n">x_dtm</span> <span class="o">=</span> <span class="n">transformer</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -270,18 +279,19 @@
         <span class="n">y_sub</span> <span class="o">=</span> <span class="n">DataHandler</span><span class="p">(</span><span class="n">y_dtm</span><span class="o">.</span><span class="n">data</span><span class="p">[:,</span> <span class="n">iy</span><span class="p">],</span> <span class="n">colnames_xy</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;===== starting search (</span><span class="si">{</span><span class="n">ann</span><span class="si">}</span><span class="s2">, x, y: </span><span class="si">{</span><span class="n">x_dtm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">,&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">y_dtm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, t: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">colnames_xy</span><span class="p">)</span><span class="si">}</span><span class="s2">) =====&quot;</span>
-                <span class="p">)</span>
+            <span class="sa">f</span><span class="s2">&quot;===== starting search (</span><span class="si">{</span><span class="n">ann</span><span class="si">}</span><span class="s2">, x, y: </span><span class="si">{</span><span class="n">x_dtm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">,&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">y_dtm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, t: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">colnames_xy</span><span class="p">)</span><span class="si">}</span><span class="s2">) =====&quot;</span>
+        <span class="p">)</span>
 
         <span class="n">blocker_cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_blocker</span><span class="p">(</span><span class="n">ann</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">blocker_cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported algorithm: </span><span class="si">{</span><span class="n">ann</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">VERBOSE_INFO_LVL</span> <span class="o">=</span> <span class="mi">2</span>
         <span class="n">x_df</span> <span class="o">=</span> <span class="n">blocker_cls</span><span class="p">()</span><span class="o">.</span><span class="n">block</span><span class="p">(</span>
             <span class="n">x</span><span class="o">=</span><span class="n">x_sub</span><span class="p">,</span>
             <span class="n">y</span><span class="o">=</span><span class="n">y_sub</span><span class="p">,</span>
             <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
-            <span class="n">verbose</span><span class="o">=</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="n">VERBOSE_INFO_LVL</span><span class="p">),</span>
             <span class="n">controls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">control_ann</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -618,10 +628,20 @@
             <span class="p">}</span>
         <span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_get_blocker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ann</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_blocker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ann</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">[</span><span class="n">BlockingMethod</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper to get the selected blocker&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ann</span> <span class="o">==</span> <span class="s2">&quot;faiss&quot;</span><span class="p">:</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">.faiss_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="n">FaissBlocker</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">.faiss_blocker</span><span class="w"> </span><span class="kn">import</span> <span class="n">FaissBlocker</span>
+            <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ModuleNotFoundError</span><span class="p">(</span>
+                    <span class="s2">&quot;FAISS backend requested but the &#39;faiss&#39; package is not installed.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Install one of:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot;  • CPU: pip install &#39;blockingpy-core[faiss]&#39; (if a wheel is available)&quot;</span>
+                    <span class="s2">&quot; or simply `pip install blockingpy`</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot;  • GPU (blockingpy-gpu): conda install -c conda-forge faiss-gpu</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Alternatively, set ann=&#39;hnsw&#39; (or &#39;annoy&#39;/&#39;nnd&#39;/&#39;voyager&#39;).&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
             <span class="k">return</span> <span class="n">FaissBlocker</span>
         <span class="k">if</span> <span class="n">ann</span> <span class="o">==</span> <span class="s2">&quot;gpu_faiss&quot;</span><span class="p">:</span>

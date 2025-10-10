@@ -139,6 +139,8 @@ class GPUFaissBlocker(BlockingMethod):
             quantiser = faiss.IndexFlat(d, metric)
             index_cpu = faiss.IndexIVFFlat(quantiser, d, nlist, metric)
             trainable = True
+            if seed is not None:
+                self._apply_faiss_seeds(index_cpu, seed)
         elif index_type == "ivfpq":
             nlist = faiss_ctl.get("ivfpq_nlist", 100)
             m = faiss_ctl.get("ivfpq_m", 8)
@@ -151,6 +153,8 @@ class GPUFaissBlocker(BlockingMethod):
             quantiser = faiss.IndexFlat(d, metric)
             index_cpu = faiss.IndexIVFPQ(quantiser, d, nlist, m, nbits)
             trainable = True
+            if seed is not None:
+                self._apply_faiss_seeds(index_cpu, seed)
         elif index_type == "cagra":
             cctl = faiss_ctl.get("cagra", {})
             CfgCls = getattr(faiss, "GpuIndexCagraConfig", None)
@@ -264,7 +268,7 @@ class GPUFaissBlocker(BlockingMethod):
                     float(cctl.get("hashmap_max_fill_rate", 0.5)),
                 )
                 _set("num_random_samplings", int(cctl.get("num_random_samplings", 1)))
-                _set("seed", int(cctl.get("seed", 0x128394)))
+                _set("seed", int(cctl.get("seed", seed if seed is not None else 0x128394)))
 
                 algo_s = str(cctl.get("algo", "auto")).lower()
                 if hasattr(SPCls, "AUTO"):
@@ -336,3 +340,12 @@ class GPUFaissBlocker(BlockingMethod):
 
         del index_cpu
         gc.collect()
+
+    def _apply_faiss_seeds(self, idx: faiss.Index, s: int) -> None:
+        try:
+            if hasattr(idx, "cp") and hasattr(idx.cp, "seed"):
+                idx.cp.seed = int(s)
+            if hasattr(idx, "pq") and hasattr(idx.pq, "cp") and hasattr(idx.pq.cp, "seed"):
+                idx.pq.cp.seed = int(s)
+        except Exception:
+            pass

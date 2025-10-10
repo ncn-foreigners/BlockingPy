@@ -84,122 +84,122 @@
              
   <section class="tex2jax_ignore mathjax_ignore" id="blockingpy-vs-blocklib-comparison">
 <span id="blocklib-comp"></span><h1>BlockingPy vs blocklib - comparison<a class="headerlink" href="#blockingpy-vs-blocklib-comparison" title="Link to this heading"></a></h1>
-<p>Below we compare BlockingPy with blocklib, a similar library for blocking. We present results obtained by running algorithms from both libraries on 3 generated datasets. The datasets were generated using the <code class="docutils literal notranslate"><span class="pre">geco3</span></code> tool, which allows for controlled generation of datasets with duplicates. The datasets  resemble real-world personal information data with the fields such as name, 2nd name, surname, 2nd surname, dob, municipality, and country of origin. There are 1k, 10k and 100k records respectively, with 500, 5k and 50k duplicates in each dataset. For each original record, there are 0, 1, or 2 duplicates. The datasets and code to reproduce the results can be found <a class="reference external" href="https://github.com/ncn-foreigners/BlockingPy/tree/main/benchmark">here</a>. The results were obtained on 6 cores Intel i5 CPU with 16GB RAM (py 3.12).</p>
+<p>Below we compare BlockingPy with blocklib, a similar library for blocking. We present results obtained by running algorithms from both libraries on 3 generated datasets across 10 runs. The datasets were generated using the <code class="docutils literal notranslate"><span class="pre">geco3</span></code> tool, which allows for controlled generation of datasets with duplicates. The datasets  resemble real-world personal information data with the fields such as name, 2nd name, surname, dob, municipality, and country of origin. There are 1,5k, 15k and 150k records respectively, with 500, 5k and 50k duplicates in each dataset. For each original record, there are 0, 1, or 2 duplicates. The datasets and code to reproduce the results can be found <a class="reference external" href="https://github.com/ncn-foreigners/BlockingPy/tree/main/benchmark">here</a>. The results were obtained on 6 cores Intel i5 CPU with 16GB RAM (py 3.12).</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>algorithm</p></th>
-<th class="head text-right"><p>dataset_size</p></th>
-<th class="head text-right"><p>time_sec</p></th>
-<th class="head text-right"><p>recall</p></th>
-<th class="head text-right"><p>reduction_ratio</p></th>
-<th class="head text-right"><p>pairs (M)</p></th>
+<tr class="row-odd"><th class="head text-left"><p>Algorithm</p></th>
+<th class="head text-right"><p>Size</p></th>
+<th class="head text-left"><p>Time [s]</p></th>
+<th class="head text-left"><p>Recall</p></th>
+<th class="head text-left"><p>Reduction Ratio</p></th>
+<th class="head text-left"><p>Pairs (M)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>P-Sig</p></td>
-<td class="text-right"><p>1 500</p></td>
-<td class="text-right"><p>0.067</p></td>
-<td class="text-right"><p>0.599384</p></td>
-<td class="text-right"><p>0.996124</p></td>
-<td class="text-right"><p>0.004358</p></td>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (faiss_hnsw)</p></td>
+<td class="text-right"><p>1500</p></td>
+<td class="text-left"><p>0.164 ± 0.049</p></td>
+<td class="text-left"><p>0.959938 ± 0.000000</p></td>
+<td class="text-left"><p>0.997533 ± 0.000000</p></td>
+<td class="text-left"><p>0.003 ± 0.000</p></td>
 </tr>
-<tr class="row-odd"><td><p>λ-fold LSH</p></td>
-<td class="text-right"><p>1 500</p></td>
-<td class="text-right"><p>0.191</p></td>
-<td class="text-right"><p>0.426810</p></td>
-<td class="text-right"><p>0.993112</p></td>
-<td class="text-right"><p>0.007744</p></td>
+<tr class="row-odd"><td class="text-left"><p>BlockingPy (faiss_lsh)</p></td>
+<td class="text-right"><p>1500</p></td>
+<td class="text-left"><p>0.185 ± 0.015</p></td>
+<td class="text-left"><p>0.955470 ± 0.008391</p></td>
+<td class="text-left"><p>0.997371 ± 0.000112</p></td>
+<td class="text-left"><p>0.003 ± 0.000</p></td>
 </tr>
-<tr class="row-even"><td><p>BlockingPy (voyager)</p></td>
-<td class="text-right"><p>1 500</p></td>
-<td class="text-right"><p>0.276</p></td>
-<td class="text-right"><p>0.947612</p></td>
-<td class="text-right"><p>0.997341</p></td>
-<td class="text-right"><p>0.002989</p></td>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (voyager)</p></td>
+<td class="text-right"><p>1500</p></td>
+<td class="text-left"><p>0.293 ± 0.029</p></td>
+<td class="text-left"><p>0.951772 ± 0.006036</p></td>
+<td class="text-left"><p>0.997382 ± 0.000025</p></td>
+<td class="text-left"><p>0.003 ± 0.000</p></td>
 </tr>
-<tr class="row-odd"><td><p>BlockingPy (faiss_hnsw)</p></td>
-<td class="text-right"><p>1 500</p></td>
-<td class="text-right"><p>0.342</p></td>
-<td class="text-right"><p>0.959938</p></td>
-<td class="text-right"><p>0.997533</p></td>
-<td class="text-right"><p>0.002773</p></td>
+<tr class="row-odd"><td class="text-left"><p>P-Sig</p></td>
+<td class="text-right"><p>1500</p></td>
+<td class="text-left"><p>0.051 ± 0.010</p></td>
+<td class="text-left"><p>0.599384 ± 0.000000</p></td>
+<td class="text-left"><p>0.996124 ± 0.000000</p></td>
+<td class="text-left"><p>0.004 ± 0.000</p></td>
 </tr>
-<tr class="row-even"><td><p>BlockingPy (faiss_lsh)</p></td>
-<td class="text-right"><p>1 500</p></td>
-<td class="text-right"><p>0.186</p></td>
-<td class="text-right"><p>0.961479</p></td>
-<td class="text-right"><p>0.997379</p></td>
-<td class="text-right"><p>0.002947</p></td>
+<tr class="row-even"><td class="text-left"><p>λ-fold LSH</p></td>
+<td class="text-right"><p>1500</p></td>
+<td class="text-left"><p>0.193 ± 0.009</p></td>
+<td class="text-left"><p>0.465794 ± 0.033199</p></td>
+<td class="text-left"><p>0.990865 ± 0.002847</p></td>
+<td class="text-left"><p>0.010 ± 0.003</p></td>
 </tr>
-<tr class="row-odd"><td><p>P-Sig</p></td>
-<td class="text-right"><p>15 000</p></td>
-<td class="text-right"><p>0.461</p></td>
-<td class="text-right"><p>0.616241</p></td>
-<td class="text-right"><p>0.996380</p></td>
-<td class="text-right"><p>0.407185</p></td>
+<tr class="row-odd"><td class="text-left"><p>BlockingPy (faiss_hnsw)</p></td>
+<td class="text-right"><p>15000</p></td>
+<td class="text-left"><p>12.029 ± 1.681</p></td>
+<td class="text-left"><p>0.913009 ± 0.000108</p></td>
+<td class="text-left"><p>0.999726 ± 0.000000</p></td>
+<td class="text-left"><p>0.031 ± 0.000</p></td>
 </tr>
-<tr class="row-even"><td><p>λ-fold LSH</p></td>
-<td class="text-right"><p>15 000</p></td>
-<td class="text-right"><p>1.949</p></td>
-<td class="text-right"><p>0.420727</p></td>
-<td class="text-right"><p>0.994069</p></td>
-<td class="text-right"><p>0.667196</p></td>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (faiss_lsh)</p></td>
+<td class="text-right"><p>15000</p></td>
+<td class="text-left"><p>1.398 ± 0.148</p></td>
+<td class="text-left"><p>0.899706 ± 0.003506</p></td>
+<td class="text-left"><p>0.999708 ± 0.000007</p></td>
+<td class="text-left"><p>0.033 ± 0.001</p></td>
 </tr>
-<tr class="row-odd"><td><p>BlockingPy (voyager)</p></td>
-<td class="text-right"><p>15 000</p></td>
-<td class="text-right"><p>6.540</p></td>
-<td class="text-right"><p>0.883681</p></td>
-<td class="text-right"><p>0.999646</p></td>
-<td class="text-right"><p>0.039785</p></td>
+<tr class="row-odd"><td class="text-left"><p>BlockingPy (voyager)</p></td>
+<td class="text-right"><p>15000</p></td>
+<td class="text-left"><p>6.777 ± 0.903</p></td>
+<td class="text-left"><p>0.875978 ± 0.004538</p></td>
+<td class="text-left"><p>0.999635 ± 0.000008</p></td>
+<td class="text-left"><p>0.041 ± 0.001</p></td>
 </tr>
-<tr class="row-even"><td><p>BlockingPy (faiss_hnsw)</p></td>
-<td class="text-right"><p>15 000</p></td>
-<td class="text-right"><p>11.266</p></td>
-<td class="text-right"><p>0.913070</p></td>
-<td class="text-right"><p>0.999726</p></td>
-<td class="text-right"><p>0.030865</p></td>
+<tr class="row-even"><td class="text-left"><p>P-Sig</p></td>
+<td class="text-right"><p>15000</p></td>
+<td class="text-left"><p>0.388 ± 0.087</p></td>
+<td class="text-left"><p>0.616241 ± 0.000000</p></td>
+<td class="text-left"><p>0.996380 ± 0.000000</p></td>
+<td class="text-left"><p>0.407 ± 0.000</p></td>
 </tr>
-<tr class="row-odd"><td><p>BlockingPy (faiss_lsh)</p></td>
-<td class="text-right"><p>15 000</p></td>
-<td class="text-right"><p>1.423</p></td>
-<td class="text-right"><p>0.901160</p></td>
-<td class="text-right"><p>0.999701</p></td>
-<td class="text-right"><p>0.033592</p></td>
+<tr class="row-odd"><td class="text-left"><p>λ-fold LSH</p></td>
+<td class="text-right"><p>15000</p></td>
+<td class="text-left"><p>2.016 ± 0.251</p></td>
+<td class="text-left"><p>0.453983 ± 0.027622</p></td>
+<td class="text-left"><p>0.991644 ± 0.002993</p></td>
+<td class="text-left"><p>0.940 ± 0.337</p></td>
 </tr>
-<tr class="row-even"><td><p>P-Sig</p></td>
-<td class="text-right"><p>150 000</p></td>
-<td class="text-right"><p>3.336</p></td>
-<td class="text-right"><p>0.608723</p></td>
-<td class="text-right"><p>0.996424</p></td>
-<td class="text-right"><p>40.231251</p></td>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (faiss_hnsw)</p></td>
+<td class="text-right"><p>150000</p></td>
+<td class="text-left"><p>250.012 ± 4.232</p></td>
+<td class="text-left"><p>0.832092 ± 0.000507</p></td>
+<td class="text-left"><p>0.999967 ± 0.000000</p></td>
+<td class="text-left"><p>0.375 ± 0.001</p></td>
 </tr>
-<tr class="row-odd"><td><p>λ-fold LSH</p></td>
-<td class="text-right"><p>150 000</p></td>
-<td class="text-right"><p>19.415</p></td>
-<td class="text-right"><p>0.412729</p></td>
-<td class="text-right"><p>0.994050</p></td>
-<td class="text-right"><p>66.933870</p></td>
+<tr class="row-odd"><td class="text-left"><p>BlockingPy (faiss_lsh)</p></td>
+<td class="text-right"><p>150000</p></td>
+<td class="text-left"><p>56.544 ± 1.315</p></td>
+<td class="text-left"><p>0.818256 ± 0.001381</p></td>
+<td class="text-left"><p>0.999964 ± 0.000000</p></td>
+<td class="text-left"><p>0.400 ± 0.005</p></td>
 </tr>
-<tr class="row-even"><td><p>BlockingPy (voyager)</p></td>
-<td class="text-right"><p>150 000</p></td>
-<td class="text-right"><p>107.014</p></td>
-<td class="text-right"><p>0.732607</p></td>
-<td class="text-right"><p>0.999944</p></td>
-<td class="text-right"><p>0.632477</p></td>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (voyager)</p></td>
+<td class="text-right"><p>150000</p></td>
+<td class="text-left"><p>110.341 ± 3.815</p></td>
+<td class="text-left"><p>0.715393 ± 0.005450</p></td>
+<td class="text-left"><p>0.999940 ± 0.000002</p></td>
+<td class="text-left"><p>0.675 ± 0.021</p></td>
 </tr>
-<tr class="row-odd"><td><p>BlockingPy (faiss_hnsw)</p></td>
-<td class="text-right"><p>150 000</p></td>
-<td class="text-right"><p>245.565</p></td>
-<td class="text-right"><p>0.832314</p></td>
-<td class="text-right"><p>0.999967</p></td>
-<td class="text-right"><p>0.376853</p></td>
+<tr class="row-odd"><td class="text-left"><p>P-Sig</p></td>
+<td class="text-right"><p>150000</p></td>
+<td class="text-left"><p>3.444 ± 0.091</p></td>
+<td class="text-left"><p>0.608723 ± 0.000000</p></td>
+<td class="text-left"><p>0.996424 ± 0.000000</p></td>
+<td class="text-left"><p>40.231 ± 0.000</p></td>
 </tr>
-<tr class="row-even"><td><p>BlockingPy (faiss_lsh)</p></td>
-<td class="text-right"><p>150 000</p></td>
-<td class="text-right"><p>55.911</p></td>
-<td class="text-right"><p>0.818214</p></td>
-<td class="text-right"><p>0.999964</p></td>
-<td class="text-right"><p>0.404749</p></td>
+<tr class="row-even"><td class="text-left"><p>λ-fold LSH</p></td>
+<td class="text-right"><p>150000</p></td>
+<td class="text-left"><p>19.848 ± 0.476</p></td>
+<td class="text-left"><p>0.450190 ± 0.026086</p></td>
+<td class="text-left"><p>0.991550 ± 0.003045</p></td>
+<td class="text-left"><p>95.064 ± 34.252</p></td>
 </tr>
 </tbody>
 </table>
@@ -208,11 +208,11 @@
 <ol class="arabic simple">
 <li><p><strong>Much higher recall</strong></p></li>
 </ol>
-<p>Across all datasets, <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> achieves higher recall then <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> algorithms. (~0.43 for <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> vs ~0.88 for <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code>).</p>
+<p>Across all datasets, <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> achieves higher recall then <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> algorithms. (~0.52 for <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> vs ~0.88 for <code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code>).</p>
 <ol class="arabic simple" start="2">
 <li><p><strong>Better reduction ratio</strong></p></li>
 </ol>
-<p><code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> achieves better reduction ratio than <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> algorithms, while maintaining higher recall. For instance on a dataset of size 150_000 records the difference in number of pairs between RR of 0.994 (λ-fold LSH) and RR of 0.99994 (voyager) is a difference of 67 milion pairs vs. 0.65 milion pairs requiring comparison.</p>
+<p><code class="docutils literal notranslate"><span class="pre">BlockingPy</span></code> achieves better reduction ratio than <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> algorithms, while maintaining higher recall. For instance on a dataset of size 150_000 records the difference in number of pairs between RR of 0.992 (λ-fold LSH) and RR of 0.99994 (voyager) is a difference of 95 milion pairs vs. 0.67 milion pairs requiring comparison.</p>
 <ol class="arabic simple" start="3">
 <li><p><strong>Minimal setup versus manual tuning</strong></p></li>
 </ol>
@@ -232,26 +232,44 @@
 <li><p><strong>Time</strong></p></li>
 </ol>
 <p><code class="docutils literal notranslate"><span class="pre">blocklib</span></code> finishes the <em>blocking</em> phase sooner, but the extra minutes that <strong>BlockingPy</strong> spends are quickly repaid in the <em>matching</em> phase.<br />
-In our benchmark (150k dataset) <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> left <strong>≈ 67 million</strong> candidate pairs, whereas BlockingPy left <strong>≈ 0.65 million</strong>, that’s a <strong>~100 ×</strong> reduction.<br />
-Even though BlockingPy’s blocking step is <strong>~5 ×</strong> slower, the downstream classifier now has <strong>100 ×</strong> less work, so the end-to-end pipeline could still be faster, while achieving much higher recall (0.73 vs. 0.41).</p>
-<p>Additionally, we can tune the <code class="docutils literal notranslate"><span class="pre">voyager</span></code> algorithm to achieve similar recall as blocklib’s algorithms. On those settings the time difference is only ~1.6x, while still getting ~37x less candidate pairs (67 million vs. 1.8 million) compared to λ-fold LSH.</p>
+In our benchmark (150k dataset) <code class="docutils literal notranslate"><span class="pre">blocklib</span></code> left <strong>≈ 95 million</strong> candidate pairs, whereas BlockingPy left <strong>≈ 0.67 million</strong>, that’s a <strong>~140 ×</strong> reduction.<br />
+Even though BlockingPy’s blocking step is <strong>~5 ×</strong> slower, the downstream classifier now has <strong>140 ×</strong> less work, so the end-to-end pipeline could still be faster, while achieving much higher recall (0.72 vs. 0.45).</p>
+<p>Additionally, we can tune the <code class="docutils literal notranslate"><span class="pre">voyager</span></code> algorithm to achieve similar recall as blocklib’s algorithms. On those settings the time difference is only ~1.8x, while still getting ~47x less candidate pairs (95 million vs. 2.0 million) compared to λ-fold LSH.</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>algorithm</p></th>
-<th class="head text-right"><p>dataset_size</p></th>
-<th class="head text-right"><p>time_sec</p></th>
-<th class="head text-right"><p>recall</p></th>
-<th class="head text-right"><p>reduction_ratio</p></th>
-<th class="head text-right"><p>pairs (M)</p></th>
+<tr class="row-odd"><th class="head text-left"><p>Algorithm</p></th>
+<th class="head text-right"><p>Size</p></th>
+<th class="head text-left"><p>Time [s]</p></th>
+<th class="head text-left"><p>Recall</p></th>
+<th class="head text-left"><p>Reduction Ratio</p></th>
+<th class="head text-left"><p>Pairs (M)</p></th>
+<th class="head"><p></p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>BlockingPy (voyager) - fast</p></td>
-<td class="text-right"><p>150 000</p></td>
-<td class="text-right"><p>33.007</p></td>
-<td class="text-right"><p>0.482704</p></td>
-<td class="text-right"><p>0.999841</p></td>
-<td class="text-right"><p>1.791272</p></td>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (voyager) - fast</p></td>
+<td class="text-right"><p>1500</p></td>
+<td class="text-left"><p>0.215 ± 0.015</p></td>
+<td class="text-left"><p>0.921726 ± 0.010369</p></td>
+<td class="text-left"><p>0.996613 ± 0.000181</p></td>
+<td class="text-left"><p>0.004 ± 0.000</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>BlockingPy (voyager) - fast</p></td>
+<td class="text-right"><p>15000</p></td>
+<td class="text-left"><p>2.495 ± 0.173</p></td>
+<td class="text-left"><p>0.713395 ± 0.017146</p></td>
+<td class="text-left"><p>0.999297 ± 0.000041</p></td>
+<td class="text-left"><p>0.079 ± 0.005</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (voyager) - fast</p></td>
+<td class="text-right"><p>150000</p></td>
+<td class="text-left"><p>34.395 ± 0.722</p></td>
+<td class="text-left"><p>0.450416 ± 0.016316</p></td>
+<td class="text-left"><p>0.999820 ± 0.000009</p></td>
+<td class="text-left"><p>2.025 ± 0.102</p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -261,35 +279,77 @@ Even though BlockingPy’s blocking step is <strong>~5 ×</strong> slower, the d
 <p>We also ran BlockingPy on GPU (<code class="docutils literal notranslate"><span class="pre">ann=&quot;gpu_faiss&quot;</span></code>; index types: flat, ivf, cagra). On these datasets the GPU variants match the CPU back-ends on recall and reduction ratio, and the blocking step is faster. For presented dataset sizes, GPU gains are not clearly visible, however on larger datasets our GPU version might surpass <code class="docutils literal notranslate"><span class="pre">blocklib</span></code>’s algorithms in terms of speed, while still achieving much higher recall.</p>
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>algorithm</p></th>
-<th class="head text-right"><p>dataset_size</p></th>
-<th class="head text-right"><p>time_sec</p></th>
-<th class="head text-right"><p>recall</p></th>
-<th class="head text-right"><p>reduction_ratio</p></th>
-<th class="head text-right"><p>pairs (M)</p></th>
+<tr class="row-odd"><th class="head text-left"><p>Algorithm</p></th>
+<th class="head text-right"><p>Size</p></th>
+<th class="head text-left"><p>Time [s]</p></th>
+<th class="head text-left"><p>Recall</p></th>
+<th class="head text-left"><p>Reduction Ratio</p></th>
+<th class="head text-left"><p>Pairs (M)</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>BlockingPy (gpu_faiss flat)</p></td>
-<td class="text-right"><p>150 000</p></td>
-<td class="text-right"><p>25.851</p></td>
-<td class="text-right"><p>0.839217</p></td>
-<td class="text-right"><p>0.999967</p></td>
-<td class="text-right"><p>0.367493</p></td>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (gpu_faiss cagra)</p></td>
+<td class="text-right"><p>1500</p></td>
+<td class="text-left"><p>2.905 ± 0.327</p></td>
+<td class="text-left"><p>0.959938 ± 0.000000</p></td>
+<td class="text-left"><p>0.997499 ± 0.000000</p></td>
+<td class="text-left"><p>0.003 ± 0.000</p></td>
 </tr>
-<tr class="row-odd"><td><p>BlockingPy (gpu_faiss ivf)</p></td>
-<td class="text-right"><p>150 000</p></td>
-<td class="text-right"><p>65.396</p></td>
-<td class="text-right"><p>0.799889</p></td>
-<td class="text-right"><p>0.999958</p></td>
-<td class="text-right"><p>0.477616</p></td>
+<tr class="row-odd"><td class="text-left"><p>BlockingPy (gpu_faiss flat)</p></td>
+<td class="text-right"><p>1500</p></td>
+<td class="text-left"><p>0.898 ± 0.528</p></td>
+<td class="text-left"><p>0.963020 ± 0.000000</p></td>
+<td class="text-left"><p>0.997514 ± 0.000000</p></td>
+<td class="text-left"><p>0.003 ± 0.000</p></td>
 </tr>
-<tr class="row-even"><td><p>BlockingPy (gpu_faiss cagra)</p></td>
-<td class="text-right"><p>150 000</p></td>
-<td class="text-right"><p>48.155</p></td>
-<td class="text-right"><p>0.825767</p></td>
-<td class="text-right"><p>0.999966</p></td>
-<td class="text-right"><p>0.378721</p></td>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (gpu_faiss ivf)</p></td>
+<td class="text-right"><p>1500</p></td>
+<td class="text-left"><p>0.908 ± 0.062</p></td>
+<td class="text-left"><p>0.944992 ± 0.004238</p></td>
+<td class="text-left"><p>0.997176 ± 0.000104</p></td>
+<td class="text-left"><p>0.003 ± 0.000</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>BlockingPy (gpu_faiss cagra)</p></td>
+<td class="text-right"><p>15000</p></td>
+<td class="text-left"><p>6.835 ± 0.629</p></td>
+<td class="text-left"><p>0.912838 ± 0.000294</p></td>
+<td class="text-left"><p>0.999724 ± 0.000000</p></td>
+<td class="text-left"><p>0.031 ± 0.000</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (gpu_faiss flat)</p></td>
+<td class="text-right"><p>15000</p></td>
+<td class="text-left"><p>1.662 ± 0.165</p></td>
+<td class="text-left"><p>0.913380 ± 0.000000</p></td>
+<td class="text-left"><p>0.999724 ± 0.000000</p></td>
+<td class="text-left"><p>0.031 ± 0.000</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>BlockingPy (gpu_faiss ivf)</p></td>
+<td class="text-right"><p>15000</p></td>
+<td class="text-left"><p>2.376 ± 0.244</p></td>
+<td class="text-left"><p>0.866605 ± 0.003575</p></td>
+<td class="text-left"><p>0.999627 ± 0.000006</p></td>
+<td class="text-left"><p>0.042 ± 0.001</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (gpu_faiss cagra)</p></td>
+<td class="text-right"><p>150000</p></td>
+<td class="text-left"><p>51.084 ± 0.802</p></td>
+<td class="text-left"><p>0.826633 ± 0.000155</p></td>
+<td class="text-left"><p>0.999966 ± 0.000000</p></td>
+<td class="text-left"><p>0.380 ± 0.000</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>BlockingPy (gpu_faiss flat)</p></td>
+<td class="text-right"><p>150000</p></td>
+<td class="text-left"><p>22.511 ± 0.508</p></td>
+<td class="text-left"><p>0.839217 ± 0.000000</p></td>
+<td class="text-left"><p>0.999967 ± 0.000000</p></td>
+<td class="text-left"><p>0.367 ± 0.000</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>BlockingPy (gpu_faiss ivf)</p></td>
+<td class="text-right"><p>150000</p></td>
+<td class="text-left"><p>71.458 ± 2.185</p></td>
+<td class="text-left"><p>0.801427 ± 0.003905</p></td>
+<td class="text-left"><p>0.999957 ± 0.000002</p></td>
+<td class="text-left"><p>0.487 ± 0.021</p></td>
 </tr>
 </tbody>
 </table>
