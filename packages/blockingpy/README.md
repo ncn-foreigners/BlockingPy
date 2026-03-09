@@ -21,6 +21,23 @@ BlockingPy is a Python package that implements efficient blocking methods for re
 
 Additionally, **GPU** acceleration is available via `blockingpy-gpu` ([FAISS-GPU](https://github.com/facebookresearch/faiss/wiki/Running-on-GPUs)).
 
+The package is described in the accompanying [SoftwareX paper](https://www.sciencedirect.com/science/article/pii/S2352711026000774).
+
+## How to cite
+If you use `BlockingPy` in your work, please cite:
+
+```bibtex
+@article{STROJNY2026102583,
+  title = {BlockingPy: approximate nearest neighbours for blocking of records for entity resolution},
+  author = {Tymoteusz Strojny and Maciej Beręsewicz},
+  journal = {SoftwareX},
+  volume = {34},
+  pages = {102583},
+  year = {2026},
+  doi = {10.1016/j.softx.2026.102583},
+  url = {https://doi.org/10.1016/j.softx.2026.102583}
+}
+```
 
 ## Purpose
 
