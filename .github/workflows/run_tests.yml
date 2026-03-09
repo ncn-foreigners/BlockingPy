@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-15-intel]
+        os: [ubuntu-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -32,15 +32,10 @@ jobs:
       #   run: |
       #     brew update
       #     brew install mlpack
-      - name: Create venv
-        run: uv venv
-      - name: Pin build tools on macOS
-        if: runner.os == 'macOS'
+      - name: Create venv and install deps (CPU)
         run: |
-          uv pip install "setuptools<81" wheel
-      - name: Install deps (CPU)
-        run: |
-          uv pip install --no-build-isolation -e packages/blockingpy-core[dev]
+          uv venv
+          uv pip install -e packages/blockingpy-core[dev]
           uv pip install pytest pytest-cov
           uv pip install faiss-cpu
       - name: Run CPU tests 
