@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use BlockingPy, please cite the accompanying SoftwareX paper."
+title: "BlockingPy"
+type: software
+
+authors:
+  - family-names: "Strojny"
+    given-names: "Tymoteusz"
+  - family-names: "Beręsewicz"
+    given-names: "Maciej"
+
+repository-code: "https://github.com/ncn-foreigners/BlockingPy"
+url: "https://github.com/ncn-foreigners/BlockingPy"
+license: "MIT"
+
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Strojny"
+      given-names: "Tymoteusz"
+    - family-names: "Beręsewicz"
+      given-names: "Maciej"
+  title: "BlockingPy: approximate nearest neighbours for blocking of records for entity resolution"
+  journal: "SoftwareX"
+  year: 2026
+  volume: 34
+  start: 102583
+  doi: "10.1016/j.softx.2026.102583"
+  url: "https://doi.org/10.1016/j.softx.2026.102583"
