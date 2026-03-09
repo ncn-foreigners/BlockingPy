@@ -32,10 +32,15 @@ jobs:
       #   run: |
       #     brew update
       #     brew install mlpack
-      - name: Create venv and install deps (CPU)
+      - name: Create venv
+        run: uv venv
+      - name: Pin build tools on macOS
+        if: runner.os == 'macOS'
         run: |
-          uv venv
-          uv pip install -e packages/blockingpy-core[dev]
+          uv pip install "setuptools<81" wheel
+      - name: Install deps (CPU)
+        run: |
+          uv pip install --no-build-isolation -e packages/blockingpy-core[dev]
           uv pip install pytest pytest-cov
           uv pip install faiss-cpu
       - name: Run CPU tests 
@@ -94,4 +99,3 @@ jobs:
         shell: bash -l {0}
         working-directory: ${{ github.workspace }}
         run: micromamba run -n blockingpy-gpu python -m pytest -q tests/test_gpu_faiss.py
-
